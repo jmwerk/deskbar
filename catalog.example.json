@@ -1,0 +1,23 @@
+{
+  "schema": "catalog.v1",
+  "updated_at": "2026-08-28T00:00:00Z",
+  "repo": {
+    "name": "my apps",
+    "description": "Personal bridgething webapps.",
+    "homepage": "https://example.com",
+    "icon": "https://example.com/icon.png"
+  },
+  "apps": [
+    {
+      "id": "01931b6e-6d1b-7c2a-9c3e-9d3a2f8b7a10",
+      "name": "Deskbar",
+      "version": "0.1.0",
+      "download": {
+        "url": "https://example.com/deskbar/01931b6e-6d1b-7c2a-9c3e-9d3a2f8b7a10-0.1.0.zip",
+        "sha256": "REPLACE_WITH_SHA256_OF_THE_ZIP"
+      },
+      "permissions": ["net.fetch"],
+      "role": "standard"
+    }
+  ]
+}

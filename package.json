@@ -1,0 +1,26 @@
+{
+  "name": "deskbar",
+  "private": true,
+  "version": "0.1.1",
+  "type": "module",
+  "description": "A BUSY Bar style status/focus/Jira-time-tracking app for the Car Thing, built on bridgething.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build && node scripts/package-webapp.mjs",
+    "preview": "vite preview",
+    "typecheck": "tsc -b --noEmit"
+  },
+  "dependencies": {
+    "@bridgething/client": "^0.11.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "archiver": "^7.0.1",
+    "typescript": "^6.0.3",
+    "vite": "^5.4.11"
+  }
+}

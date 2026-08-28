@@ -1,0 +1,86 @@
+{
+  "id": "01931b6e-6d1b-7c2a-9c3e-9d3a2f8b7a10",
+  "name": "Deskbar",
+  "version": "0.1.1",
+  "description": "Busy/available/focus status, a focus timer, and Jira worklog time tracking.",
+  "icon": "icon.png",
+  "role": "standard",
+  "rendersVoiceDisplay": false,
+  "config": [
+    {
+      "type": "string",
+      "data": {
+        "key": "jiraBaseUrl",
+        "label": "Jira site URL (e.g. https://yourteam.atlassian.net)",
+        "pattern": "^https://.+",
+        "minLength": null,
+        "maxLength": 200,
+        "default": null
+      }
+    },
+    {
+      "type": "string",
+      "data": {
+        "key": "jiraEmail",
+        "label": "Jira account email",
+        "pattern": null,
+        "minLength": null,
+        "maxLength": 200,
+        "default": null
+      }
+    },
+    {
+      "type": "secret",
+      "data": {
+        "key": "jiraApiToken",
+        "label": "Jira API token",
+        "pattern": null,
+        "minLength": null,
+        "maxLength": 500,
+        "default": null
+      }
+    },
+    {
+      "type": "string",
+      "data": {
+        "key": "jiraJql",
+        "label": "JQL for the issue picker (defaults to issues assigned to you)",
+        "pattern": null,
+        "minLength": null,
+        "maxLength": 500,
+        "default": "assignee = currentUser() AND resolution = Unresolved ORDER BY updated DESC"
+      }
+    },
+    {
+      "type": "string",
+      "data": {
+        "key": "focusWebhookUrl",
+        "label": "Optional webhook to call on focus start/stop (Home Assistant, IFTTT, Shortcuts, etc.) to trigger phone/PC Do Not Disturb",
+        "pattern": null,
+        "minLength": null,
+        "maxLength": 500,
+        "default": null
+      }
+    },
+    {
+      "type": "number",
+      "data": {
+        "key": "defaultFocusMinutes",
+        "label": "Default focus session length (minutes)",
+        "min": 5,
+        "max": 240,
+        "step": 5,
+        "default": 25
+      }
+    }
+  ],
+  "permissions": ["net.fetch"],
+  "overlays": {
+    "notifications": true,
+    "call": true,
+    "pairing": true,
+    "connection": true,
+    "volume": true,
+    "voice": false
+  }
+}

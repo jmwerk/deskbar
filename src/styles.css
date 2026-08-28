@@ -1,0 +1,243 @@
+:root {
+  color-scheme: dark;
+  --bg: #0b0d10;
+  --fg: #f5f6f7;
+  --muted: #8a9099;
+  --available: #2ecc71;
+  --busy: #e74c3c;
+  --focus: #3b82f6;
+  --panel: #16191d;
+  --border: #262b31;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+  user-select: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  color: inherit;
+}
+
+.screen {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 24px;
+}
+
+.center {
+  align-items: center;
+  justify-content: center;
+}
+
+/* Home */
+
+.status-banner {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 700;
+  padding: 10px 0;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+.status-available {
+  background: color-mix(in srgb, var(--available) 20%, transparent);
+  color: var(--available);
+}
+.status-busy {
+  background: color-mix(in srgb, var(--busy) 20%, transparent);
+  color: var(--busy);
+}
+.status-focus {
+  background: color-mix(in srgb, var(--focus) 20%, transparent);
+  color: var(--focus);
+}
+
+.tiles {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.tile {
+  border: none;
+  border-radius: 16px;
+  font-size: 26px;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tile-available {
+  background: var(--available);
+}
+.tile-busy {
+  background: var(--busy);
+}
+.tile-focus {
+  background: var(--focus);
+}
+
+.hint {
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--muted);
+  text-align: center;
+}
+.hint.error {
+  color: var(--busy);
+}
+
+/* Focus setup */
+
+.focus-setup h1 {
+  font-size: 24px;
+  margin: 0 0 12px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 20px;
+}
+.stepper button {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  font-size: 22px;
+}
+
+.issue-picker {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.issue-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.issue-row {
+  text-align: left;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  gap: 10px;
+  font-size: 15px;
+}
+.issue-row.selected {
+  border-color: var(--focus);
+  background: color-mix(in srgb, var(--focus) 15%, var(--panel));
+}
+.issue-key {
+  font-weight: 700;
+  color: var(--focus);
+  flex-shrink: 0;
+}
+.issue-summary {
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 14px;
+}
+.btn-primary,
+.btn-secondary {
+  flex: 1;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  font-size: 18px;
+  font-weight: 700;
+}
+.btn-primary {
+  background: var(--focus);
+  color: #fff;
+}
+.btn-secondary {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--fg);
+}
+
+/* Focus running */
+
+.focus-running {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 16px;
+}
+
+.clock {
+  font-size: 96px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.issue-tag {
+  font-size: 18px;
+  color: var(--muted);
+}
+
+.progress-track {
+  width: 80%;
+  height: 8px;
+  background: var(--panel);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--focus);
+  transition: width 1s linear;
+}
+
+.end-btn {
+  margin-top: 12px;
+  padding: 12px 28px;
+  flex: none;
+}
