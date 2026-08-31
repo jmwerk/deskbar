@@ -49,6 +49,19 @@ daemon and simply won't find one there, so screens that need live device
 data (config, the timer's persisted state) will sit in their loading/empty
 state until you load the zip onto an actual Car Thing.
 
+`npm run dev:mock` (`VITE_MOCK=1`) swaps in an in-browser fake bridgething
+client instead, so you can exercise the whole app — status, focus timer,
+Jira issue picker, worklog logging, webhook firing — without a real
+on-device daemon. There's no dev-server/network path to a real Car Thing
+(`@bridgething/client@0.11.0` fails to decode the daemon's first message
+over an actual network link, only over loopback), so the mock is the
+fastest inner loop; see "Installing it on the device" below for testing
+against real hardware.
+
+The UI is tuned for the Car Thing's 800x480 touch LCD (~235ppi) — expect
+desktop-browser testing to look oversized relative to how it reads on
+device.
+
 ## Configuration (set from your phone, not on the device)
 
 Deskbar declares its settings as manifest `config` fields, which the
@@ -90,6 +103,30 @@ The confirmed route:
 
 Bump `manifest.json`'s `version` and re-run `npm run build` for updates;
 list newest-first in the catalog per the publishing docs.
+
+## Physical controls
+
+The Car Thing's presets, rotary dial, and Back button reach the webapp as
+plain `keydown`/`wheel` DOM events (bridgething doesn't route them through
+`@bridgething/client`), so each screen binds them directly:
+
+- **Presets 1-3** pick a status on Home; **presets 1-4** pick a duration
+  preset on Focus Setup.
+- **Dial** scrolls the issue list on Focus Setup (auto-scrolling to keep the
+  selection visible).
+- **Back / Escape** cancels or ends a session on Focus Setup/Running.
+- **Dial push-button** starts a focus session on Focus Setup. bridgething
+  doesn't document this button's keycode, so both community-suggested
+  candidates (Enter and Space) are bound — confirm on real hardware if you
+  add a screen that needs to distinguish them.
+- **Mode ("m") is intentionally left unbound.** The daemon watches raw
+  `KEY_M` across the active webapp for a 5-rapid-press go-home gesture; an
+  app-level binding on "m" would fire on the gesture's first press too. Do
+  not bind Start (or anything else) to "m".
+
+The Car Thing's physical dial and bridgething's notification toasts both
+occlude the screen's top-right corner — keep new interactive UI out of that
+area (the Focus Setup duration row is clustered left for this reason).
 
 ## Project layout
 
