@@ -13,6 +13,33 @@ type Config = {
 
 const DEFAULT_JQL = 'assignee = currentUser() AND resolution = Unresolved ORDER BY updated DESC';
 
+/**
+ * The Car Thing's physical controls never reach `@bridgething/client` — the
+ * kiosk delivers them straight to the page as plain DOM events: preset
+ * buttons 1-4 as `keydown` "1".."4", the Mode button as "m", Back as
+ * "Escape", and the rotary dial as `wheel` with horizontal `deltaX`.
+ */
+const PRESET_MINUTES = [15, 25, 45, 60];
+const PRESET_LABELS = ['①', '②', '③', '④'];
+
+/** Rotary wheel events arrive as a burst of small deltas per detent; accumulate and step. */
+function useRotaryStep(onStep: (direction: 1 | -1) => void, enabled: boolean) {
+  useEffect(() => {
+    if (!enabled) return;
+    let accum = 0;
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+      e.preventDefault();
+      accum += e.deltaX;
+      if (Math.abs(accum) < 100) return;
+      onStep(accum > 0 ? 1 : -1);
+      accum = 0;
+    };
+    window.addEventListener('wheel', onWheel, { passive: false });
+    return () => window.removeEventListener('wheel', onWheel);
+  }, [onStep, enabled]);
+}
+
 function parseConfig(raw: Record<string, string>): Config {
   const jira =
     raw.jiraBaseUrl && raw.jiraEmail && raw.jiraApiToken
@@ -168,6 +195,20 @@ function Home({
   jiraConfigured: boolean;
   onSelect: (status: Status) => void;
 }) {
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.repeat) return;
+      // Presets 1-3 mirror the three tiles below; preset 4 has no fourth status to map to.
+      if (e.key === '1') onSelect('available');
+      else if (e.key === '2') onSelect('busy');
+      else if (e.key === '3') onSelect('focus');
+      else return;
+      e.preventDefault();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [onSelect]);
+
   return (
     <div className="screen home">
       <div className={`status-banner status-${status}`}>{statusLabel(status)}</div>
@@ -202,6 +243,11 @@ function Home({
           <BoltIcon />
           <span>Focus</span>
         </button>
+      </div>
+      <div className="button-hint">
+        <span>① Available</span>
+        <span>② Busy</span>
+        <span>③ Focus</span>
       </div>
       {!jiraConfigured && (
         <div className="hint">Set your Jira site, email and API token from the Deskbar settings on your phone to enable time tracking.</div>
@@ -251,7 +297,49 @@ function FocusSetup({
     load();
   }, [config, load]);
 
-  const presetMinutes = [15, 25, 45, 60];
+  // "No issue" plus the loaded issues, in on-screen order, for the rotary dial to step through.
+  const pickList = useMemo<(JiraIssue | undefined)[]>(() => [undefined, ...(issues ?? [])], [issues]);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.repeat) return;
+      const presetIndex = ['1', '2', '3', '4'].indexOf(e.key);
+      if (presetIndex !== -1) {
+        setMinutes(PRESET_MINUTES[presetIndex]);
+      } else if (e.key === 'Escape') {
+        onCancel();
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        // The dial's push-button — bridgething doesn't document its key, so both
+        // common candidates are handled. preventDefault below also stops it from
+        // re-activating whatever button last happened to hold focus.
+        onStart(minutes * 60, selected);
+      } else {
+        return;
+      }
+      e.preventDefault();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [minutes, selected, onCancel, onStart]);
+
+  const onDialStep = useCallback(
+    (direction: 1 | -1) => {
+      const currentIndex = Math.max(
+        0,
+        pickList.findIndex(i => i?.key === selected?.key),
+      );
+      const nextIndex = Math.min(pickList.length - 1, Math.max(0, currentIndex + direction));
+      setSelected(pickList[nextIndex]);
+    },
+    [pickList, selected],
+  );
+  useRotaryStep(onDialStep, !!config.jira);
+
+  // Keep the selected row in view when the dial moves the selection off-screen.
+  const selectedRowRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    selectedRowRef.current?.scrollIntoView({ block: 'nearest' });
+  }, [selected]);
 
   return (
     <div className="screen focus-setup">
@@ -260,8 +348,9 @@ function FocusSetup({
       <div className="row">
         <label>Duration</label>
         <div className="presets">
-          {presetMinutes.map(p => (
+          {PRESET_MINUTES.map((p, i) => (
             <button key={p} className={`preset-chip ${minutes === p ? 'selected' : ''}`} onClick={() => setMinutes(p)}>
+              {PRESET_LABELS[i]}
               {p}m
             </button>
           ))}
@@ -287,12 +376,17 @@ function FocusSetup({
           {!error && !issues && <div className="hint">Loading your Jira issues…</div>}
           {issues && issues.length === 0 && <div className="hint">No matching issues found.</div>}
           <div className="issue-list">
-            <button className={`issue-row ${!selected ? 'selected' : ''}`} onClick={() => setSelected(undefined)}>
+            <button
+              ref={!selected ? selectedRowRef : undefined}
+              className={`issue-row ${!selected ? 'selected' : ''}`}
+              onClick={() => setSelected(undefined)}
+            >
               No issue — just a timer
             </button>
             {issues?.map(issue => (
               <button
                 key={issue.key}
+                ref={selected?.key === issue.key ? selectedRowRef : undefined}
                 className={`issue-row ${selected?.key === issue.key ? 'selected' : ''}`}
                 onClick={() => setSelected(issue)}
               >
@@ -329,6 +423,18 @@ function FocusRunning({
   totalS: number;
   onEnd: () => void;
 }) {
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.repeat) return;
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onEnd();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [onEnd]);
+
   const progress = Math.min(1, Math.max(0, 1 - remainingS / totalS));
   return (
     <div className="screen focus-running">
