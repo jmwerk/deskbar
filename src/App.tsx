@@ -84,7 +84,7 @@ export default function App() {
       const { durationS, issueKey, issueSummary } = session.focus;
       const elapsedS = completed ? durationS : activeElapsedS(session.focus, now);
       update({ status: 'available' });
-      const webhookOk = await fireFocusWebhook(config.focusWebhookUrl, 'focus.stopped', {
+      const webhookOk = await fireFocusWebhook(config.focusWebhookUrl, config.focusWebhookFormat, 'focus.stopped', {
         issueKey,
         durationS: elapsedS,
       });
@@ -174,7 +174,7 @@ export default function App() {
           const focus = { startedAt: Date.now(), durationS, issueKey: issue?.key, issueSummary: issue?.summary };
           update({ status: 'focus', focus });
           setScreen('home');
-          const webhookOk = await fireFocusWebhook(config.focusWebhookUrl, 'focus.started', {
+          const webhookOk = await fireFocusWebhook(config.focusWebhookUrl, config.focusWebhookFormat, 'focus.started', {
             issueKey: issue?.key,
             durationS,
           });

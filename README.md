@@ -29,12 +29,18 @@ give you, built here:
   worklog from Jira too (entries logged before this existed have no
   worklog id to delete by, so those are removed from Deskbar only).
 - **Focus automation hook** — since bridgething has no API for toggling a
-  phone's or PC's Do Not Disturb, Deskbar instead POSTs a small JSON event
+  phone's or PC's Do Not Disturb, Deskbar instead POSTs an event
   (`focus.started` / `focus.stopped`) to an optional webhook URL you
-  configure. Point that at a Home Assistant webhook, an IFTTT Webhooks
-  applet, or an Apple Shortcuts personal-automation trigger, and have _that_
-  flip DND / block apps. This is the honest substitute for BUSY Bar's
-  built-in phone/PC app blocking, which bridgething's SDK doesn't expose.
+  configure. The **webhook payload format** setting controls its shape:
+  "json" (the default — a small `{event, issueKey, durationS}` payload) for
+  pointing at a Home Assistant webhook, an IFTTT Webhooks applet, or an
+  Apple Shortcuts personal-automation trigger to flip DND / block apps —
+  the honest substitute for BUSY Bar's built-in phone/PC app blocking,
+  which bridgething's SDK doesn't expose — or "slack"/"teams" to post a
+  plain-text status message straight to a
+  [Slack](https://api.slack.com/messaging/webhooks) or
+  [Teams](https://learn.microsoft.com/microsoftteams/platform/webhooks-and-connectors/how-to/connectors-using)
+  incoming webhook URL instead.
 
 All of the above is verified against the real `@bridgething/client@0.11.0`
 and `@bridgething/lib@0.11.0` TypeScript definitions (pulled from npm), not
@@ -125,6 +131,7 @@ settings page needed:
 - **JQL for the issue picker** — defaults to
   `assignee = currentUser() AND resolution = Unresolved ORDER BY updated DESC`
 - **Focus webhook URL** — optional
+- **Focus webhook payload format** — `json` (default), `slack`, or `teams`
 - **Default focus length** — minutes
 
 Time tracking and the issue picker degrade gracefully if Jira isn't

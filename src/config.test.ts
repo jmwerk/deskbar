@@ -25,4 +25,17 @@ describe('parseConfig', () => {
   it('parses an overridden default focus length', () => {
     expect(parseConfig({ defaultFocusMinutes: '45' }).defaultFocusMinutes).toBe(45);
   });
+
+  it('defaults the webhook format to json when unset', () => {
+    expect(parseConfig({}).focusWebhookFormat).toBe('json');
+  });
+
+  it('accepts a configured webhook format', () => {
+    expect(parseConfig({ focusWebhookFormat: 'slack' }).focusWebhookFormat).toBe('slack');
+    expect(parseConfig({ focusWebhookFormat: 'teams' }).focusWebhookFormat).toBe('teams');
+  });
+
+  it('falls back to json for an unrecognized webhook format value', () => {
+    expect(parseConfig({ focusWebhookFormat: 'discord' }).focusWebhookFormat).toBe('json');
+  });
 });

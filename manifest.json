@@ -55,11 +55,20 @@
       "type": "string",
       "data": {
         "key": "focusWebhookUrl",
-        "label": "Optional webhook to call on focus start/stop (Home Assistant, IFTTT, Shortcuts, etc.) to trigger phone/PC Do Not Disturb",
+        "label": "Optional webhook to call on focus start/stop — a Home Assistant/IFTTT/Shortcuts automation URL to trigger phone/PC Do Not Disturb, or a Slack/Teams incoming webhook URL to post your status there",
         "pattern": null,
         "minLength": null,
         "maxLength": 500,
         "default": null
+      }
+    },
+    {
+      "type": "enum",
+      "data": {
+        "key": "focusWebhookFormat",
+        "label": "Focus webhook payload format",
+        "choices": ["json", "slack", "teams"],
+        "default": "json"
       }
     },
     {

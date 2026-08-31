@@ -17,6 +17,7 @@ const DEFAULT_MOCK_CONFIG: Record<string, string> = {
   jiraApiToken: 'mock-token',
   jiraJql: 'assignee = currentUser() AND resolution = Unresolved ORDER BY updated DESC',
   focusWebhookUrl: '',
+  focusWebhookFormat: 'json',
   defaultFocusMinutes: '25',
 };
 
@@ -131,7 +132,7 @@ export const mockClient: AppBridgeClient = {
   net: {
     async fetch({ request }) {
       const { url, method, body } = request;
-      console.log(`[mock] net.fetch ${method} ${url}`);
+      console.log(`[mock] net.fetch ${method} ${url}`, body ? decodeBody(body) : '');
 
       const fault = matchingFault(url);
       if (fault?.throws) {
