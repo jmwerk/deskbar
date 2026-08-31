@@ -66,7 +66,10 @@ against real hardware.
 
 The UI is tuned for the Car Thing's 800x480 touch LCD (~235ppi) — expect
 desktop-browser testing to look oversized relative to how it reads on
-device.
+device. The physical rotary dial also sits over the screen's top-right
+corner, permanently covering part of it — a desktop browser won't show
+this either, so it's easy to place a control there without noticing. See
+"Physical controls" below before adding new interactive UI.
 
 ### Testing failure paths
 
@@ -161,8 +164,15 @@ plain `keydown`/`wheel` DOM events (bridgething doesn't route them through
   not bind Start (or anything else) to "m".
 
 The Car Thing's physical dial and bridgething's notification toasts both
-occlude the screen's top-right corner — keep new interactive UI out of that
-area (the Focus Setup duration row is clustered left for this reason).
+cover the screen's top-right corner, but differently: the toasts are a
+transient visual overlay (`--toast-safe-w`/`--toast-safe-h` in styles.css)
+that never blocks taps, while the dial is a permanent physical obstruction
+— a control placed under it can be genuinely hard or impossible to press,
+not just briefly hidden. Keep new interactive UI out of that corner, and
+prefer large, full-width tap targets over small corner-anchored ones so a
+control isn't only reachable from the side the dial sits on (the Focus
+Setup duration row clusters left for this reason; Today's history rows are
+each one large tappable row rather than a small delete icon at the edge).
 
 ## Project layout
 

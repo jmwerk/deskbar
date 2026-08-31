@@ -450,11 +450,13 @@ label {
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
   border: 1px solid var(--border);
   background: var(--panel);
   border-radius: 12px;
   padding: 12px 14px;
   font-size: 17px;
+  text-align: left;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
@@ -478,35 +480,41 @@ label {
   flex-shrink: 0;
 }
 
-.history-delete {
+.history-delete-hint {
   flex-shrink: 0;
-  width: 34px;
-  height: 34px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--bg);
   color: var(--muted);
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
+/*
+ * The dial physically overlaps the screen's top-right corner (see the
+ * "Physical controls" note in the README), so nothing here relies on a
+ * small corner-anchored target: the whole `.history-row` above is the tap
+ * target for opening this confirm state, and Cancel/Delete below span the
+ * full row width rather than sitting as small pills off to one side.
+ */
 .history-row-confirm {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
   border-color: color-mix(in srgb, var(--busy) 45%, var(--border));
 }
 
 .history-confirm-label {
-  flex: 1;
   color: var(--busy);
   font-weight: 700;
 }
 
+.history-confirm-actions {
+  display: flex;
+  gap: 10px;
+}
+
 .history-confirm-cancel,
 .history-confirm-delete {
-  flex-shrink: 0;
-  padding: 8px 16px;
+  flex: 1;
+  padding: 10px 16px;
   border-radius: 10px;
   border: none;
   font-size: 15px;

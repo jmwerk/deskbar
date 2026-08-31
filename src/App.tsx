@@ -705,34 +705,42 @@ function History({
             confirmingId === entry.id ? (
               <div className="history-row history-row-confirm" key={entry.id}>
                 <span className="history-confirm-label">Delete{entry.worklogId ? ' from Jira' : ''}?</span>
-                <button
-                  className="history-confirm-cancel"
-                  disabled={pendingId === entry.id}
-                  onClick={() => setConfirmingId(null)}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="history-confirm-delete"
-                  disabled={pendingId === entry.id}
-                  onClick={() => void confirmDelete(entry)}
-                >
-                  {pendingId === entry.id ? 'Deleting…' : 'Delete'}
-                </button>
+                <div className="history-confirm-actions">
+                  <button
+                    className="history-confirm-cancel"
+                    disabled={pendingId === entry.id}
+                    onClick={() => setConfirmingId(null)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="history-confirm-delete"
+                    disabled={pendingId === entry.id}
+                    onClick={() => void confirmDelete(entry)}
+                  >
+                    {pendingId === entry.id ? 'Deleting…' : 'Delete'}
+                  </button>
+                </div>
               </div>
             ) : (
-              <div className="history-row" key={entry.id}>
+              // The whole row is the tap target, not a small icon at its edge —
+              // on the 800x480 display, the top-right corner sits under the
+              // physical dial, which makes a corner-anchored button hard to hit
+              // (see the "Physical controls" note in the README). A full-width
+              // row gives the same action a much larger, dial-clear hit area.
+              <button
+                className="history-row"
+                key={entry.id}
+                aria-label={`Delete logged time for ${entry.issueKey}`}
+                onClick={() => setConfirmingId(entry.id)}
+              >
                 <span className="history-issue">{entry.issueKey}</span>
                 <span className="history-summary">{entry.issueSummary}</span>
                 <span className="history-duration">{formatDuration(entry.seconds)}</span>
-                <button
-                  className="history-delete"
-                  aria-label={`Delete logged time for ${entry.issueKey}`}
-                  onClick={() => setConfirmingId(entry.id)}
-                >
+                <span className="history-delete-hint" aria-hidden="true">
                   ×
-                </button>
-              </div>
+                </span>
+              </button>
             ),
           )}
         </div>
