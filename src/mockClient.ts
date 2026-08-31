@@ -157,7 +157,7 @@ export const mockClient: AppBridgeClient = {
         };
       }
 
-      if (method === 'POST' && /\/rest\/api\/3\/issue\/[^/]+\/worklog$/.test(url)) {
+      if (method === 'POST' && /\/rest\/api\/3\/issue\/[^/]+\/worklog(\?|$)/.test(url)) {
         const worklogId = `mock-${Date.now()}`;
         console.log('[mock] worklog logged:', decodeBody(body), '-> id', worklogId);
         return { ok: true, response: { response: { status: 201, headers: [], body: jsonBody({ id: worklogId }) } } };

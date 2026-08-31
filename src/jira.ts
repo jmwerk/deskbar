@@ -135,6 +135,11 @@ export async function searchIssues(cfg: JiraConfig, jql: string): Promise<JiraIs
  * Log time against an issue. `seconds` should be >= 60; Jira rounds
  * sub-minute worklogs down to zero. Returns the created worklog's id, so it
  * can be deleted later (see `deleteWorklog`) if the entry needs undoing.
+ *
+ * `adjustEstimate=leave` on both this and `deleteWorklog`: Jira's default
+ * ("auto") silently subtracts logged time from the issue's Remaining
+ * Estimate on create and adds it back on delete. Deskbar is only recording
+ * time spent, not managing estimates, so it leaves that field alone.
  */
 export async function logWork(
   cfg: JiraConfig,
@@ -152,16 +157,18 @@ export async function logWork(
       content: [{ type: 'paragraph', content: [{ type: 'text', text: comment }] }],
     };
   }
-  const data = (await jiraFetch(cfg, `/rest/api/3/issue/${encodeURIComponent(issueKey)}/worklog`, {
+  const data = (await jiraFetch(cfg, `/rest/api/3/issue/${encodeURIComponent(issueKey)}/worklog?adjustEstimate=leave`, {
     method: 'POST',
     body,
   })) as { id: string };
   return { worklogId: data.id };
 }
 
-/** Delete a worklog previously created by `logWork`. */
+/** Delete a worklog previously created by `logWork`. See the `adjustEstimate` note above. */
 export async function deleteWorklog(cfg: JiraConfig, issueKey: string, worklogId: string): Promise<void> {
-  await jiraFetch(cfg, `/rest/api/3/issue/${encodeURIComponent(issueKey)}/worklog/${encodeURIComponent(worklogId)}`, {
-    method: 'DELETE',
-  });
+  await jiraFetch(
+    cfg,
+    `/rest/api/3/issue/${encodeURIComponent(issueKey)}/worklog/${encodeURIComponent(worklogId)}?adjustEstimate=leave`,
+    { method: 'DELETE' },
+  );
 }
