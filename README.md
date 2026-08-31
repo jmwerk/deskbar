@@ -12,7 +12,9 @@ give you, built here:
 - **Status display** — tap Available / Busy / Focus; the current status is
   shown full-screen and persisted on the device (survives a reload/reboot).
 - **Focus timer** — pick a duration, optionally attach a Jira issue, and run
-  a full-screen countdown.
+  a full-screen countdown. Can be paused and resumed (Back or a touch
+  button toggles it) — paused time doesn't count toward the session,
+  whether it ends naturally or you end it early.
 - **Jira time tracking** — the focus-setup screen lists issues from a
   configurable JQL query (defaults to "assigned to me, unresolved"); when a
   focus session ends (naturally or early), the elapsed time is logged to
@@ -225,8 +227,10 @@ plain `keydown`/`wheel` DOM events (bridgething doesn't route them through
   Focus Setup and Log Time Now.
 - **Dial** scrolls the issue list on Focus Setup/Log Time Now
   (auto-scrolling to keep the selection visible).
-- **Back / Escape** cancels or ends a session on Focus Setup/Running/Log
-  Time Now/Today.
+- **Back / Escape** cancels on Focus Setup/Log Time Now, backs out of
+  Today (or dismisses its delete-confirm step first). On Focus Running it
+  **toggles pause/resume** rather than ending the session — ending is a
+  separate touch button there, from either state.
 - **Dial push-button** starts a focus session on Focus Setup (both `Enter`
   and `Space` are bound — see [HARDWARE.md](HARDWARE.md) for why).
 - The **Today** summary and history rows are touch-only — no physical

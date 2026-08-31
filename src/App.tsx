@@ -12,7 +12,7 @@ import {
 } from './history';
 import { deleteWorklog, logWork } from './jira';
 import { loadPendingWorklogs, queuePendingWorklog, removePendingWorklog } from './retryQueue';
-import { loadSession, saveSession, type SessionState } from './session';
+import { activeElapsedS, loadSession, saveSession, type SessionState } from './session';
 import { Toast } from './Toast';
 import { fireFocusWebhook } from './webhook';
 import { FocusRunning } from './screens/FocusRunning';
@@ -63,14 +63,26 @@ export default function App() {
 
   const remainingS = useMemo(() => {
     if (!session?.focus) return 0;
-    return session.focus.durationS - (now - session.focus.startedAt) / 1000;
+    return session.focus.durationS - activeElapsedS(session.focus, now);
   }, [session, now]);
+
+  const togglePause = useCallback(() => {
+    if (!session?.focus) return;
+    const focus = session.focus;
+    if (focus.pausedAt) {
+      // Resume: fold the pause just ending into the running total.
+      const pausedMs = (focus.pausedMs ?? 0) + (Date.now() - focus.pausedAt);
+      update({ status: 'focus', focus: { ...focus, pausedAt: null, pausedMs } });
+    } else {
+      update({ status: 'focus', focus: { ...focus, pausedAt: Date.now() } });
+    }
+  }, [session, update]);
 
   const endFocus = useCallback(
     async (completed: boolean) => {
       if (!session?.focus) return;
-      const { startedAt, durationS, issueKey, issueSummary } = session.focus;
-      const elapsedS = completed ? durationS : (now - startedAt) / 1000;
+      const { durationS, issueKey, issueSummary } = session.focus;
+      const elapsedS = completed ? durationS : activeElapsedS(session.focus, now);
       update({ status: 'available' });
       const webhookOk = await fireFocusWebhook(config.focusWebhookUrl, 'focus.stopped', {
         issueKey,
@@ -97,9 +109,10 @@ export default function App() {
     [session, now, config, update, showError],
   );
 
-  // Auto-end when the countdown reaches zero.
+  // Auto-end when the countdown reaches zero (never while paused — the
+  // math already holds remainingS still then, this is just belt-and-braces).
   useEffect(() => {
-    if (session?.status === 'focus' && remainingS <= 0) {
+    if (session?.status === 'focus' && !session.focus?.pausedAt && remainingS <= 0) {
       void endFocus(true);
     }
   }, [session, remainingS, endFocus]);
@@ -147,6 +160,8 @@ export default function App() {
         issueSummary={session.focus.issueSummary}
         remainingS={remainingS}
         totalS={session.focus.durationS}
+        paused={!!session.focus.pausedAt}
+        onTogglePause={togglePause}
         onEnd={() => void endFocus(false)}
       />
     );

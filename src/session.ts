@@ -7,7 +7,22 @@ export type FocusSession = {
   durationS: number;
   issueKey?: string;
   issueSummary?: string;
+  /** unix ms when the current pause began, or null/absent while running. */
+  pausedAt?: number | null;
+  /** Total ms already spent paused across prior pauses this session. */
+  pausedMs?: number;
 };
+
+/**
+ * Seconds actually spent running (not paused) so far. Used both for the
+ * live countdown and for how much time gets logged if the session ends
+ * early — paused time shouldn't count toward either.
+ */
+export function activeElapsedS(focus: FocusSession, now: number): number {
+  const pausedMs = focus.pausedMs ?? 0;
+  const ongoingPauseMs = focus.pausedAt ? now - focus.pausedAt : 0;
+  return (now - focus.startedAt - pausedMs - ongoingPauseMs) / 1000;
+}
 
 export type SessionState = {
   status: Status;

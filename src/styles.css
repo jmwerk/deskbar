@@ -344,6 +344,10 @@ label {
   display: flex;
   gap: 14px;
   margin-top: 16px;
+  /* Full width regardless of a parent's align-items (Focus Running
+     centers its other children, which would otherwise shrink this to
+     fit its content instead of letting the flex:1 buttons split evenly). */
+  align-self: stretch;
 }
 
 .btn-primary,
@@ -403,6 +407,10 @@ label {
   font-variant-numeric: tabular-nums;
 }
 
+.clock-paused {
+  color: var(--muted);
+}
+
 .issue-tag {
   font-size: 20px;
   color: var(--muted);
@@ -420,12 +428,6 @@ label {
   height: 100%;
   background: linear-gradient(90deg, var(--focus), color-mix(in srgb, var(--focus) 60%, #fff));
   transition: width 1s linear;
-}
-
-.end-btn {
-  margin-top: 14px;
-  padding: 14px 32px;
-  flex: none;
 }
 
 /* Today / history */
