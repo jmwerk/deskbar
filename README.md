@@ -17,6 +17,10 @@ give you, built here:
   configurable JQL query (defaults to "assigned to me, unresolved"); when a
   focus session ends (naturally or early), the elapsed time is logged to
   that issue's worklog via the Jira REST API.
+- **Log time now** — log time to an issue directly, without running a
+  timer, from Home's fourth preset.
+- **Today** — a running total of time logged today, tappable from Home, with
+  a list of each session.
 - **Focus automation hook** — since bridgething has no API for toggling a
   phone's or PC's Do Not Disturb, Deskbar instead POSTs a small JSON event
   (`focus.started` / `focus.stopped`) to an optional webhook URL you
@@ -61,6 +65,33 @@ against real hardware.
 The UI is tuned for the Car Thing's 800x480 touch LCD (~235ppi) — expect
 desktop-browser testing to look oversized relative to how it reads on
 device.
+
+### Testing failure paths
+
+The mock always succeeds, so worklog/webhook failure toasts, error states,
+and config pushes from the phone don't happen on their own. In mock mode
+only, `window.__deskbarMock` is wired up in the browser console for exactly
+this:
+
+```js
+// Fail every request whose URL contains this substring, until cleared.
+__deskbarMock.setFetchFault('/worklog', { status: 500 });
+__deskbarMock.setFetchFault('/webhook', { throws: true }); // simulate a dead connection, not just a bad response
+__deskbarMock.clearFetchFault('/worklog');
+__deskbarMock.clearAllFetchFaults();
+
+// Push a config change, as if the phone app had just saved new settings.
+__deskbarMock.setConfig({ focusWebhookUrl: 'https://example.com/webhook' });
+```
+
+### Development
+
+- `npm run lint` / `npm run format` (or `format:check`) — ESLint and
+  Prettier.
+- `npm test` (or `test:watch`) — Vitest; runs against the mock client
+  (`.env.test` sets `VITE_MOCK=1`), so no daemon or hardware is needed.
+- `.github/workflows/ci.yml` runs format, lint, typecheck, test, and build
+  on every push/PR to `main`.
 
 ## Configuration (set from your phone, not on the device)
 
@@ -110,11 +141,15 @@ The Car Thing's presets, rotary dial, and Back button reach the webapp as
 plain `keydown`/`wheel` DOM events (bridgething doesn't route them through
 `@bridgething/client`), so each screen binds them directly:
 
-- **Presets 1-3** pick a status on Home; **presets 1-4** pick a duration
-  preset on Focus Setup.
-- **Dial** scrolls the issue list on Focus Setup (auto-scrolling to keep the
-  selection visible).
-- **Back / Escape** cancels or ends a session on Focus Setup/Running.
+- **Presets 1-3** pick a status on Home; **preset 4** opens Log Time Now
+  (once Jira is configured). **Presets 1-4** pick a duration preset on
+  Focus Setup and Log Time Now.
+- **Dial** scrolls the issue list on Focus Setup/Log Time Now
+  (auto-scrolling to keep the selection visible).
+- **Back / Escape** cancels or ends a session on Focus Setup/Running/Log
+  Time Now/Today.
+- The **Today** summary and history rows are touch-only — no physical
+  binding, since Home's presets/dial are already spoken for.
 - **Dial push-button** starts a focus session on Focus Setup. bridgething
   doesn't document this button's keycode; confirmed on real hardware that it
   fires both Enter and Space, so both are bound.
@@ -135,11 +170,16 @@ icon.png                app icon
 index.html, src/        the webapp itself (React + TypeScript + Vite)
   src/bridgething.ts     BridgethingClient singleton + config helpers
   src/session.ts         status/focus-timer state, persisted via client.store
+  src/history.ts          logged-time history, persisted via client.store
   src/jira.ts             Jira REST calls via client.net.fetch (search + worklog)
   src/webhook.ts          optional focus-start/stop webhook POST
+  src/mockClient.ts       dev:mock's fake client, incl. fault injection
+  src/ErrorBoundary.tsx   top-level render-error fallback
   src/App.tsx, styles.css  the UI
+  src/*.test.ts(x)        Vitest unit tests
 scripts/package-webapp.mjs   zips dist/ + manifest.json + icon.png after `vite build`
 catalog.example.json    example catalog.v1 document for self-hosted distribution
+.github/workflows/ci.yml    lint/typecheck/test/build on push and PR
 ```
 
 ## Known gaps / next steps
@@ -149,8 +189,6 @@ catalog.example.json    example catalog.v1 document for self-hosted distribution
   on-device text search, since a touchscreen-only keyboard flow wasn't
   worth the complexity for a first pass. Narrow results with the JQL field
   instead (e.g. scope it to one project).
-- Worklog time is only logged when a focus session ends; there's no
-  standalone "log time to an issue right now" action yet.
 - Mic/camera-based auto-busy-detection (like BUSY Bar's call detection) has
   no analog here — bridgething's `phone` surface only exposes the connected
   phone's _cellular_ call state, not "an app like Zoom/Meet is capturing the

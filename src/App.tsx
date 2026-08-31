@@ -3,6 +3,7 @@ import { watchConfig } from './bridgething';
 import { loadSession, saveSession, type SessionState, type Status } from './session';
 import { searchIssues, logWork, JiraError, type JiraConfig, type JiraIssue } from './jira';
 import { fireFocusWebhook } from './webhook';
+import { loadHistory, appendHistoryEntry, todayEntries, totalSeconds, type HistoryEntry } from './history';
 
 type Config = {
   jira: JiraConfig | null;
@@ -23,7 +24,7 @@ const PRESET_MINUTES = [15, 25, 45, 60];
 const PRESET_LABELS = ['①', '②', '③', '④'];
 
 /** Rotary wheel events arrive as a burst of small deltas per detent; accumulate and step. */
-function useRotaryStep(onStep: (direction: 1 | -1) => void, enabled: boolean) {
+export function useRotaryStep(onStep: (direction: 1 | -1) => void, enabled: boolean) {
   useEffect(() => {
     if (!enabled) return;
     let accum = 0;
@@ -40,7 +41,7 @@ function useRotaryStep(onStep: (direction: 1 | -1) => void, enabled: boolean) {
   }, [onStep, enabled]);
 }
 
-function parseConfig(raw: Record<string, string>): Config {
+export function parseConfig(raw: Record<string, string>): Config {
   const jira =
     raw.jiraBaseUrl && raw.jiraEmail && raw.jiraApiToken
       ? { baseUrl: raw.jiraBaseUrl, email: raw.jiraEmail, apiToken: raw.jiraApiToken }
@@ -53,19 +54,31 @@ function parseConfig(raw: Record<string, string>): Config {
   };
 }
 
-function formatClock(totalSeconds: number): string {
+export function formatClock(totalSeconds: number): string {
   const s = Math.max(0, Math.round(totalSeconds));
   const m = Math.floor(s / 60);
   const sec = s % 60;
   return `${m}:${sec.toString().padStart(2, '0')}`;
 }
 
+/** Compact "1h 45m" / "45m" duration label, for the today summary and history rows. */
+export function formatDuration(seconds: number): string {
+  const totalMinutes = Math.round(seconds / 60);
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
 export default function App() {
   const [config, setConfig] = useState<Config>({ jira: null, jiraJql: DEFAULT_JQL, defaultFocusMinutes: 25 });
   const [session, setSession] = useState<SessionState | null>(null);
-  const [screen, setScreen] = useState<'home' | 'focusSetup'>('home');
+  const [screen, setScreen] = useState<'home' | 'focusSetup' | 'logTime' | 'history'>('home');
   const [now, setNow] = useState(() => Date.now());
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; kind: 'success' | 'error' } | null>(null);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+
+  const showError = useCallback((message: string) => setToast({ message, kind: 'error' }), []);
+  const showSuccess = useCallback((message: string) => setToast({ message, kind: 'success' }), []);
 
   // Auto-dismiss any toast after a few seconds.
   useEffect(() => {
@@ -82,9 +95,14 @@ export default function App() {
     });
   }, []);
   useEffect(() => {
+    loadHistory().then(setHistory);
+  }, []);
+  useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
+
+  const todaySeconds = useMemo(() => totalSeconds(todayEntries(history, now)), [history, now]);
 
   const update = useCallback((next: SessionState) => {
     setSession(next);
@@ -99,24 +117,25 @@ export default function App() {
   const endFocus = useCallback(
     async (completed: boolean) => {
       if (!session?.focus) return;
-      const { startedAt, durationS, issueKey } = session.focus;
+      const { startedAt, durationS, issueKey, issueSummary } = session.focus;
       const elapsedS = completed ? durationS : (now - startedAt) / 1000;
       update({ status: 'available' });
       const webhookOk = await fireFocusWebhook(config.focusWebhookUrl, 'focus.stopped', {
         issueKey,
         durationS: elapsedS,
       });
-      if (!webhookOk) setToast('Focus automation webhook failed to fire.');
+      if (!webhookOk) showError('Focus automation webhook failed to fire.');
       if (config.jira && issueKey) {
         try {
           await logWork(config.jira, issueKey, elapsedS, 'Logged via Deskbar');
+          void appendHistoryEntry({ issueKey, issueSummary, seconds: elapsedS, loggedAt: Date.now() }).then(setHistory);
         } catch (err) {
           console.warn('[deskbar] failed to log work to Jira', err);
-          setToast(`Couldn't log time to ${issueKey} — the session still ended.`);
+          showError(`Couldn't log time to ${issueKey} — the session still ended.`);
         }
       }
     },
-    [session, now, config, update],
+    [session, now, config, update, showError],
   );
 
   // Auto-end when the countdown reaches zero.
@@ -157,19 +176,36 @@ export default function App() {
             issueKey: issue?.key,
             durationS,
           });
-          if (!webhookOk) setToast('Focus automation webhook failed to fire.');
+          if (!webhookOk) showError('Focus automation webhook failed to fire.');
         }}
       />
     );
+  } else if (screen === 'logTime') {
+    content = (
+      <LogTimeNow
+        config={config}
+        onCancel={() => setScreen('home')}
+        onLogged={entry => {
+          void appendHistoryEntry(entry).then(setHistory);
+          showSuccess(`Logged ${formatDuration(entry.seconds)} to ${entry.issueKey}.`);
+          setScreen('home');
+        }}
+      />
+    );
+  } else if (screen === 'history') {
+    content = <History entries={history} onBack={() => setScreen('home')} />;
   } else {
     content = (
       <Home
         status={session.status}
         jiraConfigured={!!config.jira}
+        todaySeconds={todaySeconds}
         onSelect={status => {
           if (status === 'focus') setScreen('focusSetup');
           else update({ status });
         }}
+        onLogNow={() => setScreen('logTime')}
+        onOpenHistory={() => setScreen('history')}
       />
     );
   }
@@ -177,14 +213,14 @@ export default function App() {
   return (
     <>
       {content}
-      {toast && <Toast message={toast} />}
+      {toast && <Toast message={toast.message} kind={toast.kind} />}
     </>
   );
 }
 
-function Toast({ message }: { message: string }) {
+function Toast({ message, kind }: { message: string; kind: 'success' | 'error' }) {
   return (
-    <div className="toast" role="status">
+    <div className={`toast toast-${kind}`} role="status">
       {message}
     </div>
   );
@@ -236,29 +272,42 @@ function BoltIcon({ size = 34 }: { size?: number }) {
 function Home({
   status,
   jiraConfigured,
+  todaySeconds,
   onSelect,
+  onLogNow,
+  onOpenHistory,
 }: {
   status: Status;
   jiraConfigured: boolean;
+  todaySeconds: number;
   onSelect: (status: Status) => void;
+  onLogNow: () => void;
+  onOpenHistory: () => void;
 }) {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.repeat) return;
-      // Presets 1-3 mirror the three tiles below; preset 4 has no fourth status to map to.
+      // Presets 1-3 mirror the three tiles below; preset 4 opens Log Time
+      // Now (only meaningful once Jira is configured).
       if (e.key === '1') onSelect('available');
       else if (e.key === '2') onSelect('busy');
       else if (e.key === '3') onSelect('focus');
+      else if (e.key === '4' && jiraConfigured) onLogNow();
       else return;
       e.preventDefault();
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [onSelect]);
+  }, [onSelect, onLogNow, jiraConfigured]);
 
   return (
     <div className="screen home">
       <div className={`status-banner status-${status}`}>{statusLabel(status)}</div>
+      {jiraConfigured && (
+        <button className="today-bar" onClick={onOpenHistory}>
+          Today: {formatDuration(todaySeconds)} logged
+        </button>
+      )}
       <div className="tiles">
         <button
           className={`tile tile-available ${status === 'available' ? 'selected' : ''}`}
@@ -295,6 +344,7 @@ function Home({
         <span>① Available</span>
         <span>② Busy</span>
         <span>③ Focus</span>
+        {jiraConfigured && <span>④ Log time</span>}
       </div>
       {!jiraConfigured && (
         <div className="hint">
@@ -316,18 +366,45 @@ function statusLabel(status: Status): string {
   }
 }
 
-function FocusSetup({
+function DurationPicker({ minutes, onChange }: { minutes: number; onChange: (minutes: number) => void }) {
+  return (
+    <div className="row">
+      <label>Duration</label>
+      <div className="presets">
+        {PRESET_MINUTES.map((p, i) => (
+          <button key={p} className={`preset-chip ${minutes === p ? 'selected' : ''}`} onClick={() => onChange(p)}>
+            {PRESET_LABELS[i]}
+            {p}m
+          </button>
+        ))}
+      </div>
+      <div className="stepper">
+        <button onClick={() => onChange(Math.max(5, minutes - 5))}>−</button>
+        <span>{minutes} min</span>
+        <button onClick={() => onChange(Math.min(240, minutes + 5))}>+</button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Fetches and lists Jira issues for `config.jiraJql`, with dial-scroll and
+ * touch selection. `allowNone` adds a "No issue" row at the top (Focus
+ * Setup can run as a plain timer; Log Time Now always needs an issue).
+ * Shared so the fetch/dial/auto-scroll logic isn't duplicated per screen.
+ */
+function IssuePicker({
   config,
-  onCancel,
-  onStart,
+  selected,
+  onSelect,
+  allowNone = true,
 }: {
   config: Config;
-  onCancel: () => void;
-  onStart: (durationS: number, issue: JiraIssue | undefined) => void;
+  selected: JiraIssue | undefined;
+  onSelect: (issue: JiraIssue | undefined) => void;
+  allowNone?: boolean;
 }) {
-  const [minutes, setMinutes] = useState(config.defaultFocusMinutes);
   const [issues, setIssues] = useState<JiraIssue[] | null>(null);
-  const [selected, setSelected] = useState<JiraIssue | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const loadedFor = useRef<string | null>(null);
 
@@ -346,8 +423,82 @@ function FocusSetup({
     load();
   }, [config, load]);
 
-  // "No issue" plus the loaded issues, in on-screen order, for the rotary dial to step through.
-  const pickList = useMemo<(JiraIssue | undefined)[]>(() => [undefined, ...(issues ?? [])], [issues]);
+  // The rows in on-screen order, for the rotary dial to step through.
+  const pickList = useMemo<(JiraIssue | undefined)[]>(
+    () => (allowNone ? [undefined, ...(issues ?? [])] : (issues ?? [])),
+    [issues, allowNone],
+  );
+
+  const onDialStep = useCallback(
+    (direction: 1 | -1) => {
+      const currentIndex = Math.max(
+        0,
+        pickList.findIndex(i => i?.key === selected?.key),
+      );
+      const nextIndex = Math.min(pickList.length - 1, Math.max(0, currentIndex + direction));
+      onSelect(pickList[nextIndex]);
+    },
+    [pickList, selected, onSelect],
+  );
+  useRotaryStep(onDialStep, !!config.jira && pickList.length > 0);
+
+  // Keep the selected row in view when the dial moves the selection off-screen.
+  const selectedRowRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    selectedRowRef.current?.scrollIntoView({ block: 'nearest' });
+  }, [selected]);
+
+  if (!config.jira) return null;
+
+  return (
+    <>
+      {error && (
+        <div className="hint error">
+          {error}
+          <button className="retry-link" onClick={load}>
+            Retry
+          </button>
+        </div>
+      )}
+      {!error && !issues && <div className="hint">Loading your Jira issues…</div>}
+      {issues && issues.length === 0 && <div className="hint">No matching issues found.</div>}
+      <div className="issue-list">
+        {allowNone && (
+          <button
+            ref={!selected ? selectedRowRef : undefined}
+            className={`issue-row ${!selected ? 'selected' : ''}`}
+            onClick={() => onSelect(undefined)}
+          >
+            No issue — just a timer
+          </button>
+        )}
+        {issues?.map(issue => (
+          <button
+            key={issue.key}
+            ref={selected?.key === issue.key ? selectedRowRef : undefined}
+            className={`issue-row ${selected?.key === issue.key ? 'selected' : ''}`}
+            onClick={() => onSelect(issue)}
+          >
+            <span className="issue-key">{issue.key}</span>
+            <span className="issue-summary">{issue.summary}</span>
+          </button>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function FocusSetup({
+  config,
+  onCancel,
+  onStart,
+}: {
+  config: Config;
+  onCancel: () => void;
+  onStart: (durationS: number, issue: JiraIssue | undefined) => void;
+}) {
+  const [minutes, setMinutes] = useState(config.defaultFocusMinutes);
+  const [selected, setSelected] = useState<JiraIssue | undefined>(undefined);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -371,79 +522,16 @@ function FocusSetup({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [minutes, selected, onCancel, onStart]);
 
-  const onDialStep = useCallback(
-    (direction: 1 | -1) => {
-      const currentIndex = Math.max(
-        0,
-        pickList.findIndex(i => i?.key === selected?.key),
-      );
-      const nextIndex = Math.min(pickList.length - 1, Math.max(0, currentIndex + direction));
-      setSelected(pickList[nextIndex]);
-    },
-    [pickList, selected],
-  );
-  useRotaryStep(onDialStep, !!config.jira);
-
-  // Keep the selected row in view when the dial moves the selection off-screen.
-  const selectedRowRef = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    selectedRowRef.current?.scrollIntoView({ block: 'nearest' });
-  }, [selected]);
-
   return (
     <div className="screen focus-setup">
       <h1>Start Focus</h1>
 
-      <div className="row">
-        <label>Duration</label>
-        <div className="presets">
-          {PRESET_MINUTES.map((p, i) => (
-            <button key={p} className={`preset-chip ${minutes === p ? 'selected' : ''}`} onClick={() => setMinutes(p)}>
-              {PRESET_LABELS[i]}
-              {p}m
-            </button>
-          ))}
-        </div>
-        <div className="stepper">
-          <button onClick={() => setMinutes(m => Math.max(5, m - 5))}>−</button>
-          <span>{minutes} min</span>
-          <button onClick={() => setMinutes(m => Math.min(240, m + 5))}>+</button>
-        </div>
-      </div>
+      <DurationPicker minutes={minutes} onChange={setMinutes} />
 
       {config.jira && (
         <div className="issue-picker">
           <label>Log time to</label>
-          {error && (
-            <div className="hint error">
-              {error}
-              <button className="retry-link" onClick={load}>
-                Retry
-              </button>
-            </div>
-          )}
-          {!error && !issues && <div className="hint">Loading your Jira issues…</div>}
-          {issues && issues.length === 0 && <div className="hint">No matching issues found.</div>}
-          <div className="issue-list">
-            <button
-              ref={!selected ? selectedRowRef : undefined}
-              className={`issue-row ${!selected ? 'selected' : ''}`}
-              onClick={() => setSelected(undefined)}
-            >
-              No issue — just a timer
-            </button>
-            {issues?.map(issue => (
-              <button
-                key={issue.key}
-                ref={selected?.key === issue.key ? selectedRowRef : undefined}
-                className={`issue-row ${selected?.key === issue.key ? 'selected' : ''}`}
-                onClick={() => setSelected(issue)}
-              >
-                <span className="issue-key">{issue.key}</span>
-                <span className="issue-summary">{issue.summary}</span>
-              </button>
-            ))}
-          </div>
+          <IssuePicker config={config} selected={selected} onSelect={setSelected} allowNone />
         </div>
       )}
 
@@ -453,6 +541,124 @@ function FocusSetup({
         </button>
         <button className="btn-primary" onClick={() => onStart(minutes * 60, selected)}>
           Start
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function LogTimeNow({
+  config,
+  onCancel,
+  onLogged,
+}: {
+  config: Config;
+  onCancel: () => void;
+  onLogged: (entry: HistoryEntry) => void;
+}) {
+  const [minutes, setMinutes] = useState(config.defaultFocusMinutes);
+  const [selected, setSelected] = useState<JiraIssue | undefined>(undefined);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const submit = useCallback(async () => {
+    if (!config.jira || !selected || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const seconds = minutes * 60;
+      await logWork(config.jira, selected.key, seconds, 'Logged via Deskbar');
+      onLogged({ issueKey: selected.key, issueSummary: selected.summary, seconds, loggedAt: Date.now() });
+    } catch (err) {
+      setError(err instanceof JiraError ? err.message : 'Could not log time to Jira');
+      setBusy(false);
+    }
+  }, [config, selected, minutes, busy, onLogged]);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.repeat) return;
+      const presetIndex = ['1', '2', '3', '4'].indexOf(e.key);
+      if (presetIndex !== -1) {
+        setMinutes(PRESET_MINUTES[presetIndex]);
+      } else if (e.key === 'Escape') {
+        onCancel();
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        void submit();
+      } else {
+        return;
+      }
+      e.preventDefault();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [onCancel, submit]);
+
+  return (
+    <div className="screen focus-setup">
+      <h1>Log Time</h1>
+
+      <DurationPicker minutes={minutes} onChange={setMinutes} />
+
+      <div className="issue-picker">
+        <label>Log time to</label>
+        <IssuePicker config={config} selected={selected} onSelect={setSelected} allowNone={false} />
+        {error && <div className="hint error">{error}</div>}
+      </div>
+
+      <div className="actions">
+        <button className="btn-secondary" onClick={onCancel}>
+          Cancel
+        </button>
+        <button className="btn-primary" disabled={!selected || busy} onClick={() => void submit()}>
+          {busy ? 'Logging…' : 'Log Time'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function History({ entries, onBack }: { entries: HistoryEntry[]; onBack: () => void }) {
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.repeat) return;
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onBack();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [onBack]);
+
+  const today = useMemo(() => todayEntries(entries), [entries]);
+  const total = useMemo(() => totalSeconds(today), [today]);
+
+  return (
+    <div className="screen focus-setup history-screen">
+      <h1>Today</h1>
+      <div className="history-total">
+        {formatDuration(total)} logged
+        {today.length > 0 ? ` across ${today.length} session${today.length === 1 ? '' : 's'}` : ''}
+      </div>
+
+      {today.length === 0 ? (
+        <div className="hint">No time logged yet today.</div>
+      ) : (
+        <div className="history-list">
+          {today.map(entry => (
+            <div className="history-row" key={`${entry.loggedAt}-${entry.issueKey}`}>
+              <span className="history-issue">{entry.issueKey}</span>
+              <span className="history-summary">{entry.issueSummary}</span>
+              <span className="history-duration">{formatDuration(entry.seconds)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="actions">
+        <button className="btn-secondary" onClick={onBack}>
+          Back
         </button>
       </div>
     </div>
