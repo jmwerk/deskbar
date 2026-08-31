@@ -51,7 +51,7 @@ function textToBody(text: string): Uint8Array {
 async function jiraFetch(
   cfg: JiraConfig,
   path: string,
-  init: { method: 'GET' | 'POST' | 'PUT'; body?: unknown } = { method: 'GET' },
+  init: { method: 'GET' | 'POST' | 'PUT' | 'DELETE'; body?: unknown } = { method: 'GET' },
 ): Promise<unknown> {
   const headers: HttpHeader[] = [authHeader(cfg), { name: 'Accept', value: 'application/json' }];
   let body: Uint8Array | null = null;
@@ -131,8 +131,17 @@ export async function searchIssues(cfg: JiraConfig, jql: string): Promise<JiraIs
   }));
 }
 
-/** Log time against an issue. `seconds` should be >= 60; Jira rounds sub-minute worklogs down to zero. */
-export async function logWork(cfg: JiraConfig, issueKey: string, seconds: number, comment?: string): Promise<void> {
+/**
+ * Log time against an issue. `seconds` should be >= 60; Jira rounds
+ * sub-minute worklogs down to zero. Returns the created worklog's id, so it
+ * can be deleted later (see `deleteWorklog`) if the entry needs undoing.
+ */
+export async function logWork(
+  cfg: JiraConfig,
+  issueKey: string,
+  seconds: number,
+  comment?: string,
+): Promise<{ worklogId: string }> {
   const body: Record<string, unknown> = {
     timeSpentSeconds: Math.max(60, Math.round(seconds)),
   };
@@ -143,8 +152,16 @@ export async function logWork(cfg: JiraConfig, issueKey: string, seconds: number
       content: [{ type: 'paragraph', content: [{ type: 'text', text: comment }] }],
     };
   }
-  await jiraFetch(cfg, `/rest/api/3/issue/${encodeURIComponent(issueKey)}/worklog`, {
+  const data = (await jiraFetch(cfg, `/rest/api/3/issue/${encodeURIComponent(issueKey)}/worklog`, {
     method: 'POST',
     body,
+  })) as { id: string };
+  return { worklogId: data.id };
+}
+
+/** Delete a worklog previously created by `logWork`. */
+export async function deleteWorklog(cfg: JiraConfig, issueKey: string, worklogId: string): Promise<void> {
+  await jiraFetch(cfg, `/rest/api/3/issue/${encodeURIComponent(issueKey)}/worklog/${encodeURIComponent(worklogId)}`, {
+    method: 'DELETE',
   });
 }

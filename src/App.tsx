@@ -1,9 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { watchConfig } from './bridgething';
 import { loadSession, saveSession, type SessionState, type Status } from './session';
-import { searchIssues, logWork, JiraError, type JiraConfig, type JiraIssue } from './jira';
+import { searchIssues, logWork, deleteWorklog, JiraError, type JiraConfig, type JiraIssue } from './jira';
 import { fireFocusWebhook } from './webhook';
-import { loadHistory, appendHistoryEntry, todayEntries, totalSeconds, type HistoryEntry } from './history';
+import {
+  loadHistory,
+  appendHistoryEntry,
+  removeHistoryEntry,
+  todayEntries,
+  totalSeconds,
+  type HistoryEntry,
+  type NewHistoryEntry,
+} from './history';
 
 type Config = {
   jira: JiraConfig | null;
@@ -127,8 +135,14 @@ export default function App() {
       if (!webhookOk) showError('Focus automation webhook failed to fire.');
       if (config.jira && issueKey) {
         try {
-          await logWork(config.jira, issueKey, elapsedS, 'Logged via Deskbar');
-          void appendHistoryEntry({ issueKey, issueSummary, seconds: elapsedS, loggedAt: Date.now() }).then(setHistory);
+          const { worklogId } = await logWork(config.jira, issueKey, elapsedS, 'Logged via Deskbar');
+          void appendHistoryEntry({
+            issueKey,
+            issueSummary,
+            seconds: elapsedS,
+            loggedAt: Date.now(),
+            worklogId,
+          }).then(setHistory);
         } catch (err) {
           console.warn('[deskbar] failed to log work to Jira', err);
           showError(`Couldn't log time to ${issueKey} — the session still ended.`);
@@ -193,7 +207,18 @@ export default function App() {
       />
     );
   } else if (screen === 'history') {
-    content = <History entries={history} onBack={() => setScreen('home')} />;
+    content = (
+      <History
+        entries={history}
+        onBack={() => setScreen('home')}
+        onDelete={async entry => {
+          if (config.jira && entry.worklogId) {
+            await deleteWorklog(config.jira, entry.issueKey, entry.worklogId);
+          }
+          setHistory(await removeHistoryEntry(entry.id));
+        }}
+      />
+    );
   } else {
     content = (
       <Home
@@ -554,7 +579,7 @@ function LogTimeNow({
 }: {
   config: Config;
   onCancel: () => void;
-  onLogged: (entry: HistoryEntry) => void;
+  onLogged: (entry: NewHistoryEntry) => void;
 }) {
   const [minutes, setMinutes] = useState(config.defaultFocusMinutes);
   const [selected, setSelected] = useState<JiraIssue | undefined>(undefined);
@@ -567,8 +592,8 @@ function LogTimeNow({
     setError(null);
     try {
       const seconds = minutes * 60;
-      await logWork(config.jira, selected.key, seconds, 'Logged via Deskbar');
-      onLogged({ issueKey: selected.key, issueSummary: selected.summary, seconds, loggedAt: Date.now() });
+      const { worklogId } = await logWork(config.jira, selected.key, seconds, 'Logged via Deskbar');
+      onLogged({ issueKey: selected.key, issueSummary: selected.summary, seconds, loggedAt: Date.now(), worklogId });
     } catch (err) {
       setError(err instanceof JiraError ? err.message : 'Could not log time to Jira');
       setBusy(false);
@@ -618,21 +643,50 @@ function LogTimeNow({
   );
 }
 
-function History({ entries, onBack }: { entries: HistoryEntry[]; onBack: () => void }) {
+function History({
+  entries,
+  onBack,
+  onDelete,
+}: {
+  entries: HistoryEntry[];
+  onBack: () => void;
+  onDelete: (entry: HistoryEntry) => Promise<void>;
+}) {
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [pendingId, setPendingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.repeat) return;
       if (e.key === 'Escape') {
         e.preventDefault();
-        onBack();
+        if (confirmingId) setConfirmingId(null);
+        else onBack();
       }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [onBack]);
+  }, [onBack, confirmingId]);
 
   const today = useMemo(() => todayEntries(entries), [entries]);
   const total = useMemo(() => totalSeconds(today), [today]);
+
+  const confirmDelete = useCallback(
+    async (entry: HistoryEntry) => {
+      setPendingId(entry.id);
+      setError(null);
+      try {
+        await onDelete(entry);
+        setConfirmingId(null);
+      } catch (err) {
+        setError(err instanceof JiraError ? err.message : "Couldn't delete this from Jira");
+      } finally {
+        setPendingId(null);
+      }
+    },
+    [onDelete],
+  );
 
   return (
     <div className="screen focus-setup history-screen">
@@ -641,18 +695,46 @@ function History({ entries, onBack }: { entries: HistoryEntry[]; onBack: () => v
         {formatDuration(total)} logged
         {today.length > 0 ? ` across ${today.length} session${today.length === 1 ? '' : 's'}` : ''}
       </div>
+      {error && <div className="hint error">{error}</div>}
 
       {today.length === 0 ? (
         <div className="hint">No time logged yet today.</div>
       ) : (
         <div className="history-list">
-          {today.map(entry => (
-            <div className="history-row" key={`${entry.loggedAt}-${entry.issueKey}`}>
-              <span className="history-issue">{entry.issueKey}</span>
-              <span className="history-summary">{entry.issueSummary}</span>
-              <span className="history-duration">{formatDuration(entry.seconds)}</span>
-            </div>
-          ))}
+          {today.map(entry =>
+            confirmingId === entry.id ? (
+              <div className="history-row history-row-confirm" key={entry.id}>
+                <span className="history-confirm-label">Delete{entry.worklogId ? ' from Jira' : ''}?</span>
+                <button
+                  className="history-confirm-cancel"
+                  disabled={pendingId === entry.id}
+                  onClick={() => setConfirmingId(null)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="history-confirm-delete"
+                  disabled={pendingId === entry.id}
+                  onClick={() => void confirmDelete(entry)}
+                >
+                  {pendingId === entry.id ? 'Deleting…' : 'Delete'}
+                </button>
+              </div>
+            ) : (
+              <div className="history-row" key={entry.id}>
+                <span className="history-issue">{entry.issueKey}</span>
+                <span className="history-summary">{entry.issueSummary}</span>
+                <span className="history-duration">{formatDuration(entry.seconds)}</span>
+                <button
+                  className="history-delete"
+                  aria-label={`Delete logged time for ${entry.issueKey}`}
+                  onClick={() => setConfirmingId(entry.id)}
+                >
+                  ×
+                </button>
+              </div>
+            ),
+          )}
         </div>
       )}
 

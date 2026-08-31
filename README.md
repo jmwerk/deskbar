@@ -20,7 +20,9 @@ give you, built here:
 - **Log time now** — log time to an issue directly, without running a
   timer, from Home's fourth preset.
 - **Today** — a running total of time logged today, tappable from Home, with
-  a list of each session.
+  a list of each session. Any entry can be deleted, which removes its
+  worklog from Jira too (entries logged before this existed have no
+  worklog id to delete by, so those are removed from Deskbar only).
 - **Focus automation hook** — since bridgething has no API for toggling a
   phone's or PC's Do Not Disturb, Deskbar instead POSTs a small JSON event
   (`focus.started` / `focus.stopped`) to an optional webhook URL you

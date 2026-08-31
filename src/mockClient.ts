@@ -83,9 +83,15 @@ export function resetMockState(): void {
   currentConfig = { ...DEFAULT_MOCK_CONFIG };
   fetchFaults.clear();
   configListeners.clear();
-  for (const key of Object.keys(window.localStorage)) {
-    if (key.startsWith(STORE_PREFIX)) window.localStorage.removeItem(key);
+  // `.key(i)`/`.length` rather than `Object.keys()` — real browser
+  // localStorage exposes stored keys as enumerable properties, but that's
+  // not guaranteed for every Storage implementation (e.g. a test polyfill).
+  const staleKeys: string[] = [];
+  for (let i = 0; i < window.localStorage.length; i++) {
+    const key = window.localStorage.key(i);
+    if (key?.startsWith(STORE_PREFIX)) staleKeys.push(key);
   }
+  staleKeys.forEach(key => window.localStorage.removeItem(key));
 }
 
 function matchingFault(url: string): MockFetchFault | undefined {
@@ -152,8 +158,14 @@ export const mockClient: AppBridgeClient = {
       }
 
       if (method === 'POST' && /\/rest\/api\/3\/issue\/[^/]+\/worklog$/.test(url)) {
-        console.log('[mock] worklog logged:', decodeBody(body));
-        return { ok: true, response: { response: { status: 201, headers: [], body: new Uint8Array() } } };
+        const worklogId = `mock-${Date.now()}`;
+        console.log('[mock] worklog logged:', decodeBody(body), '-> id', worklogId);
+        return { ok: true, response: { response: { status: 201, headers: [], body: jsonBody({ id: worklogId }) } } };
+      }
+
+      if (method === 'DELETE' && /\/rest\/api\/3\/issue\/[^/]+\/worklog\/[^/]+$/.test(url)) {
+        console.log('[mock] worklog deleted:', url);
+        return { ok: true, response: { response: { status: 204, headers: [], body: new Uint8Array() } } };
       }
 
       // The focus webhook (or anything else) — pretend the automation fired.

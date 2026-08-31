@@ -1,8 +1,22 @@
-import { describe, expect, it } from 'vitest';
-import { todayEntries, totalSeconds, type HistoryEntry } from './history';
+import { beforeEach, describe, expect, it } from 'vitest';
+import {
+  appendHistoryEntry,
+  loadHistory,
+  removeHistoryEntry,
+  todayEntries,
+  totalSeconds,
+  type HistoryEntry,
+} from './history';
+import { resetMockState } from './mockClient';
+
+beforeEach(() => {
+  resetMockState();
+});
+
+let nextId = 0;
 
 function entry(loggedAt: number, seconds = 900): HistoryEntry {
-  return { issueKey: 'DESK-1', issueSummary: 'Test', seconds, loggedAt };
+  return { id: `test-${nextId++}`, issueKey: 'DESK-1', issueSummary: 'Test', seconds, loggedAt };
 }
 
 describe('todayEntries', () => {
@@ -31,5 +45,27 @@ describe('totalSeconds', () => {
 
   it('is 0 for an empty list', () => {
     expect(totalSeconds([])).toBe(0);
+  });
+});
+
+describe('appendHistoryEntry / removeHistoryEntry', () => {
+  it('assigns an id and persists the entry, newest first', async () => {
+    await appendHistoryEntry({ issueKey: 'DESK-1', seconds: 900, loggedAt: 1 });
+    const after = await appendHistoryEntry({ issueKey: 'DESK-2', seconds: 300, loggedAt: 2 });
+
+    expect(after).toHaveLength(2);
+    expect(after[0].issueKey).toBe('DESK-2');
+    expect(after[0].id).toBeTruthy();
+    expect(after[0].id).not.toBe(after[1].id);
+  });
+
+  it('removes only the entry with the matching id', async () => {
+    await appendHistoryEntry({ issueKey: 'DESK-1', seconds: 900, loggedAt: 1 });
+    const [toRemove] = await appendHistoryEntry({ issueKey: 'DESK-2', seconds: 300, loggedAt: 2 });
+
+    const after = await removeHistoryEntry(toRemove.id);
+    expect(after).toHaveLength(1);
+    expect(after[0].issueKey).toBe('DESK-1');
+    expect(await loadHistory()).toHaveLength(1);
   });
 });

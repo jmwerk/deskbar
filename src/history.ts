@@ -1,11 +1,17 @@
 import { client } from './bridgething';
 
 export type HistoryEntry = {
+  id: string;
   issueKey: string;
   issueSummary?: string;
   seconds: number;
   loggedAt: number; // unix ms
+  /** The Jira worklog this entry came from, if any — needed to delete it from Jira too. */
+  worklogId?: string;
 };
+
+/** Fields the caller supplies; `id` is assigned when the entry is recorded. */
+export type NewHistoryEntry = Omit<HistoryEntry, 'id'>;
 
 const STORE_KEY = 'deskbar/history';
 
@@ -25,11 +31,22 @@ export async function loadHistory(): Promise<HistoryEntry[]> {
   }
 }
 
+async function saveHistory(entries: HistoryEntry[]): Promise<HistoryEntry[]> {
+  await client.store.put({ key: STORE_KEY, value: JSON.stringify(entries) });
+  return entries;
+}
+
 /** Record a completed worklog and return the updated list. */
-export async function appendHistoryEntry(entry: HistoryEntry): Promise<HistoryEntry[]> {
-  const next = [entry, ...(await loadHistory())].slice(0, MAX_ENTRIES);
-  await client.store.put({ key: STORE_KEY, value: JSON.stringify(next) });
-  return next;
+export async function appendHistoryEntry(entry: NewHistoryEntry): Promise<HistoryEntry[]> {
+  const full: HistoryEntry = { ...entry, id: crypto.randomUUID() };
+  const next = [full, ...(await loadHistory())].slice(0, MAX_ENTRIES);
+  return saveHistory(next);
+}
+
+/** Drop an entry (after its Jira worklog, if any, has already been deleted). */
+export async function removeHistoryEntry(id: string): Promise<HistoryEntry[]> {
+  const next = (await loadHistory()).filter(e => e.id !== id);
+  return saveHistory(next);
 }
 
 function isSameLocalDay(a: number, b: number): boolean {
