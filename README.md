@@ -21,7 +21,7 @@ give you, built here:
   phone's or PC's Do Not Disturb, Deskbar instead POSTs a small JSON event
   (`focus.started` / `focus.stopped`) to an optional webhook URL you
   configure. Point that at a Home Assistant webhook, an IFTTT Webhooks
-  applet, or an Apple Shortcuts personal-automation trigger, and have *that*
+  applet, or an Apple Shortcuts personal-automation trigger, and have _that_
   flip DND / block apps. This is the honest substitute for BUSY Bar's
   built-in phone/PC app blocking, which bridgething's SDK doesn't expose.
 
@@ -153,5 +153,5 @@ catalog.example.json    example catalog.v1 document for self-hosted distribution
   standalone "log time to an issue right now" action yet.
 - Mic/camera-based auto-busy-detection (like BUSY Bar's call detection) has
   no analog here — bridgething's `phone` surface only exposes the connected
-  phone's *cellular* call state, not "an app like Zoom/Meet is capturing the
+  phone's _cellular_ call state, not "an app like Zoom/Meet is capturing the
   mic," so it wasn't included in this pass.

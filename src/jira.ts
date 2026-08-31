@@ -53,10 +53,7 @@ async function jiraFetch(
   path: string,
   init: { method: 'GET' | 'POST' | 'PUT'; body?: unknown } = { method: 'GET' },
 ): Promise<unknown> {
-  const headers: HttpHeader[] = [
-    authHeader(cfg),
-    { name: 'Accept', value: 'application/json' },
-  ];
+  const headers: HttpHeader[] = [authHeader(cfg), { name: 'Accept', value: 'application/json' }];
   let body: Uint8Array | null = null;
   if (init.body !== undefined) {
     headers.push({ name: 'Content-Type', value: 'application/json' });
@@ -135,12 +132,7 @@ export async function searchIssues(cfg: JiraConfig, jql: string): Promise<JiraIs
 }
 
 /** Log time against an issue. `seconds` should be >= 60; Jira rounds sub-minute worklogs down to zero. */
-export async function logWork(
-  cfg: JiraConfig,
-  issueKey: string,
-  seconds: number,
-  comment?: string,
-): Promise<void> {
+export async function logWork(cfg: JiraConfig, issueKey: string, seconds: number, comment?: string): Promise<void> {
   const body: Record<string, unknown> = {
     timeSpentSeconds: Math.max(60, Math.round(seconds)),
   };

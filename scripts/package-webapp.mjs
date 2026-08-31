@@ -9,7 +9,9 @@ import archiver from 'archiver';
 const root = path.resolve(import.meta.dirname, '..');
 const distDir = path.join(root, 'dist');
 const buildDir = path.join(root, 'build');
-const manifest = JSON.parse(await (await import('node:fs/promises')).readFile(path.join(root, 'manifest.json'), 'utf8'));
+const manifest = JSON.parse(
+  await (await import('node:fs/promises')).readFile(path.join(root, 'manifest.json'), 'utf8'),
+);
 
 if (!existsSync(distDir)) {
   console.error('dist/ not found — run `vite build` first (this script is meant to run after it).');

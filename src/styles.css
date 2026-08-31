@@ -47,7 +47,11 @@ button {
   font-family: inherit;
   cursor: pointer;
   color: inherit;
-  transition: transform 100ms ease, filter 100ms ease, box-shadow 150ms ease, background 150ms ease,
+  transition:
+    transform 100ms ease,
+    filter 100ms ease,
+    box-shadow 150ms ease,
+    background 150ms ease,
     border-color 150ms ease;
 }
 
@@ -156,7 +160,9 @@ label {
 }
 
 .tile.selected {
-  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.55) inset, 0 6px 18px rgba(0, 0, 0, 0.35);
+  box-shadow:
+    0 0 0 4px rgba(255, 255, 255, 0.55) inset,
+    0 6px 18px rgba(0, 0, 0, 0.35);
 }
 
 .tile-badge {

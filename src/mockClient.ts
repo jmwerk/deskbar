@@ -67,7 +67,10 @@ export const mockClient: AppBridgeClient = {
       console.log(`[mock] net.fetch ${method} ${url}`);
 
       if (method === 'POST' && url.endsWith('/rest/api/3/search/jql')) {
-        return { ok: true, response: { response: { status: 200, headers: [], body: jsonBody({ issues: MOCK_ISSUES }) } } };
+        return {
+          ok: true,
+          response: { response: { status: 200, headers: [], body: jsonBody({ issues: MOCK_ISSUES }) } },
+        };
       }
 
       if (method === 'POST' && /\/rest\/api\/3\/issue\/[^/]+\/worklog$/.test(url)) {

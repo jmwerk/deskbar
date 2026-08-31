@@ -192,7 +192,16 @@ function Toast({ message }: { message: string }) {
 
 function CheckIcon({ size = 34 }: { size?: number }) {
   return (
-    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M20 6 9 17l-5-5" />
     </svg>
   );
@@ -200,7 +209,16 @@ function CheckIcon({ size = 34 }: { size?: number }) {
 
 function BusyIcon({ size = 34 }: { size?: number }) {
   return (
-    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <circle cx="12" cy="12" r="9" />
       <line x1="7" y1="12" x2="17" y2="12" />
     </svg>
@@ -279,7 +297,9 @@ function Home({
         <span>③ Focus</span>
       </div>
       {!jiraConfigured && (
-        <div className="hint">Set your Jira site, email and API token from the Deskbar settings on your phone to enable time tracking.</div>
+        <div className="hint">
+          Set your Jira site, email and API token from the Deskbar settings on your phone to enable time tracking.
+        </div>
       )}
     </div>
   );
