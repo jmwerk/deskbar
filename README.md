@@ -144,19 +144,44 @@ git push origin v0.2.0
 
 The workflow refuses to run if the tag doesn't match `manifest.json`'s
 `version` (a copy-paste guard), then runs the same checks as CI, builds,
-computes the zip's sha256, and deploys `build/<id>-<version>.zip` plus a
-generated `catalog.json` to `https://<owner>.github.io/<repo>/`. GitHub
-Pages serves everything with `Access-Control-Allow-Origin: *`, which is
-what bridgething's catalog fetch needs.
+and hands off to `scripts/build-catalog-site.mjs`, which:
 
-**One-time setup**: GitHub → repo Settings → Pages → set "Build and
-deployment" source to "GitHub Actions" (already done for this repo's
-`jmwerk/deskbar`, needed again only if you fork this).
+- Computes the new zip's sha256 and size, and pulls the _previous_ live
+  `catalog.json` (if any) forward, merging this version into that app's
+  `versions` array (newest-first) rather than replacing it — a device on
+  an older `min_libbridgething_version` can still fall back to whichever
+  earlier version it's compatible with, per bridgething's own resolution
+  logic. Older versions' zip files get re-copied into the new deploy too,
+  since a Pages deploy fully replaces the site each time and would
+  otherwise 404 them.
+- Validates the generated `catalog.json` against bridgething's real
+  catalog.v1 JSON Schema (vendored at `scripts/catalog.schema.v1.json`,
+  from `packages/catalog/schema.v1.json` in
+  [JoeyEamigh/bridgething](https://github.com/JoeyEamigh/bridgething))
+  before deploying, and fails the release rather than publish something
+  invalid — the schema is considerably richer than a single flat
+  version/download pair (per-version `min_libbridgething_version`,
+  `released_at`, `changelog`, etc.), which the first release found out
+  the hard way.
+
+Everything then deploys to `https://<owner>.github.io/<repo>/`. GitHub
+Pages serves it with `Access-Control-Allow-Origin: *`, which is what
+bridgething's catalog fetch needs.
+
+**One-time setup** (already done for this repo, `jmwerk/deskbar` — needed
+again only if you fork this):
+
+- GitHub → repo Settings → Pages → set "Build and deployment" source to
+  "GitHub Actions".
+- The `github-pages` deployment environment GitHub creates defaults to
+  only allowing deploys from `main`; since this deploys from a tag, add a
+  `v*` tag rule under Settings → Environments → github-pages → Deployment
+  branches and tags, or the run will fail with "not allowed to deploy to
+  github-pages due to environment protection rules."
 
 Then, on the phone: add `https://<owner>.github.io/<repo>/catalog.json` as
 a catalog source in the bridgething companion app, and install/update
-Deskbar from it. The catalog always reflects the latest tagged release —
-it isn't a growing version history, just the current one.
+Deskbar from it.
 
 ### Releasing (manual / self-hosted elsewhere)
 
@@ -167,9 +192,16 @@ this by hand instead:
 1. `npm run build`, then host the zip somewhere with
    `Access-Control-Allow-Origin: *` on the response (R2, S3, another
    static host).
-2. Compute its sha256: `shasum -a 256 build/<file>.zip`.
+2. Compute its sha256 and size: `shasum -a 256 build/<file>.zip` and
+   `wc -c < build/<file>.zip`.
 3. Fill in `catalog.example.json` (rename to `catalog.json`) with that
-   URL, hash, and version, and host it too, same CORS requirement.
+   URL, hash, and size, and host it too, same CORS requirement. It's the
+   real [catalog.v1 schema](https://apps.bridgething.com/schemas/catalog/v1.json)
+   (`scripts/catalog.schema.v1.json` has a local copy) — each app entry
+   holds a `versions` array, newest-first, not a single flat version; add
+   a new entry to that array for each release rather than overwriting the
+   one there, so devices on an older `min_libbridgething_version` can
+   still fall back to a compatible version.
 4. Add your catalog's URL as a source in the bridgething companion app,
    then install Deskbar from it.
 
@@ -224,6 +256,7 @@ index.html, src/        the webapp itself (React + TypeScript + Vite)
   src/*.test.ts(x)        Vitest unit tests
 scripts/package-webapp.mjs      zips dist/ + manifest.json + icon.png after `vite build`
 scripts/build-catalog-site.mjs  builds the GitHub Pages release site (zip + catalog.json)
+scripts/catalog.schema.v1.json  vendored copy of bridgething's real catalog.v1 schema
 catalog.example.json    example catalog.v1 document for self-hosted distribution
 .github/workflows/ci.yml         lint/typecheck/test/build on push and PR
 .github/workflows/release.yml    builds + publishes a release to GitHub Pages on a version tag

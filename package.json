@@ -1,7 +1,7 @@
 {
   "name": "deskbar",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "A BUSY Bar style status/focus/Jira-time-tracking app for the Car Thing, built on bridgething.",
   "engines": {
@@ -31,6 +31,8 @@
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "archiver": "^7.0.1",
     "eslint": "^10.9.1",
     "eslint-config-prettier": "^10.1.8",
