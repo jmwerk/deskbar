@@ -217,7 +217,8 @@ this by hand instead:
 
 The Car Thing's presets, rotary dial, and Back button reach the webapp as
 plain `keydown`/`wheel` DOM events (bridgething doesn't route them through
-`@bridgething/client`), so each screen binds them directly:
+`@bridgething/client`), so each screen binds them directly via the shared
+`useKeydown`/`useRotaryStep` hooks in `src/physicalControls.ts`:
 
 - **Presets 1-3** pick a status on Home; **preset 4** opens Log Time Now
   (once Jira is configured). **Presets 1-4** pick a duration preset on
@@ -226,42 +227,41 @@ plain `keydown`/`wheel` DOM events (bridgething doesn't route them through
   (auto-scrolling to keep the selection visible).
 - **Back / Escape** cancels or ends a session on Focus Setup/Running/Log
   Time Now/Today.
+- **Dial push-button** starts a focus session on Focus Setup (both `Enter`
+  and `Space` are bound — see [HARDWARE.md](HARDWARE.md) for why).
 - The **Today** summary and history rows are touch-only — no physical
   binding, since Home's presets/dial are already spoken for.
-- **Dial push-button** starts a focus session on Focus Setup. bridgething
-  doesn't document this button's keycode; confirmed on real hardware that it
-  fires both Enter and Space, so both are bound.
-- **Mode ("m") is intentionally left unbound.** The daemon watches raw
-  `KEY_M` across the active webapp for a 5-rapid-press go-home gesture; an
-  app-level binding on "m" would fire on the gesture's first press too. Do
-  not bind Start (or anything else) to "m".
+- **Mode ("m") is intentionally left unbound** — see
+  [HARDWARE.md](HARDWARE.md), don't rebind it.
 
-The Car Thing's physical dial and bridgething's notification toasts both
-cover the screen's top-right corner, but differently: the toasts are a
-transient visual overlay (`--toast-safe-w`/`--toast-safe-h` in styles.css)
-that never blocks taps, while the dial is a permanent physical obstruction
-— a control placed under it can be genuinely hard or impossible to press,
-not just briefly hidden. Keep new interactive UI out of that corner, and
-prefer large, full-width tap targets over small corner-anchored ones so a
-control isn't only reachable from the side the dial sits on (the Focus
-Setup duration row clusters left for this reason; Today's history rows are
-each one large tappable row rather than a small delete icon at the edge).
+[HARDWARE.md](HARDWARE.md) is the canonical place for what's confirmed
+about the hardware itself versus guessed (the dial push-button's keycode,
+the "m" gesture conflict, the two different top-right screen-occlusion
+constraints and why the dial is the stricter one) — this section is just
+Deskbar's own mapping on top of that.
 
 ## Project layout
 
 ```
-manifest.json          bridgething app manifest (id, config fields, permissions)
+manifest.json           bridgething app manifest (id, config fields, permissions)
 icon.png                app icon
+HARDWARE.md             confirmed-vs-guessed physical hardware behavior
 index.html, src/        the webapp itself (React + TypeScript + Vite)
-  src/bridgething.ts     BridgethingClient singleton + config helpers
-  src/session.ts         status/focus-timer state, persisted via client.store
-  src/history.ts          logged-time history, persisted via client.store
-  src/jira.ts             Jira REST calls via client.net.fetch (search + worklog)
-  src/webhook.ts          optional focus-start/stop webhook POST
-  src/mockClient.ts       dev:mock's fake client, incl. fault injection
-  src/ErrorBoundary.tsx   top-level render-error fallback
-  src/App.tsx, styles.css  the UI
-  src/*.test.ts(x)        Vitest unit tests
+  src/App.tsx              top-level orchestration: config/session/history state, screen routing
+  src/config.ts            Config type + parseConfig
+  src/format.ts            formatClock / formatDuration
+  src/physicalControls.ts  useKeydown / useRotaryStep — see HARDWARE.md
+  src/bridgething.ts       BridgethingClient singleton + config helpers
+  src/session.ts           status/focus-timer state, persisted via client.store
+  src/history.ts           logged-time history, persisted via client.store
+  src/retryQueue.ts        worklogs that failed to log at session end, retried on launch
+  src/jira.ts              Jira REST calls via client.net.fetch (search/worklog create+delete)
+  src/webhook.ts           optional focus-start/stop webhook POST
+  src/mockClient.ts        dev:mock's fake client, incl. fault injection
+  src/ErrorBoundary.tsx    top-level render-error fallback
+  src/Toast.tsx, icons.tsx, DurationPicker.tsx, IssuePicker.tsx   shared UI
+  src/screens/             Home, FocusSetup, LogTimeNow, History, FocusRunning
+  src/*.test.ts(x)         Vitest unit tests, one per source file
 scripts/package-webapp.mjs      zips dist/ + manifest.json + icon.png after `vite build`
 scripts/build-catalog-site.mjs  builds the GitHub Pages release site (zip + catalog.json)
 scripts/catalog.schema.v1.json  vendored copy of bridgething's real catalog.v1 schema
