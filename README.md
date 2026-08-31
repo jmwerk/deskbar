@@ -38,7 +38,10 @@ them.
 
 ## Setup
 
-Requires Node 20+ (works with `npm`, `pnpm`, or `bun`).
+Requires Node 22.22+, 24.15+, or 26+ (jsdom, used by the test suite, sets
+that floor — see `engines` in package.json). Simplest to just run 26+, which
+is what this is developed and CI'd against; works with `npm`, `pnpm`, or
+`bun`.
 
 ```sh
 npm install

@@ -4,6 +4,9 @@
   "version": "0.2.0",
   "type": "module",
   "description": "A BUSY Bar style status/focus/Jira-time-tracking app for the Car Thing, built on bridgething.",
+  "engines": {
+    "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
+  },
   "scripts": {
     "dev": "vite",
     "dev:mock": "VITE_MOCK=1 vite",

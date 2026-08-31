@@ -12,8 +12,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 26
           cache: npm
+      # Pinned rather than trusting whatever npm Node 26 bundles: npm 10
+      # (Node 20's default) fails `npm ci` against this lockfile — it
+      # resolves vitest's nested esbuild differently than npm 11 does.
+      - run: npm install -g npm@11
       - run: npm ci
       - run: npm run format:check
       - run: npm run lint
