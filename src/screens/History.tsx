@@ -6,10 +6,12 @@ import { useKeydown } from '../physicalControls';
 
 export function History({
   entries,
+  timezone,
   onBack,
   onDelete,
 }: {
   entries: HistoryEntry[];
+  timezone?: string;
   onBack: () => void;
   onDelete: (entry: HistoryEntry) => Promise<void>;
 }) {
@@ -30,7 +32,7 @@ export function History({
     ),
   );
 
-  const today = useMemo(() => todayEntries(entries), [entries]);
+  const today = useMemo(() => todayEntries(entries, Date.now(), timezone), [entries, timezone]);
   const total = useMemo(() => totalSeconds(today), [today]);
 
   const confirmDelete = useCallback(

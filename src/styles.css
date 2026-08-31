@@ -149,6 +149,27 @@ label {
   font-weight: 600;
 }
 
+/* Idle screensaver — fixed, not absolute: covers the full viewport
+   regardless of the home screen's own positioning context, same as the
+   toast overlay below. */
+.screensaver {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  animation: fade-in 400ms ease;
+  z-index: 40;
+}
+
+.screensaver-clock {
+  font-size: 96px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
 .tiles {
   flex: 1;
   display: grid;

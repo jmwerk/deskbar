@@ -49,14 +49,19 @@ export async function removeHistoryEntry(id: string): Promise<HistoryEntry[]> {
   return saveHistory(next);
 }
 
-function isSameLocalDay(a: number, b: number): boolean {
-  const da = new Date(a);
-  const db = new Date(b);
-  return da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth() && da.getDate() === db.getDate();
+// "en-CA" formats as YYYY-MM-DD by locale convention — a convenient,
+// directly-comparable day key. `timeZone: undefined` falls back to the
+// runtime's own local timezone, same as the old Date-getter approach; pass
+// an explicit IANA zone (from config) when the device's system timezone
+// can't be trusted — a headless Car Thing commonly has none set, defaulting
+// to UTC, which silently mis-buckets anything logged near local midnight.
+function dayKey(ms: number, timeZone?: string): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(ms);
 }
 
-export function todayEntries(entries: HistoryEntry[], now = Date.now()): HistoryEntry[] {
-  return entries.filter(e => isSameLocalDay(e.loggedAt, now));
+export function todayEntries(entries: HistoryEntry[], now = Date.now(), timeZone?: string): HistoryEntry[] {
+  const today = dayKey(now, timeZone);
+  return entries.filter(e => dayKey(e.loggedAt, timeZone) === today);
 }
 
 export function totalSeconds(entries: HistoryEntry[]): number {

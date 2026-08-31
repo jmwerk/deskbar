@@ -7,6 +7,14 @@ export type Config = {
   focusWebhookUrl?: string;
   focusWebhookFormat: WebhookFormat;
   defaultFocusMinutes: number;
+  /**
+   * IANA zone name (e.g. "America/New_York"), only set if the user
+   * configured one. A headless Car Thing commonly has no timezone set at
+   * all, defaulting to UTC — the clock and "Today" bucketing both fall
+   * back to the runtime's own local timezone when this is unset, which is
+   * correct in a browser (dev/dev:mock) but wrong on a device in that state.
+   */
+  timezone?: string;
 };
 
 const DEFAULT_JQL = 'assignee = currentUser() AND resolution = Unresolved ORDER BY updated DESC';
@@ -18,6 +26,16 @@ export const DEFAULT_CONFIG: Config = {
   focusWebhookFormat: 'json',
   defaultFocusMinutes: 25,
 };
+
+function validTimezone(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  try {
+    new Intl.DateTimeFormat(undefined, { timeZone: value });
+    return value;
+  } catch {
+    return undefined;
+  }
+}
 
 export function parseConfig(raw: Record<string, string>): Config {
   const jira =
@@ -33,5 +51,6 @@ export function parseConfig(raw: Record<string, string>): Config {
     focusWebhookUrl: raw.focusWebhookUrl || undefined,
     focusWebhookFormat: format,
     defaultFocusMinutes: raw.defaultFocusMinutes ? Number(raw.defaultFocusMinutes) : 25,
+    timezone: validTimezone(raw.timezone),
   };
 }

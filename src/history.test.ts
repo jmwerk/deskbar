@@ -36,6 +36,18 @@ describe('todayEntries', () => {
   it('returns an empty list when there are no entries', () => {
     expect(todayEntries([], Date.now())).toEqual([]);
   });
+
+  it('buckets by the given IANA timezone, not just wall-clock UTC', () => {
+    // A device with no timezone configured (e.g. a headless Car Thing)
+    // defaults to UTC — this is exactly the kind of instant that's the
+    // same calendar day in UTC but a different one once a real zone is
+    // applied, which is what silently mis-bucketed entries near midnight.
+    const entryMs = Date.UTC(2026, 7, 31, 2, 0, 0); // Aug 31 02:00 UTC = Aug 30 22:00 EDT
+    const nowMs = Date.UTC(2026, 7, 31, 10, 0, 0); // Aug 31 10:00 UTC = Aug 31 06:00 EDT
+
+    expect(todayEntries([entry(entryMs)], nowMs, 'UTC')).toHaveLength(1);
+    expect(todayEntries([entry(entryMs)], nowMs, 'America/New_York')).toHaveLength(0);
+  });
 });
 
 describe('totalSeconds', () => {

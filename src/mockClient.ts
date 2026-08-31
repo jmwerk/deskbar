@@ -19,6 +19,7 @@ const DEFAULT_MOCK_CONFIG: Record<string, string> = {
   focusWebhookUrl: '',
   focusWebhookFormat: 'json',
   defaultFocusMinutes: '25',
+  timezone: '',
 };
 
 const MOCK_ISSUES = [

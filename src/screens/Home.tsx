@@ -1,13 +1,14 @@
-import { useCallback } from 'react';
-import { formatDuration } from '../format';
+import { useCallback, useEffect, useState } from 'react';
+import { formatDuration, formatWallClock } from '../format';
 import { BoltIcon, BusyIcon, CheckIcon } from '../icons';
-import { useKeydown } from '../physicalControls';
+import { HOME_IDLE_TIMEOUT_MS, useIdle, useKeydown } from '../physicalControls';
 import type { Status } from '../session';
 
 export function Home({
   status,
   jiraConfigured,
   todaySeconds,
+  timezone,
   onSelect,
   onLogNow,
   onOpenHistory,
@@ -15,10 +16,25 @@ export function Home({
   status: Status;
   jiraConfigured: boolean;
   todaySeconds: number;
+  timezone?: string;
   onSelect: (status: Status) => void;
   onLogNow: () => void;
   onOpenHistory: () => void;
 }) {
+  // A stationary desk display shouldn't just sit on the status tiles
+  // forever — after a few idle minutes, dim to a plain clock instead.
+  // Any key/wheel/touch wakes it; while idle, presets are disabled below
+  // so the very key that wakes it doesn't also act on whatever it's bound
+  // to (useIdle's own activity listener already "consumes" that first
+  // event, so the preset handler simply never sees it).
+  const idle = useIdle(HOME_IDLE_TIMEOUT_MS);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!idle) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [idle]);
+
   useKeydown(
     useCallback(
       e => {
@@ -33,10 +49,16 @@ export function Home({
       },
       [onSelect, onLogNow, jiraConfigured],
     ),
+    !idle,
   );
 
   return (
     <div className="screen home">
+      {idle && (
+        <div className="screensaver">
+          <div className="screensaver-clock">{formatWallClock(now, timezone)}</div>
+        </div>
+      )}
       <div className={`status-banner status-${status}`}>{statusLabel(status)}</div>
       {jiraConfigured && (
         <button className="today-bar" onClick={onOpenHistory}>

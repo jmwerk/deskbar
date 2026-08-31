@@ -81,6 +81,17 @@
         "step": 5,
         "default": 25
       }
+    },
+    {
+      "type": "string",
+      "data": {
+        "key": "timezone",
+        "label": "Your timezone as an IANA name (e.g. America/New_York) — only needed if the device's system clock isn't already set to it; leave blank otherwise",
+        "pattern": null,
+        "minLength": null,
+        "maxLength": 100,
+        "default": null
+      }
     }
   ],
   "permissions": ["net.fetch"],

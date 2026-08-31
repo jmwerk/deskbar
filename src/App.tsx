@@ -54,7 +54,10 @@ export default function App() {
     return () => clearInterval(id);
   }, []);
 
-  const todaySeconds = useMemo(() => totalSeconds(todayEntries(history, now)), [history, now]);
+  const todaySeconds = useMemo(
+    () => totalSeconds(todayEntries(history, now, config.timezone)),
+    [history, now, config.timezone],
+  );
 
   const update = useCallback((next: SessionState) => {
     setSession(next);
@@ -198,6 +201,7 @@ export default function App() {
     content = (
       <History
         entries={history}
+        timezone={config.timezone}
         onBack={() => setScreen('home')}
         onDelete={async entry => {
           if (config.jira && entry.worklogId) {
@@ -213,6 +217,7 @@ export default function App() {
         status={session.status}
         jiraConfigured={!!config.jira}
         todaySeconds={todaySeconds}
+        timezone={config.timezone}
         onSelect={status => {
           if (status === 'focus') setScreen('focusSetup');
           else update({ status });

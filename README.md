@@ -11,6 +11,10 @@ give you, built here:
 
 - **Status display** — tap Available / Busy / Focus; the current status is
   shown full-screen and persisted on the device (survives a reload/reboot).
+  After 3 idle minutes on Home, it dims to a plain clock instead of sitting
+  on the status tiles indefinitely; any touch, preset, or the dial wakes it
+  back up — that first input only wakes it, it's never also treated as a
+  tap on whatever's underneath.
 - **Focus timer** — pick a duration, optionally attach a Jira issue, and run
   a full-screen countdown. Can be paused and resumed (Back or a touch
   button toggles it) — paused time doesn't count toward the session,

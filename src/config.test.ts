@@ -38,4 +38,16 @@ describe('parseConfig', () => {
   it('falls back to json for an unrecognized webhook format value', () => {
     expect(parseConfig({ focusWebhookFormat: 'discord' }).focusWebhookFormat).toBe('json');
   });
+
+  it('leaves timezone unset when not configured', () => {
+    expect(parseConfig({}).timezone).toBeUndefined();
+  });
+
+  it('accepts a valid IANA timezone', () => {
+    expect(parseConfig({ timezone: 'America/New_York' }).timezone).toBe('America/New_York');
+  });
+
+  it('discards an invalid timezone rather than let it break every date computation', () => {
+    expect(parseConfig({ timezone: 'Not/AZone' }).timezone).toBeUndefined();
+  });
 });

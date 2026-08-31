@@ -1,6 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
-import { renderHook } from '@testing-library/react';
-import { useKeydown, useRotaryStep } from './physicalControls';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, renderHook } from '@testing-library/react';
+import { useIdle, useKeydown, useRotaryStep } from './physicalControls';
 
 function wheel(deltaX: number, deltaY = 0) {
   window.dispatchEvent(new WheelEvent('wheel', { deltaX, deltaY, cancelable: true }));
@@ -90,5 +90,66 @@ describe('useKeydown', () => {
     unmount();
     press('1');
     expect(onKeyDown).not.toHaveBeenCalled();
+  });
+});
+
+describe('useIdle', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('starts not-idle and stays that way before the timeout elapses', () => {
+    const { result } = renderHook(() => useIdle(1000));
+    expect(result.current).toBe(false);
+
+    act(() => {
+      vi.advanceTimersByTime(999);
+    });
+    expect(result.current).toBe(false);
+  });
+
+  it('goes idle once the timeout elapses with no activity', () => {
+    const { result } = renderHook(() => useIdle(1000));
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(result.current).toBe(true);
+  });
+
+  it('resets on a keydown, wheel, or pointerdown', () => {
+    const { result } = renderHook(() => useIdle(1000));
+
+    act(() => {
+      vi.advanceTimersByTime(900);
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: '1' }));
+    });
+    act(() => {
+      vi.advanceTimersByTime(900);
+    });
+    expect(result.current).toBe(false); // only 900ms since the reset
+
+    act(() => {
+      window.dispatchEvent(new WheelEvent('wheel', { deltaX: 10 }));
+      vi.advanceTimersByTime(1000);
+    });
+    expect(result.current).toBe(true);
+  });
+
+  it('restarts the timer fresh on mount', () => {
+    const first = renderHook(() => useIdle(1000));
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(first.result.current).toBe(true);
+    first.unmount();
+
+    // A fresh mount (e.g. navigating back to Home) shouldn't inherit idle.
+    const second = renderHook(() => useIdle(1000));
+    expect(second.result.current).toBe(false);
   });
 });
