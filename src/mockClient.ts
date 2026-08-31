@@ -1,4 +1,4 @@
-import type { ClientSurfaces } from '@bridgething/client';
+import type { ClientSurfaces, ConfigChanged } from '@bridgething/client';
 
 /**
  * The subset of BridgethingClient this app actually touches. Both the real
@@ -11,7 +11,7 @@ export type AppBridgeClient = {
   net: Pick<ClientSurfaces['net'], 'fetch'>;
 };
 
-const MOCK_CONFIG: Record<string, string> = {
+const DEFAULT_MOCK_CONFIG: Record<string, string> = {
   jiraBaseUrl: 'https://example.atlassian.net',
   jiraEmail: 'you@example.com',
   jiraApiToken: 'mock-token',
@@ -35,29 +35,90 @@ function decodeBody(body: Uint8Array | null | undefined): string {
   return body ? new TextDecoder().decode(body) : '';
 }
 
+// --- Fault injection -------------------------------------------------
+//
+// The real daemon can fail in ways the happy-path mock above never does:
+// a stale config pushed from the phone, a 401/500 from Jira, a webhook
+// target that's down. These let you (or a test) simulate that without
+// touching real hardware or the mock's own request-matching logic.
+//
+// From a browser console during `npm run dev:mock`, use
+// `window.__deskbarMock` (wired up in bridgething.ts); from a test, import
+// these directly.
+
+export type MockFetchFault = {
+  /** HTTP status the mocked response reports (default 500 if omitted and not `throws`). */
+  status?: number;
+  /** Simulate the request itself failing (DNS/timeout/connection reset) rather than getting an HTTP response. */
+  throws?: boolean;
+};
+
+let currentConfig: Record<string, string> = { ...DEFAULT_MOCK_CONFIG };
+const configListeners = new Set<(msg: ConfigChanged) => void>();
+const fetchFaults = new Map<string, MockFetchFault>();
+
+/** Push a config change, as if the phone app had just saved new settings. */
+export function setMockConfig(patch: Record<string, string>): void {
+  currentConfig = { ...currentConfig, ...patch };
+  for (const [key, value] of Object.entries(patch)) {
+    configListeners.forEach(fn => fn({ key, value }));
+  }
+}
+
+/** Fail every `net.fetch` whose URL contains `urlSubstring`, until cleared. */
+export function setMockFetchFault(urlSubstring: string, fault: MockFetchFault): void {
+  fetchFaults.set(urlSubstring, fault);
+}
+
+export function clearMockFetchFault(urlSubstring: string): void {
+  fetchFaults.delete(urlSubstring);
+}
+
+export function clearAllMockFetchFaults(): void {
+  fetchFaults.clear();
+}
+
+/** Reset config, faults, and persisted store state — mainly for test isolation. */
+export function resetMockState(): void {
+  currentConfig = { ...DEFAULT_MOCK_CONFIG };
+  fetchFaults.clear();
+  configListeners.clear();
+  for (const key of Object.keys(window.localStorage)) {
+    if (key.startsWith(STORE_PREFIX)) window.localStorage.removeItem(key);
+  }
+}
+
+function matchingFault(url: string): MockFetchFault | undefined {
+  for (const [pattern, fault] of fetchFaults) {
+    if (url.includes(pattern)) return fault;
+  }
+  return undefined;
+}
+
 /**
- * Stands in for the on-device daemon so `npm run dev` is fully usable with
- * no Car Thing at all. `store` persists to localStorage (so a reload keeps
- * your status/timer, same as the real device). `net.fetch` fakes just
+ * Stands in for the on-device daemon so `npm run dev:mock` is fully usable
+ * with no Car Thing at all. `store` persists to localStorage (so a reload
+ * keeps your status/timer, same as the real device). `net.fetch` fakes just
  * enough of the Jira REST surface for the issue picker and worklog calls to
- * work; anything else (the focus webhook) just reports success.
+ * work; anything else (the focus webhook) just reports success — unless a
+ * fault has been injected for that URL, see above.
  */
 export const mockClient: AppBridgeClient = {
   config: {
     async list() {
-      return { ok: true, response: { entries: Object.entries(MOCK_CONFIG).map(([key, value]) => ({ key, value })) } };
+      return { ok: true, response: { entries: Object.entries(currentConfig).map(([key, value]) => ({ key, value })) } };
     },
-    onChanged() {
-      // Mock config never changes after load, so there's nothing to notify.
-      return () => {};
+    onChanged(cb) {
+      configListeners.add(cb);
+      return () => configListeners.delete(cb);
     },
   },
   store: {
     async get({ key }) {
-      return { ok: true, response: { key, value: localStorage.getItem(STORE_PREFIX + key) } };
+      return { ok: true, response: { key, value: window.localStorage.getItem(STORE_PREFIX + key) } };
     },
     async put({ key, value }) {
-      localStorage.setItem(STORE_PREFIX + key, value);
+      window.localStorage.setItem(STORE_PREFIX + key, value);
       return { ok: true, response: { key, value } };
     },
   },
@@ -65,6 +126,23 @@ export const mockClient: AppBridgeClient = {
     async fetch({ request }) {
       const { url, method, body } = request;
       console.log(`[mock] net.fetch ${method} ${url}`);
+
+      const fault = matchingFault(url);
+      if (fault?.throws) {
+        throw new Error(`[mock] simulated network failure for ${url}`);
+      }
+      if (fault) {
+        return {
+          ok: true,
+          response: {
+            response: {
+              status: fault.status ?? 500,
+              headers: [],
+              body: jsonBody({ errorMessages: ['Simulated failure'] }),
+            },
+          },
+        };
+      }
 
       if (method === 'POST' && url.endsWith('/rest/api/3/search/jql')) {
         return {

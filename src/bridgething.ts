@@ -1,5 +1,14 @@
 import { BridgethingClient } from '@bridgething/client';
-import { mockClient, type AppBridgeClient } from './mockClient';
+import {
+  mockClient,
+  setMockConfig,
+  setMockFetchFault,
+  clearMockFetchFault,
+  clearAllMockFetchFaults,
+  type AppBridgeClient,
+} from './mockClient';
+
+const isMock = import.meta.env.VITE_MOCK === '1';
 
 /**
  * One client for the whole app. It auto-connects to the on-device daemon
@@ -10,7 +19,24 @@ import { mockClient, type AppBridgeClient } from './mockClient';
  * no device on hand at all:
  *   VITE_MOCK=1 npm run dev
  */
-export const client: AppBridgeClient = import.meta.env.VITE_MOCK === '1' ? mockClient : new BridgethingClient();
+export const client: AppBridgeClient = isMock ? mockClient : new BridgethingClient();
+
+/**
+ * In mock mode only, expose fault injection on the console so you can
+ * exercise error paths (a config push, a failed Jira/webhook request)
+ * without editing mockClient.ts. E.g.:
+ *   __deskbarMock.setFetchFault('/worklog', { status: 500 })
+ *   __deskbarMock.setConfig({ focusWebhookUrl: 'https://example.com' })
+ * See README's "Testing failure paths" section.
+ */
+if (isMock) {
+  (window as unknown as { __deskbarMock: unknown }).__deskbarMock = {
+    setConfig: setMockConfig,
+    setFetchFault: setMockFetchFault,
+    clearFetchFault: clearMockFetchFault,
+    clearAllFetchFaults: clearAllMockFetchFaults,
+  };
+}
 
 /** Read every declared `config` value the gateway has set for this webapp. */
 export async function readConfig(): Promise<Record<string, string>> {
