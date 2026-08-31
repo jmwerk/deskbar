@@ -130,18 +130,48 @@ confirmation it doesn't exist; check the companion app itself and the
 its Discord for a faster inner loop before assuming you need the catalog
 route for every iteration.
 
-The confirmed route:
+### Releasing (automated)
 
-1. Host the built zip somewhere with `Access-Control-Allow-Origin: *` on
-   the response (e.g. a GitHub Pages / R2 / S3 bucket).
+Pushing a version tag builds, tests, and publishes a self-hosted catalog to
+GitHub Pages — `.github/workflows/release.yml`:
+
+```sh
+# 1. bump the version in both manifest.json and package.json
+# 2. commit that, then:
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+The workflow refuses to run if the tag doesn't match `manifest.json`'s
+`version` (a copy-paste guard), then runs the same checks as CI, builds,
+computes the zip's sha256, and deploys `build/<id>-<version>.zip` plus a
+generated `catalog.json` to `https://<owner>.github.io/<repo>/`. GitHub
+Pages serves everything with `Access-Control-Allow-Origin: *`, which is
+what bridgething's catalog fetch needs.
+
+**One-time setup**: GitHub → repo Settings → Pages → set "Build and
+deployment" source to "GitHub Actions" (already done for this repo's
+`jmwerk/deskbar`, needed again only if you fork this).
+
+Then, on the phone: add `https://<owner>.github.io/<repo>/catalog.json` as
+a catalog source in the bridgething companion app, and install/update
+Deskbar from it. The catalog always reflects the latest tagged release —
+it isn't a growing version history, just the current one.
+
+### Releasing (manual / self-hosted elsewhere)
+
+If you'd rather not use GitHub Pages, `scripts/build-catalog-site.mjs`
+needs `GITHUB_REPOSITORY` set (it's normally supplied by Actions), so do
+this by hand instead:
+
+1. `npm run build`, then host the zip somewhere with
+   `Access-Control-Allow-Origin: *` on the response (R2, S3, another
+   static host).
 2. Compute its sha256: `shasum -a 256 build/<file>.zip`.
 3. Fill in `catalog.example.json` (rename to `catalog.json`) with that
    URL, hash, and version, and host it too, same CORS requirement.
 4. Add your catalog's URL as a source in the bridgething companion app,
    then install Deskbar from it.
-
-Bump `manifest.json`'s `version` and re-run `npm run build` for updates;
-list newest-first in the catalog per the publishing docs.
 
 ## Physical controls
 
@@ -192,9 +222,11 @@ index.html, src/        the webapp itself (React + TypeScript + Vite)
   src/ErrorBoundary.tsx   top-level render-error fallback
   src/App.tsx, styles.css  the UI
   src/*.test.ts(x)        Vitest unit tests
-scripts/package-webapp.mjs   zips dist/ + manifest.json + icon.png after `vite build`
+scripts/package-webapp.mjs      zips dist/ + manifest.json + icon.png after `vite build`
+scripts/build-catalog-site.mjs  builds the GitHub Pages release site (zip + catalog.json)
 catalog.example.json    example catalog.v1 document for self-hosted distribution
-.github/workflows/ci.yml    lint/typecheck/test/build on push and PR
+.github/workflows/ci.yml         lint/typecheck/test/build on push and PR
+.github/workflows/release.yml    builds + publishes a release to GitHub Pages on a version tag
 ```
 
 ## Known gaps / next steps
