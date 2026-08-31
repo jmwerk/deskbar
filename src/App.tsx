@@ -86,7 +86,14 @@ export default function App() {
     }
   }, [session, remainingS, endFocus]);
 
-  if (!session) return <div className="screen center">loading…</div>;
+  if (!session) {
+    return (
+      <div className="screen center loading-screen">
+        <div className="spinner" aria-hidden="true" />
+        <div className="hint">Loading Deskbar…</div>
+      </div>
+    );
+  }
 
   if (session.status === 'focus' && session.focus) {
     return (
@@ -127,6 +134,31 @@ export default function App() {
   );
 }
 
+function CheckIcon({ size = 34 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  );
+}
+
+function BusyIcon({ size = 34 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <line x1="7" y1="12" x2="17" y2="12" />
+    </svg>
+  );
+}
+
+function BoltIcon({ size = 34 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="currentColor">
+      <path d="M13 2 3 14h7l-1 8 11-14h-7l1-6Z" />
+    </svg>
+  );
+}
+
 function Home({
   status,
   jiraConfigured,
@@ -140,14 +172,35 @@ function Home({
     <div className="screen home">
       <div className={`status-banner status-${status}`}>{statusLabel(status)}</div>
       <div className="tiles">
-        <button className="tile tile-available" onClick={() => onSelect('available')}>
-          Available
+        <button
+          className={`tile tile-available ${status === 'available' ? 'selected' : ''}`}
+          onClick={() => onSelect('available')}
+        >
+          {status === 'available' && (
+            <span className="tile-badge">
+              <CheckIcon size={18} />
+            </span>
+          )}
+          <CheckIcon />
+          <span>Available</span>
         </button>
-        <button className="tile tile-busy" onClick={() => onSelect('busy')}>
-          Busy
+        <button className={`tile tile-busy ${status === 'busy' ? 'selected' : ''}`} onClick={() => onSelect('busy')}>
+          {status === 'busy' && (
+            <span className="tile-badge">
+              <CheckIcon size={18} />
+            </span>
+          )}
+          <BusyIcon />
+          <span>Busy</span>
         </button>
-        <button className="tile tile-focus" onClick={() => onSelect('focus')}>
-          Focus
+        <button className={`tile tile-focus ${status === 'focus' ? 'selected' : ''}`} onClick={() => onSelect('focus')}>
+          {status === 'focus' && (
+            <span className="tile-badge">
+              <CheckIcon size={18} />
+            </span>
+          )}
+          <BoltIcon />
+          <span>Focus</span>
         </button>
       </div>
       {!jiraConfigured && (
@@ -183,13 +236,22 @@ function FocusSetup({
   const [error, setError] = useState<string | null>(null);
   const loadedFor = useRef<string | null>(null);
 
-  useEffect(() => {
-    if (!config.jira || loadedFor.current === config.jiraJql) return;
+  const load = useCallback(() => {
+    if (!config.jira) return;
     loadedFor.current = config.jiraJql;
+    setError(null);
+    setIssues(null);
     searchIssues(config.jira, config.jiraJql)
       .then(setIssues)
       .catch(err => setError(err instanceof JiraError ? err.message : 'Could not load Jira issues'));
   }, [config]);
+
+  useEffect(() => {
+    if (!config.jira || loadedFor.current === config.jiraJql) return;
+    load();
+  }, [config, load]);
+
+  const presetMinutes = [15, 25, 45, 60];
 
   return (
     <div className="screen focus-setup">
@@ -197,6 +259,13 @@ function FocusSetup({
 
       <div className="row">
         <label>Duration</label>
+        <div className="presets">
+          {presetMinutes.map(p => (
+            <button key={p} className={`preset-chip ${minutes === p ? 'selected' : ''}`} onClick={() => setMinutes(p)}>
+              {p}m
+            </button>
+          ))}
+        </div>
         <div className="stepper">
           <button onClick={() => setMinutes(m => Math.max(5, m - 5))}>−</button>
           <span>{minutes} min</span>
@@ -207,7 +276,14 @@ function FocusSetup({
       {config.jira && (
         <div className="issue-picker">
           <label>Log time to</label>
-          {error && <div className="hint error">{error}</div>}
+          {error && (
+            <div className="hint error">
+              {error}
+              <button className="retry-link" onClick={load}>
+                Retry
+              </button>
+            </div>
+          )}
           {!error && !issues && <div className="hint">Loading your Jira issues…</div>}
           {issues && issues.length === 0 && <div className="hint">No matching issues found.</div>}
           <div className="issue-list">
@@ -256,6 +332,7 @@ function FocusRunning({
   const progress = Math.min(1, Math.max(0, 1 - remainingS / totalS));
   return (
     <div className="screen focus-running">
+      <div className="focus-eyebrow">Focus session</div>
       <div className="clock">{formatClock(remainingS)}</div>
       {issueKey && (
         <div className="issue-tag">
@@ -266,7 +343,7 @@ function FocusRunning({
       <div className="progress-track">
         <div className="progress-fill" style={{ width: `${progress * 100}%` }} />
       </div>
-      <button className="btn-secondary end-btn" onClick={onEnd}>
+      <button className="btn-danger end-btn" onClick={onEnd}>
         End Focus
       </button>
     </div>

@@ -1,3 +1,11 @@
+/*
+ * Tuned for the on-device display: 800x480 at 3.97" diagonal (~235ppi).
+ * That's roughly 2.4x denser than a typical desktop monitor, so sizes
+ * that read fine on a laptop (14-16px body text, 44px buttons) render
+ * as fine print and unreliable tap targets here. Type and touch
+ * targets below are scaled up accordingly rather than using
+ * desktop-web defaults.
+ */
 :root {
   color-scheme: dark;
   --bg: #0b0d10;
@@ -8,6 +16,11 @@
   --focus: #3b82f6;
   --panel: #16191d;
   --border: #262b31;
+  /* bridgething's overlay stacks notification/pairing toasts here, on
+     top of the app, for up to ~5s each; keep persistent/critical UI
+     out of this corner. See memory: deskbar-overlay-safe-zone. */
+  --toast-safe-w: 300px;
+  --toast-safe-h: 280px;
 }
 
 * {
@@ -25,6 +38,7 @@ body {
   background: var(--bg);
   color: var(--fg);
   font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 18px;
   overflow: hidden;
   user-select: none;
 }
@@ -33,6 +47,25 @@ button {
   font-family: inherit;
   cursor: pointer;
   color: inherit;
+  transition: transform 100ms ease, filter 100ms ease, box-shadow 150ms ease, background 150ms ease,
+    border-color 150ms ease;
+}
+
+button:active {
+  transform: scale(0.96);
+  filter: brightness(0.9);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .screen {
@@ -40,7 +73,33 @@ button {
   width: 100vw;
   display: flex;
   flex-direction: column;
-  padding: 16px 24px;
+  padding: 20px 28px;
+  animation: fade-in 200ms ease;
+}
+
+.loading-screen {
+  gap: 16px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 4px solid var(--border);
+  border-top-color: var(--focus);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+label {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--muted);
 }
 
 .center {
@@ -54,18 +113,21 @@ button {
   text-align: center;
   font-size: 28px;
   font-weight: 700;
-  padding: 10px 0;
-  border-radius: 12px;
-  margin-bottom: 16px;
+  padding: 12px 0;
+  border-radius: 14px;
+  margin-bottom: 14px;
 }
+
 .status-available {
   background: color-mix(in srgb, var(--available) 20%, transparent);
   color: var(--available);
 }
+
 .status-busy {
   background: color-mix(in srgb, var(--busy) 20%, transparent);
   color: var(--busy);
 }
+
 .status-focus {
   background: color-mix(in srgb, var(--focus) 20%, transparent);
   color: var(--focus);
@@ -79,62 +141,128 @@ button {
 }
 
 .tile {
+  position: relative;
   border: none;
-  border-radius: 16px;
-  font-size: 26px;
-  font-weight: 700;
+  border-radius: 18px;
+  font-size: 28px;
+  font-weight: 800;
   color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.tile.selected {
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.55) inset, 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+.tile-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--bg);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
 }
+
 .tile-available {
   background: var(--available);
 }
+
 .tile-busy {
   background: var(--busy);
 }
+
 .tile-focus {
   background: var(--focus);
 }
 
 .hint {
   margin-top: 12px;
-  font-size: 14px;
+  font-size: 18px;
+  line-height: 1.35;
   color: var(--muted);
   text-align: center;
 }
+
 .hint.error {
   color: var(--busy);
+}
+
+.retry-link {
+  margin-left: 8px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--focus);
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: underline;
 }
 
 /* Focus setup */
 
 .focus-setup h1 {
-  font-size: 24px;
+  font-size: 26px;
   margin: 0 0 12px;
 }
 
 .row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.presets {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.preset-chip {
+  flex: 0 0 64px;
+  padding: 10px 4px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--fg);
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.preset-chip.selected {
+  border-color: var(--focus);
+  background: color-mix(in srgb, var(--focus) 22%, var(--panel));
+  color: var(--focus);
 }
 
 .stepper {
   display: flex;
   align-items: center;
-  gap: 14px;
-  font-size: 20px;
+  gap: 16px;
+  font-size: 22px;
 }
+
 .stepper button {
-  width: 44px;
-  height: 44px;
+  width: 56px;
+  height: 56px;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--panel);
-  font-size: 22px;
+  font-size: 26px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
 .issue-picker {
@@ -149,7 +277,7 @@ button {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   margin-top: 8px;
 }
 
@@ -157,21 +285,27 @@ button {
   text-align: left;
   border: 1px solid var(--border);
   background: var(--panel);
-  border-radius: 10px;
-  padding: 10px 12px;
+  border-radius: 12px;
+  padding: 12px 14px;
+  min-height: 52px;
   display: flex;
+  align-items: center;
   gap: 10px;
-  font-size: 15px;
+  font-size: 19px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
+
 .issue-row.selected {
   border-color: var(--focus);
   background: color-mix(in srgb, var(--focus) 15%, var(--panel));
 }
+
 .issue-key {
   font-weight: 700;
   color: var(--focus);
   flex-shrink: 0;
 }
+
 .issue-summary {
   color: var(--muted);
   overflow: hidden;
@@ -181,26 +315,37 @@ button {
 
 .actions {
   display: flex;
-  gap: 12px;
-  margin-top: 14px;
+  gap: 14px;
+  margin-top: 16px;
 }
+
 .btn-primary,
-.btn-secondary {
+.btn-secondary,
+.btn-danger {
   flex: 1;
-  padding: 14px;
-  border-radius: 12px;
+  padding: 16px;
+  border-radius: 14px;
   border: none;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
 }
+
 .btn-primary {
   background: var(--focus);
   color: #fff;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--focus) 45%, transparent);
 }
+
 .btn-secondary {
   background: var(--panel);
   border: 1px solid var(--border);
   color: var(--fg);
+}
+
+.btn-danger {
+  background: color-mix(in srgb, var(--busy) 14%, var(--panel));
+  border: 1px solid color-mix(in srgb, var(--busy) 45%, var(--border));
+  color: var(--busy);
 }
 
 /* Focus running */
@@ -209,35 +354,44 @@ button {
   align-items: center;
   justify-content: center;
   text-align: center;
-  gap: 16px;
+  gap: 18px;
+}
+
+.focus-eyebrow {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
 .clock {
-  font-size: 96px;
+  font-size: 104px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 
 .issue-tag {
-  font-size: 18px;
+  font-size: 20px;
   color: var(--muted);
 }
 
 .progress-track {
   width: 80%;
-  height: 8px;
+  height: 10px;
   background: var(--panel);
   border-radius: 999px;
   overflow: hidden;
 }
+
 .progress-fill {
   height: 100%;
-  background: var(--focus);
+  background: linear-gradient(90deg, var(--focus), color-mix(in srgb, var(--focus) 60%, #fff));
   transition: width 1s linear;
 }
 
 .end-btn {
-  margin-top: 12px;
-  padding: 12px 28px;
+  margin-top: 14px;
+  padding: 14px 32px;
   flex: none;
 }
