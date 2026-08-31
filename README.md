@@ -261,6 +261,7 @@ Deskbar's own mapping on top of that.
 manifest.json           bridgething app manifest (id, config fields, permissions)
 icon.png                app icon
 HARDWARE.md             confirmed-vs-guessed physical hardware behavior
+LICENSE                 MIT
 index.html, src/        the webapp itself (React + TypeScript + Vite)
   src/App.tsx              top-level orchestration: config/session/history state, screen routing
   src/config.ts            Config type + parseConfig
@@ -296,3 +297,7 @@ catalog.example.json    example catalog.v1 document for self-hosted distribution
   no analog here — bridgething's `phone` surface only exposes the connected
   phone's _cellular_ call state, not "an app like Zoom/Meet is capturing the
   mic," so it wasn't included in this pass.
+
+## License
+
+[MIT](LICENSE)
