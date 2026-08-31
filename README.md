@@ -116,9 +116,8 @@ plain `keydown`/`wheel` DOM events (bridgething doesn't route them through
   selection visible).
 - **Back / Escape** cancels or ends a session on Focus Setup/Running.
 - **Dial push-button** starts a focus session on Focus Setup. bridgething
-  doesn't document this button's keycode, so both community-suggested
-  candidates (Enter and Space) are bound — confirm on real hardware if you
-  add a screen that needs to distinguish them.
+  doesn't document this button's keycode; confirmed on real hardware that it
+  fires both Enter and Space, so both are bound.
 - **Mode ("m") is intentionally left unbound.** The daemon watches raw
   `KEY_M` across the active webapp for a 5-rapid-press go-home gesture; an
   app-level binding on "m" would fire on the gesture's first press too. Do

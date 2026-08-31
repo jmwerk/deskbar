@@ -404,3 +404,43 @@ label {
   padding: 14px 32px;
   flex: none;
 }
+
+/* Toast */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  max-width: calc(100vw - 56px);
+  background: color-mix(in srgb, var(--busy) 22%, var(--panel));
+  border: 1px solid color-mix(in srgb, var(--busy) 45%, var(--border));
+  color: var(--fg);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+  padding: 12px 18px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  animation: fade-in 200ms ease;
+  z-index: 50;
+}
+
+/* Error boundary */
+
+.error-screen {
+  gap: 12px;
+  text-align: center;
+}
+
+.error-title {
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.error-reload {
+  margin-top: 10px;
+  flex: none;
+  padding: 14px 32px;
+}

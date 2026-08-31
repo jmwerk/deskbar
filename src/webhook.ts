@@ -8,14 +8,21 @@ import { client } from './bridgething';
  * Webhooks applet, an Apple Shortcuts personal automation trigger, etc.,
  * and let that automation flip DND / block apps on your phone or PC.
  */
+/**
+ * Returns whether the webhook fired successfully. `true` also covers the
+ * "no URL configured" case — there's nothing to report as a failure. Firing
+ * itself is still best-effort: a failed automation hook never throws or
+ * blocks the focus session, it's left to the caller to decide whether/how
+ * to surface the `false` result to the user.
+ */
 export async function fireFocusWebhook(
   url: string | undefined,
   event: 'focus.started' | 'focus.stopped',
   detail: { issueKey?: string; durationS?: number },
-): Promise<void> {
-  if (!url) return;
+): Promise<boolean> {
+  if (!url) return true;
   try {
-    await client.net.fetch({
+    const res = await client.net.fetch({
       request: {
         url,
         method: 'POST',
@@ -25,7 +32,9 @@ export async function fireFocusWebhook(
         redirect: 'follow',
       },
     });
-  } catch {
-    // Best-effort: a failed automation hook shouldn't block the focus session itself.
+    return res.ok;
+  } catch (err) {
+    console.warn('[deskbar] focus webhook failed', err);
+    return false;
   }
 }

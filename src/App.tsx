@@ -65,6 +65,14 @@ export default function App() {
   const [session, setSession] = useState<SessionState | null>(null);
   const [screen, setScreen] = useState<'home' | 'focusSetup'>('home');
   const [now, setNow] = useState(() => Date.now());
+  const [toast, setToast] = useState<string | null>(null);
+
+  // Auto-dismiss any toast after a few seconds.
+  useEffect(() => {
+    if (!toast) return;
+    const id = setTimeout(() => setToast(null), 4000);
+    return () => clearTimeout(id);
+  }, [toast]);
 
   useEffect(() => watchConfig(raw => setConfig(parseConfig(raw))), []);
   useEffect(() => {
@@ -94,12 +102,17 @@ export default function App() {
       const { startedAt, durationS, issueKey } = session.focus;
       const elapsedS = completed ? durationS : (now - startedAt) / 1000;
       update({ status: 'available' });
-      await fireFocusWebhook(config.focusWebhookUrl, 'focus.stopped', { issueKey, durationS: elapsedS });
+      const webhookOk = await fireFocusWebhook(config.focusWebhookUrl, 'focus.stopped', {
+        issueKey,
+        durationS: elapsedS,
+      });
+      if (!webhookOk) setToast('Focus automation webhook failed to fire.');
       if (config.jira && issueKey) {
         try {
           await logWork(config.jira, issueKey, elapsedS, 'Logged via Deskbar');
         } catch (err) {
           console.warn('[deskbar] failed to log work to Jira', err);
+          setToast(`Couldn't log time to ${issueKey} — the session still ended.`);
         }
       }
     },
@@ -113,17 +126,16 @@ export default function App() {
     }
   }, [session, remainingS, endFocus]);
 
+  let content: JSX.Element;
   if (!session) {
-    return (
+    content = (
       <div className="screen center loading-screen">
         <div className="spinner" aria-hidden="true" />
         <div className="hint">Loading Deskbar…</div>
       </div>
     );
-  }
-
-  if (session.status === 'focus' && session.focus) {
-    return (
+  } else if (session.status === 'focus' && session.focus) {
+    content = (
       <FocusRunning
         issueKey={session.focus.issueKey}
         issueSummary={session.focus.issueSummary}
@@ -132,10 +144,8 @@ export default function App() {
         onEnd={() => void endFocus(false)}
       />
     );
-  }
-
-  if (screen === 'focusSetup') {
-    return (
+  } else if (screen === 'focusSetup') {
+    content = (
       <FocusSetup
         config={config}
         onCancel={() => setScreen('home')}
@@ -143,21 +153,40 @@ export default function App() {
           const focus = { startedAt: Date.now(), durationS, issueKey: issue?.key, issueSummary: issue?.summary };
           update({ status: 'focus', focus });
           setScreen('home');
-          await fireFocusWebhook(config.focusWebhookUrl, 'focus.started', { issueKey: issue?.key, durationS });
+          const webhookOk = await fireFocusWebhook(config.focusWebhookUrl, 'focus.started', {
+            issueKey: issue?.key,
+            durationS,
+          });
+          if (!webhookOk) setToast('Focus automation webhook failed to fire.');
+        }}
+      />
+    );
+  } else {
+    content = (
+      <Home
+        status={session.status}
+        jiraConfigured={!!config.jira}
+        onSelect={status => {
+          if (status === 'focus') setScreen('focusSetup');
+          else update({ status });
         }}
       />
     );
   }
 
   return (
-    <Home
-      status={session.status}
-      jiraConfigured={!!config.jira}
-      onSelect={status => {
-        if (status === 'focus') setScreen('focusSetup');
-        else update({ status });
-      }}
-    />
+    <>
+      {content}
+      {toast && <Toast message={toast} />}
+    </>
+  );
+}
+
+function Toast({ message }: { message: string }) {
+  return (
+    <div className="toast" role="status">
+      {message}
+    </div>
   );
 }
 
@@ -309,8 +338,8 @@ function FocusSetup({
       } else if (e.key === 'Escape') {
         onCancel();
       } else if (e.key === 'Enter' || e.key === ' ') {
-        // The dial's push-button — bridgething doesn't document its key, so both
-        // common candidates are handled. preventDefault below also stops it from
+        // The dial's push-button. Confirmed on hardware to fire both Enter and
+        // Space, so both are bound. preventDefault below also stops it from
         // re-activating whatever button last happened to hold focus.
         onStart(minutes * 60, selected);
       } else {
