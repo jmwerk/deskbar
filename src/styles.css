@@ -482,8 +482,10 @@ label {
 
 .history-delete-hint {
   flex-shrink: 0;
+  width: 20px;
+  text-align: center;
   color: var(--muted);
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1;
 }
 
