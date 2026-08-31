@@ -16,7 +16,10 @@ give you, built here:
 - **Jira time tracking** — the focus-setup screen lists issues from a
   configurable JQL query (defaults to "assigned to me, unresolved"); when a
   focus session ends (naturally or early), the elapsed time is logged to
-  that issue's worklog via the Jira REST API.
+  that issue's worklog via the Jira REST API. If that log call fails, the
+  session has already ended and returned to Home, so there's nothing left
+  on screen to retry by hand — the failed worklog is queued instead and
+  retried automatically the next time the app launches with Jira reachable.
 - **Log time now** — log time to an issue directly, without running a
   timer, from Home's fourth preset.
 - **Today** — a running total of time logged today, tappable from Home, with
@@ -91,6 +94,11 @@ __deskbarMock.clearAllFetchFaults();
 // Push a config change, as if the phone app had just saved new settings.
 __deskbarMock.setConfig({ focusWebhookUrl: 'https://example.com/webhook' });
 ```
+
+To exercise the pending-worklog retry queue: fail `/worklog` (above), end a
+focus session, confirm the error toast and that Today doesn't count it,
+then `__deskbarMock.clearAllFetchFaults()` and reload the page — the queued
+worklog should recover automatically with a "Recovered…" toast.
 
 ### Development
 

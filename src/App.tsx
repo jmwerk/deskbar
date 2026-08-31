@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { watchConfig } from './bridgething';
 import { DEFAULT_CONFIG, parseConfig, type Config } from './config';
 import { formatDuration } from './format';
@@ -11,6 +11,7 @@ import {
   type HistoryEntry,
 } from './history';
 import { deleteWorklog, logWork } from './jira';
+import { loadPendingWorklogs, queuePendingWorklog, removePendingWorklog } from './retryQueue';
 import { loadSession, saveSession, type SessionState } from './session';
 import { Toast } from './Toast';
 import { fireFocusWebhook } from './webhook';
@@ -89,6 +90,7 @@ export default function App() {
         } catch (err) {
           console.warn('[deskbar] failed to log work to Jira', err);
           showError(`Couldn't log time to ${issueKey} — the session still ended.`);
+          void queuePendingWorklog({ issueKey, issueSummary, seconds: elapsedS, createdAt: Date.now() });
         }
       }
     },
@@ -101,6 +103,34 @@ export default function App() {
       void endFocus(true);
     }
   }, [session, remainingS, endFocus]);
+
+  // Retry any worklogs that failed to log when a past session ended,
+  // once on launch — after Jira config actually loads, and only once per
+  // app session even if config changes again for an unrelated reason.
+  const retriedPendingRef = useRef(false);
+  useEffect(() => {
+    const jiraConfig = config.jira;
+    if (!jiraConfig || retriedPendingRef.current) return;
+    retriedPendingRef.current = true;
+    (async () => {
+      for (const entry of await loadPendingWorklogs()) {
+        try {
+          const { worklogId } = await logWork(jiraConfig, entry.issueKey, entry.seconds, 'Logged via Deskbar');
+          await removePendingWorklog(entry.id);
+          void appendHistoryEntry({
+            issueKey: entry.issueKey,
+            issueSummary: entry.issueSummary,
+            seconds: entry.seconds,
+            loggedAt: entry.createdAt,
+            worklogId,
+          }).then(setHistory);
+          showSuccess(`Recovered ${formatDuration(entry.seconds)} logged to ${entry.issueKey}.`);
+        } catch {
+          // Still can't reach Jira — leave it queued for the next launch.
+        }
+      }
+    })();
+  }, [config.jira, showSuccess]);
 
   let content: JSX.Element;
   if (!session) {
