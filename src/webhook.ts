@@ -7,8 +7,7 @@ import { client } from './bridgething';
  * start/stop. Point that URL at a Home Assistant webhook, an IFTTT
  * Webhooks applet, an Apple Shortcuts personal automation trigger, etc.,
  * and let that automation flip DND / block apps on your phone or PC.
- */
-/**
+ *
  * Returns whether the webhook fired successfully. `true` also covers the
  * "no URL configured" case — there's nothing to report as a failure. Firing
  * itself is still best-effort: a failed automation hook never throws or
@@ -32,7 +31,9 @@ export async function fireFocusWebhook(
         redirect: 'follow',
       },
     });
-    return res.ok;
+    // `res.ok` only means the daemon reached the URL and got a response back
+    // — the response itself can still be a 4xx/5xx from the target.
+    return res.ok && res.response.response.status >= 200 && res.response.response.status < 300;
   } catch (err) {
     console.warn('[deskbar] focus webhook failed', err);
     return false;

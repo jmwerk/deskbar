@@ -409,10 +409,14 @@ label {
 
 .toast {
   position: fixed;
-  left: 50%;
-  bottom: 24px;
-  transform: translateX(-50%);
-  max-width: calc(100vw - 56px);
+  top: 20px;
+  left: 28px;
+  /* Every screen anchors its own controls to the bottom edge (the preset
+     hints on Home, Cancel/Start on Focus Setup), so the toast lives at the
+     top instead. Capped width keeps it clear of the top-right corner
+     reserved for bridgething's notification toasts and the physical dial
+     (see --toast-safe-w above). */
+  max-width: calc(100vw - var(--toast-safe-w) - 56px);
   background: color-mix(in srgb, var(--busy) 22%, var(--panel));
   border: 1px solid color-mix(in srgb, var(--busy) 45%, var(--border));
   color: var(--fg);
@@ -422,7 +426,7 @@ label {
   padding: 12px 18px;
   border-radius: 12px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
-  text-align: center;
+  text-align: left;
   animation: fade-in 200ms ease;
   z-index: 50;
 }
