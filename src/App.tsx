@@ -31,6 +31,25 @@ const DEFAULT_JQL = 'assignee = currentUser() AND resolution = Unresolved ORDER 
 const PRESET_MINUTES = [15, 25, 45, 60];
 const PRESET_LABELS = ['①', '②', '③', '④'];
 
+/**
+ * Scopes a keydown listener to the mounted screen and ignores key-repeat
+ * (holding a button shouldn't repeat-fire whatever it's bound to). Each
+ * screen's handler still owns its own key-to-action mapping and
+ * `preventDefault` calls — this only centralizes the addEventListener/
+ * removeEventListener/repeat-guard boilerplate every screen was repeating.
+ */
+export function useKeydown(onKeyDown: (e: KeyboardEvent) => void, enabled = true) {
+  useEffect(() => {
+    if (!enabled) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.repeat) return;
+      onKeyDown(e);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onKeyDown, enabled]);
+}
+
 /** Rotary wheel events arrive as a burst of small deltas per detent; accumulate and step. */
 export function useRotaryStep(onStep: (direction: 1 | -1) => void, enabled: boolean) {
   useEffect(() => {
@@ -309,21 +328,21 @@ function Home({
   onLogNow: () => void;
   onOpenHistory: () => void;
 }) {
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.repeat) return;
-      // Presets 1-3 mirror the three tiles below; preset 4 opens Log Time
-      // Now (only meaningful once Jira is configured).
-      if (e.key === '1') onSelect('available');
-      else if (e.key === '2') onSelect('busy');
-      else if (e.key === '3') onSelect('focus');
-      else if (e.key === '4' && jiraConfigured) onLogNow();
-      else return;
-      e.preventDefault();
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [onSelect, onLogNow, jiraConfigured]);
+  useKeydown(
+    useCallback(
+      e => {
+        // Presets 1-3 mirror the three tiles below; preset 4 opens Log Time
+        // Now (only meaningful once Jira is configured).
+        if (e.key === '1') onSelect('available');
+        else if (e.key === '2') onSelect('busy');
+        else if (e.key === '3') onSelect('focus');
+        else if (e.key === '4' && jiraConfigured) onLogNow();
+        else return;
+        e.preventDefault();
+      },
+      [onSelect, onLogNow, jiraConfigured],
+    ),
+  );
 
   return (
     <div className="screen home">
@@ -525,27 +544,27 @@ function FocusSetup({
   const [minutes, setMinutes] = useState(config.defaultFocusMinutes);
   const [selected, setSelected] = useState<JiraIssue | undefined>(undefined);
 
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.repeat) return;
-      const presetIndex = ['1', '2', '3', '4'].indexOf(e.key);
-      if (presetIndex !== -1) {
-        setMinutes(PRESET_MINUTES[presetIndex]);
-      } else if (e.key === 'Escape') {
-        onCancel();
-      } else if (e.key === 'Enter' || e.key === ' ') {
-        // The dial's push-button. Confirmed on hardware to fire both Enter and
-        // Space, so both are bound. preventDefault below also stops it from
-        // re-activating whatever button last happened to hold focus.
-        onStart(minutes * 60, selected);
-      } else {
-        return;
-      }
-      e.preventDefault();
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [minutes, selected, onCancel, onStart]);
+  useKeydown(
+    useCallback(
+      e => {
+        const presetIndex = ['1', '2', '3', '4'].indexOf(e.key);
+        if (presetIndex !== -1) {
+          setMinutes(PRESET_MINUTES[presetIndex]);
+        } else if (e.key === 'Escape') {
+          onCancel();
+        } else if (e.key === 'Enter' || e.key === ' ') {
+          // The dial's push-button. Confirmed on hardware to fire both Enter and
+          // Space, so both are bound. preventDefault below also stops it from
+          // re-activating whatever button last happened to hold focus.
+          onStart(minutes * 60, selected);
+        } else {
+          return;
+        }
+        e.preventDefault();
+      },
+      [minutes, selected, onCancel, onStart],
+    ),
+  );
 
   return (
     <div className="screen focus-setup">
@@ -600,24 +619,24 @@ function LogTimeNow({
     }
   }, [config, selected, minutes, busy, onLogged]);
 
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.repeat) return;
-      const presetIndex = ['1', '2', '3', '4'].indexOf(e.key);
-      if (presetIndex !== -1) {
-        setMinutes(PRESET_MINUTES[presetIndex]);
-      } else if (e.key === 'Escape') {
-        onCancel();
-      } else if (e.key === 'Enter' || e.key === ' ') {
-        void submit();
-      } else {
-        return;
-      }
-      e.preventDefault();
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [onCancel, submit]);
+  useKeydown(
+    useCallback(
+      e => {
+        const presetIndex = ['1', '2', '3', '4'].indexOf(e.key);
+        if (presetIndex !== -1) {
+          setMinutes(PRESET_MINUTES[presetIndex]);
+        } else if (e.key === 'Escape') {
+          onCancel();
+        } else if (e.key === 'Enter' || e.key === ' ') {
+          void submit();
+        } else {
+          return;
+        }
+        e.preventDefault();
+      },
+      [onCancel, submit],
+    ),
+  );
 
   return (
     <div className="screen focus-setup">
@@ -656,18 +675,18 @@ function History({
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.repeat) return;
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        if (confirmingId) setConfirmingId(null);
-        else onBack();
-      }
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [onBack, confirmingId]);
+  useKeydown(
+    useCallback(
+      e => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          if (confirmingId) setConfirmingId(null);
+          else onBack();
+        }
+      },
+      [onBack, confirmingId],
+    ),
+  );
 
   const today = useMemo(() => todayEntries(entries), [entries]);
   const total = useMemo(() => totalSeconds(today), [today]);
@@ -772,17 +791,17 @@ function FocusRunning({
   totalS: number;
   onEnd: () => void;
 }) {
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.repeat) return;
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        onEnd();
-      }
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [onEnd]);
+  useKeydown(
+    useCallback(
+      e => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          onEnd();
+        }
+      },
+      [onEnd],
+    ),
+  );
 
   const progress = Math.min(1, Math.max(0, 1 - remainingS / totalS));
   return (
