@@ -184,6 +184,10 @@ and hands off to `scripts/build-catalog-site.mjs`, which:
   version/download pair (per-version `min_libbridgething_version`,
   `released_at`, `changelog`, etc.), which the first release found out
   the hard way.
+- Picks up anything image-like in `screenshots/` and adds it to the app's
+  `screenshots` array, in filename order (the store shows the first one on
+  the card) — omitted entirely if the folder's empty, since the schema
+  wants that key left off rather than sent as `[]`.
 
 Everything then deploys to `https://<owner>.github.io/<repo>/`. GitHub
 Pages serves it with `Access-Control-Allow-Origin: *`, which is what
@@ -260,6 +264,7 @@ Deskbar's own mapping on top of that.
 ```
 manifest.json           bridgething app manifest (id, config fields, permissions)
 icon.png                app icon
+screenshots/            catalog screenshots (picked up by build-catalog-site.mjs)
 HARDWARE.md             confirmed-vs-guessed physical hardware behavior
 LICENSE                 MIT
 index.html, src/        the webapp itself (React + TypeScript + Vite)

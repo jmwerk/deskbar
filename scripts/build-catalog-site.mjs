@@ -10,7 +10,7 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync } from 'node:fs';
-import { copyFile, readFile, stat, writeFile } from 'node:fs/promises';
+import { copyFile, readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import Ajv2020 from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
@@ -118,6 +118,24 @@ if (manifest.icon && existsSync(path.join(root, manifest.icon))) {
   await copyFile(path.join(root, manifest.icon), path.join(siteDir, manifest.icon));
 }
 
+// --- Screenshots ---------------------------------------------------
+//
+// Optional — the schema wants the key omitted entirely rather than an
+// empty array if there are none. Anything image-like in screenshots/,
+// sorted by filename so the order in the repo controls listing order
+// (the store shows the first one on the app card).
+
+const screenshotsDir = path.join(root, 'screenshots');
+const screenshotUrls = [];
+if (existsSync(screenshotsDir)) {
+  const files = (await readdir(screenshotsDir)).filter(f => /\.(png|jpe?g|webp)$/i.test(f)).sort();
+  if (files.length > 0) mkdirSync(path.join(siteDir, 'screenshots'), { recursive: true });
+  for (const file of files) {
+    await copyFile(path.join(screenshotsDir, file), path.join(siteDir, 'screenshots', file));
+    screenshotUrls.push(`${baseUrl}/screenshots/${file}`);
+  }
+}
+
 const catalog = {
   $schema: 'https://apps.bridgething.com/schemas/catalog/v1.json',
   schema: 'catalog.v1',
@@ -135,6 +153,7 @@ const catalog = {
       description: manifest.description,
       author: owner,
       icon: manifest.icon ? `${baseUrl}/${manifest.icon}` : null,
+      ...(screenshotUrls.length > 0 ? { screenshots: screenshotUrls } : {}),
       homepage: `https://github.com/${repo}`,
       source: `https://github.com/${repo}`,
       versions,
