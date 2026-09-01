@@ -20,12 +20,14 @@ give you, built here:
   button toggles it) — paused time doesn't count toward the session,
   whether it ends naturally or you end it early.
 - **Jira time tracking** — the focus-setup screen lists issues from a
-  configurable JQL query (defaults to "assigned to me, unresolved"); when a
-  focus session ends (naturally or early), the elapsed time is logged to
-  that issue's worklog via the Jira REST API. If that log call fails, the
-  session has already ended and returned to Home, so there's nothing left
-  on screen to retry by hand — the failed worklog is queued instead and
-  retried automatically the next time the app launches with Jira reachable.
+  configurable JQL query (defaults to "assigned to me, unresolved"); when
+  results span more than one project, tappable chips above the list narrow
+  it down without editing the JQL field. When a focus session ends
+  (naturally or early), the elapsed time is logged to that issue's worklog
+  via the Jira REST API. If that log call fails, the session has already
+  ended and returned to Home, so there's nothing left on screen to retry by
+  hand — the failed worklog is queued instead and retried automatically the
+  next time the app launches with Jira reachable.
 - **Log time now** — log time to an issue directly, without running a
   timer, from Home's fourth preset.
 - **Today** — a running total of time logged today, tappable from Home, with
@@ -295,9 +297,11 @@ catalog.example.json    example catalog.v1 document for self-hosted distribution
 
 - No on-device DND/app-blocking — see the webhook note above.
 - The issue picker is tap-to-select from a JQL result list; there's no
-  on-device text search, since a touchscreen-only keyboard flow wasn't
-  worth the complexity for a first pass. Narrow results with the JQL field
-  instead (e.g. scope it to one project).
+  on-device text search, since a touchscreen-only keyboard flow wasn't worth
+  the complexity for a first pass. When results span more than one project,
+  tappable chips narrow it down; the JQL field is still the more powerful
+  way to scope results (e.g. to one project) before they ever reach the
+  device.
 - Mic/camera-based auto-busy-detection (like BUSY Bar's call detection) has
   no analog here — bridgething's `phone` surface only exposes the connected
   phone's _cellular_ call state, not "an app like Zoom/Meet is capturing the

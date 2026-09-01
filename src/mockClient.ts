@@ -25,6 +25,7 @@ const DEFAULT_MOCK_CONFIG: Record<string, string> = {
 const MOCK_ISSUES = [
   { key: 'DESK-1', fields: { summary: 'Wire up the mock client', project: { key: 'DESK', name: 'Deskbar' } } },
   { key: 'DESK-2', fields: { summary: 'Test the focus timer end to end', project: { key: 'DESK', name: 'Deskbar' } } },
+  { key: 'OPS-7', fields: { summary: 'Rotate the office wifi password', project: { key: 'OPS', name: 'Operations' } } },
 ];
 
 const STORE_PREFIX = 'deskbar-mock-store:';

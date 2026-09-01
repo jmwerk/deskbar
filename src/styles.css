@@ -376,6 +376,29 @@ label {
   flex-direction: column;
 }
 
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.filter-chip {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.filter-chip.selected {
+  border-color: var(--focus);
+  background: color-mix(in srgb, var(--focus) 20%, var(--panel));
+  color: var(--fg);
+}
+
 .issue-list {
   flex: 1;
   overflow-y: auto;
