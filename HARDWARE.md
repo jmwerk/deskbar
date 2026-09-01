@@ -62,6 +62,23 @@ empirically, not derived from a spec.
 Every `keydown` handler in Deskbar ignores `e.repeat` (see `useKeydown`) —
 holding a preset down shouldn't repeat-fire whatever it's bound to.
 
+**Preset buttons sit above the screen, not below, and are spaced evenly
+across the full screen width** — confirmed by the user, hands-on, in two
+passes: the first version of Home's `.button-hint` legend (①-④) was inset
+to match the screen's normal 20px/28px content padding, same as
+everything else on Home, and the user reported it was "slightly
+misaligned" against the real buttons. Removing that inset — flush against
+the screen's true edges (`margin: -20px -28px ...` cancels `.screen`'s
+padding for this one element) with 4 even grid columns spanning the full
+800px — fixed it. So the buttons themselves are edge-to-edge evenly
+spaced, not inset to match where the rest of the UI's content margin sits.
+Laid out as 4 fixed grid columns (not a centered flex row) so labels 1-3
+stay under their buttons even when the 4th is blank (no Jira configured)
+— a centered row would re-flow and drift out of alignment instead. Each
+tab is also tinted to match the tile it controls (Available/Busy/Focus),
+reading as the physical button's own color continuing down into the
+screen rather than a separate floating badge.
+
 ## Screen occlusion / safe zones
 
 Two different things occlude the top-right corner of the screen, and

@@ -233,12 +233,49 @@ label {
   text-align: center;
 }
 
+/* Cancels .screen's 20px/28px padding for this element only, so it sits
+   flush against the screen's true top/left/right edges — it needs to
+   line up with the physical buttons above it, not with the rest of the
+   inset content. */
 .button-hint {
-  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+  margin: -20px -28px 14px;
+}
+
+.button-hint-item {
   display: flex;
-  justify-content: center;
-  gap: 22px;
-  font-size: 15px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1px;
+  padding: 5px 4px 7px;
+  background: var(--panel);
+  /* Square top, rounded bottom: reads as the button's own material
+     continuing down into the screen, not a separate floating badge. */
+  border-radius: 0 0 8px 8px;
+}
+
+.button-hint-available {
+  background: color-mix(in srgb, var(--available) 30%, var(--panel));
+}
+.button-hint-busy {
+  background: color-mix(in srgb, var(--busy) 30%, var(--panel));
+}
+.button-hint-focus {
+  background: color-mix(in srgb, var(--focus) 30%, var(--panel));
+}
+
+.button-hint-num {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--fg);
+}
+
+.button-hint-label {
+  font-size: 11px;
+  font-weight: 600;
   color: var(--muted);
 }
 

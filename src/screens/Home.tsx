@@ -59,6 +59,34 @@ export function Home({
           <div className="screensaver-clock">{formatWallClock(now, timezone)}</div>
         </div>
       )}
+      {/* Flush with the screen's true top/left/right edges (negative
+          margins cancel .screen's padding for this element only) — lines
+          up with the physical preset buttons directly above it on the
+          device. Square top corners read as a continuation of the button
+          itself rather than a floating badge; each tab is tinted to match
+          the tile it controls, so the color runs button -> tab -> tile. */}
+      <div className="button-hint">
+        <div className="button-hint-item button-hint-available">
+          <span className="button-hint-num">1</span>
+          <span className="button-hint-label">Available</span>
+        </div>
+        <div className="button-hint-item button-hint-busy">
+          <span className="button-hint-num">2</span>
+          <span className="button-hint-label">Busy</span>
+        </div>
+        <div className="button-hint-item button-hint-focus">
+          <span className="button-hint-num">3</span>
+          <span className="button-hint-label">Focus</span>
+        </div>
+        <div className="button-hint-item">
+          {jiraConfigured && (
+            <>
+              <span className="button-hint-num">4</span>
+              <span className="button-hint-label">Log time</span>
+            </>
+          )}
+        </div>
+      </div>
       <div className={`status-banner status-${status}`}>{statusLabel(status)}</div>
       {jiraConfigured && (
         <button className="today-bar" onClick={onOpenHistory}>
@@ -96,12 +124,6 @@ export function Home({
           <BoltIcon />
           <span>Focus</span>
         </button>
-      </div>
-      <div className="button-hint">
-        <span>① Available</span>
-        <span>② Busy</span>
-        <span>③ Focus</span>
-        {jiraConfigured && <span>④ Log time</span>}
       </div>
       {!jiraConfigured && (
         <div className="hint">
