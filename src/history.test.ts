@@ -38,10 +38,7 @@ describe('todayEntries', () => {
   });
 
   it('buckets by the given IANA timezone, not just wall-clock UTC', () => {
-    // A device with no timezone configured (e.g. a headless Car Thing)
-    // defaults to UTC — this is exactly the kind of instant that's the
-    // same calendar day in UTC but a different one once a real zone is
-    // applied, which is what silently mis-bucketed entries near midnight.
+    // Same UTC instant falls on a different calendar day in a real zone — the near-midnight bug case.
     const entryMs = Date.UTC(2026, 7, 31, 2, 0, 0); // Aug 31 02:00 UTC = Aug 30 22:00 EDT
     const nowMs = Date.UTC(2026, 7, 31, 10, 0, 0); // Aug 31 10:00 UTC = Aug 31 06:00 EDT
 

@@ -31,9 +31,7 @@ describe('formatDuration', () => {
 });
 
 describe('formatWallClock', () => {
-  // toLocaleTimeString's exact separators/AM-PM casing vary by ICU/locale
-  // data, so check structure (hour, minute, no seconds) rather than an
-  // exact string — that's what a screensaver clock actually needs to be right.
+  // Locale formatting varies (separators, AM/PM), so check structure, not an exact string.
   it('shows an hour and a two-digit minute, no seconds', () => {
     const noon = new Date(2026, 0, 1, 12, 0, 0).getTime();
     const text = formatWallClock(noon);
@@ -48,8 +46,7 @@ describe('formatWallClock', () => {
 
   it('respects an explicit timezone override, independent of the runtime default', () => {
     const ms = Date.UTC(2026, 0, 1, 12, 0, 0); // noon UTC
-    // UTC noon is 7am in New York (EST) and 9pm in Tokyo — different hours
-    // entirely, so this only passes if `timeZone` is actually applied.
+    // UTC noon is 7am NY and 9pm Tokyo, so this only passes if timeZone is applied.
     expect(formatWallClock(ms, 'America/New_York')).toMatch(/^7:00/);
     expect(formatWallClock(ms, 'Asia/Tokyo')).toMatch(/^9:00/);
   });

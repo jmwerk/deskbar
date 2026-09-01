@@ -86,15 +86,7 @@ export function History({
                 </div>
               </div>
             ) : (
-              // The whole row is the tap target (not a small icon at its
-              // edge), AND the visual "x" hint itself sits at the row's
-              // LEFT end, not the right. On the 800x480 display the
-              // top-right corner sits under the physical dial, which can
-              // make that exact spot genuinely unpressable — putting the
-              // affordance there would keep inviting a tap right where the
-              // dial is, even with the bigger hit area. Duration is plain
-              // text, not interactive, so it's fine to sit on the right.
-              // See the "Physical controls" note in the README.
+              // "x" hint sits at the left, not right; top-right is unpressable under the dial. See README.
               <button
                 className="history-row"
                 key={entry.id}

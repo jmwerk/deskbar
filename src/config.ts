@@ -7,13 +7,7 @@ export type Config = {
   focusWebhookUrl?: string;
   focusWebhookFormat: WebhookFormat;
   defaultFocusMinutes: number;
-  /**
-   * IANA zone name (e.g. "America/New_York"), only set if the user
-   * configured one. A headless Car Thing commonly has no timezone set at
-   * all, defaulting to UTC — the clock and "Today" bucketing both fall
-   * back to the runtime's own local timezone when this is unset, which is
-   * correct in a browser (dev/dev:mock) but wrong on a device in that state.
-   */
+  /** IANA zone name if user-configured; unset falls back to runtime tz, wrong on a headless Car Thing. */
   timezone?: string;
 };
 

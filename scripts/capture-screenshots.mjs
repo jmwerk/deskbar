@@ -1,11 +1,6 @@
-// Regenerates screenshots/*.png from the real app running in mock mode
-// (VITE_MOCK=1), so the catalog screenshots (see build-catalog-site.mjs)
-// stay in sync with the UI instead of going stale after a visual change.
+// Regenerates screenshots/*.png in mock mode so catalog screenshots don't go stale on UI changes.
 //
-// Each shot gets its own browser context — a clean localStorage — seeded
-// with just enough mock state (see mockClient.ts) to reach that screen
-// deterministically. Run with `npm run screenshots`; requires Chromium via
-// `npx playwright install chromium` (one-time).
+// Each shot uses an isolated, mock-seeded context. Run npm run screenshots (needs Chromium).
 import { spawn } from 'node:child_process';
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
@@ -51,9 +46,7 @@ async function seedHistory(context) {
   );
 }
 
-// Rewinds the persisted session's startedAt so the countdown reads as if
-// `minutesElapsed` had genuinely passed, instead of sleeping for real —
-// then reloads so the app picks the change up from a fresh loadSession().
+// Backdates startedAt to fake minutesElapsed passing, avoiding a real sleep, then reloads.
 async function backdateFocusSession(page, minutesElapsed) {
   await page.evaluate(
     ({ key, ms }) => {
@@ -68,8 +61,7 @@ async function backdateFocusSession(page, minutesElapsed) {
   await page.reload();
 }
 
-// Every .screen fades/slides in over 200ms (styles.css); wait it out so
-// screenshots don't catch it mid-transition.
+// .screen fades/slides over 200ms (styles.css); wait it out so shots avoid mid-transition.
 const FADE_IN_MS = 250;
 
 async function shoot(page, name) {
@@ -129,9 +121,7 @@ async function main() {
         await page.locator('.focus-running .clock').waitFor();
         await shoot(page, '03-focus-running.png');
 
-        // Pause partway through a 25-minute session rather than right at
-        // the start, so the paused screenshot shows a countdown that's
-        // actually mid-flight.
+        // Pause mid-session, not at the start, so the paused shot shows a mid-flight countdown.
         await backdateFocusSession(page, 6);
         await page.locator('.focus-running .clock').waitFor();
         await page.locator('.focus-running .btn-secondary').click();

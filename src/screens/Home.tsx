@@ -21,12 +21,7 @@ export function Home({
   onLogNow: () => void;
   onOpenHistory: () => void;
 }) {
-  // A stationary desk display shouldn't just sit on the status tiles
-  // forever — after a few idle minutes, dim to a plain clock instead.
-  // Any key/wheel/touch wakes it; while idle, presets are disabled below
-  // so the very key that wakes it doesn't also act on whatever it's bound
-  // to (useIdle's own activity listener already "consumes" that first
-  // event, so the preset handler simply never sees it).
+  // Dims to a clock when idle; presets disable so the wake key can't also fire its action.
   const idle = useIdle(HOME_IDLE_TIMEOUT_MS);
   const pressedIndex = useKeyFlash(!idle);
   const [now, setNow] = useState(() => Date.now());
@@ -39,8 +34,7 @@ export function Home({
   useKeydown(
     useCallback(
       e => {
-        // Presets 1-3 mirror the three tiles below; preset 4 opens Log Time
-        // Now (only meaningful once Jira is configured).
+        // Presets 1-3 mirror the three tiles below; preset 4 opens Log Time Now (needs Jira).
         if (e.key === '1') onSelect('available');
         else if (e.key === '2') onSelect('busy');
         else if (e.key === '3') onSelect('focus');
@@ -60,12 +54,7 @@ export function Home({
           <div className="screensaver-clock">{formatWallClock(now, timezone)}</div>
         </div>
       )}
-      {/* Flush with the screen's true top/left/right edges (negative
-          margins cancel .screen's padding for this element only) — lines
-          up with the physical preset buttons directly above it on the
-          device. Square top corners read as a continuation of the button
-          itself rather than a floating badge; each tab is tinted to match
-          the tile it controls, so the color runs button -> tab -> tile. */}
+      {/* Negative margins flush this to the screen's edge, aligning with the preset buttons above. */}
       <div className="button-hint">
         <div className={`button-hint-item button-hint-available ${pressedIndex === 0 ? 'pressed' : ''}`}>
           <span className="button-hint-label">Available</span>

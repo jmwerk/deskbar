@@ -3,13 +3,7 @@ import type { Config } from './config';
 import { searchIssues, JiraError, type JiraIssue } from './jira';
 import { useRotaryStep } from './physicalControls';
 
-/**
- * Fetches and lists Jira issues for `config.jiraJql`, with dial-scroll,
- * touch selection, and (when results span more than one project) tap-to-
- * filter project chips. `allowNone` adds a "No issue" row at the top (Focus
- * Setup can run as a plain timer; Log Time Now always needs an issue).
- * Shared so the fetch/dial/auto-scroll logic isn't duplicated per screen.
- */
+/** Shared Jira issue list: dial-scroll, touch select, project chips, optional "No issue" row. */
 export function IssuePicker({
   config,
   selected,
@@ -21,8 +15,7 @@ export function IssuePicker({
   selected: JiraIssue | undefined;
   onSelect: (issue: JiraIssue | undefined) => void;
   allowNone?: boolean;
-  /** Screens with their own dial-controlled value (e.g. a duration) pass
-   *  this so only one thing on screen responds to a given dial turn. */
+  /** Set false when the screen owns another dial control, so only one thing responds to turns. */
   dialEnabled?: boolean;
 }) {
   const [issues, setIssues] = useState<JiraIssue[] | null>(null);

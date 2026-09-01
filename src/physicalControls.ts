@@ -1,12 +1,7 @@
 import { useEffect, useState } from 'react';
 
-/**
- * The Car Thing's physical controls never reach `@bridgething/client` — the
- * kiosk delivers them straight to the page as plain DOM events: preset
- * buttons 1-4 as `keydown` "1".."4", the Mode button as "m", Back as
- * "Escape", and the rotary dial as `wheel` with horizontal `deltaX`.
- */
-/** Minute deltas the 4 physical buttons apply to a duration, coarse-to-fine, decrement-then-increment. */
+// Car Thing controls bypass bridgething client: keydown 1-4/m/Escape, wheel deltaX for dial.
+// Minute deltas the 4 buttons apply to a duration: coarse-to-fine, decrement then increment.
 export const DURATION_STEPS = [-15, -5, 5, 15] as const;
 
 const MIN_DURATION_MINUTES = 5;
@@ -19,13 +14,7 @@ export function clampMinutes(minutes: number): number {
 /** How long Home sits untouched before the idle screensaver takes over. */
 export const HOME_IDLE_TIMEOUT_MS = 3 * 60_000;
 
-/**
- * Scopes a keydown listener to the mounted screen and ignores key-repeat
- * (holding a button shouldn't repeat-fire whatever it's bound to). Each
- * screen's handler still owns its own key-to-action mapping and
- * `preventDefault` calls — this only centralizes the addEventListener/
- * removeEventListener/repeat-guard boilerplate every screen was repeating.
- */
+// Keydown listener scoped to the mounted screen; ignores key-repeat, centralizes listener setup.
 export function useKeydown(onKeyDown: (e: KeyboardEvent) => void, enabled = true) {
   useEffect(() => {
     if (!enabled) return;
@@ -38,14 +27,7 @@ export function useKeydown(onKeyDown: (e: KeyboardEvent) => void, enabled = true
   }, [onKeyDown, enabled]);
 }
 
-/**
- * True once no keydown/wheel/pointerdown has happened for `timeoutMs`,
- * resetting on any of them — including the one that "wakes" it, so the
- * screen just tracks its own activity rather than needing every caller to
- * remember to report it. Scoped to whichever screen mounts it (Home, for
- * the idle screensaver): the timer restarts fresh each time that screen
- * mounts, so returning to it doesn't immediately show as idle.
- */
+// True after timeoutMs of no input events; resets on any, restarting fresh on every mount.
 export function useIdle(timeoutMs: number): boolean {
   const [idle, setIdle] = useState(false);
   useEffect(() => {
@@ -71,16 +53,7 @@ export function useIdle(timeoutMs: number): boolean {
 
 const HINT_KEYS = ['1', '2', '3', '4'];
 
-/**
- * Index (0-3) of whichever hint-bar key was most recently pressed, true for
- * `flashMs` after each press. Drives a brief "just pressed" animation on
- * the on-screen hint that mirrors a physical button, so pressing the
- * hardware button gives visible feedback even though the DOM element
- * itself was never actually clicked. Times out on its own rather than
- * waiting for `keyup` — whether this hardware ever fires `keyup` for these
- * keys isn't confirmed, and a fixed flash is a fine substitute for a true
- * press-and-hold state here anyway.
- */
+// Index of the pressed hint key, held flashMs to flash the hint; auto-clears (no keyup confirmed).
 export function useKeyFlash(enabled = true, flashMs = 180): number | null {
   const [pressed, setPressed] = useState<number | null>(null);
   useEffect(() => {
@@ -102,7 +75,7 @@ export function useKeyFlash(enabled = true, flashMs = 180): number | null {
   return pressed;
 }
 
-/** Rotary wheel events arrive as a burst of small deltas per detent; accumulate and step. */
+// Rotary wheel events arrive as a burst of small deltas per detent; accumulate then step.
 export function useRotaryStep(onStep: (direction: 1 | -1) => void, enabled: boolean) {
   useEffect(() => {
     if (!enabled) return;

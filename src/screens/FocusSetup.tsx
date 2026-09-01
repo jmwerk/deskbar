@@ -17,10 +17,7 @@ export function FocusSetup({
   const [minutes, setMinutes] = useState(config.defaultFocusMinutes);
   const [unlimited, setUnlimited] = useState(false);
   const [selected, setSelected] = useState<JiraIssue | undefined>(undefined);
-  // The physical dial is a single shared input — route it to whichever
-  // section was last touched instead of letting both the duration and the
-  // issue list respond to the same turn. Defaults to the issue list, since
-  // picking an issue is the more common dial interaction of the two.
+  // Dial is one shared input: route by last-touched section, not both; issue list is default.
   const [dialTarget, setDialTarget] = useState<'duration' | 'issue'>('issue');
 
   useKeydown(
@@ -33,9 +30,7 @@ export function FocusSetup({
         } else if (e.key === 'Escape') {
           onCancel();
         } else if (e.key === 'Enter' || e.key === ' ') {
-          // The dial's push-button. Confirmed on hardware to fire both Enter and
-          // Space, so both are bound. preventDefault below also stops it from
-          // re-activating whatever button last happened to hold focus.
+          // Dial-press key is undocumented (bind both); preventDefault avoids re-triggering focus.
           onStart(unlimited ? null : minutes * 60, selected);
         } else {
           return;
@@ -46,8 +41,7 @@ export function FocusSetup({
     ),
   );
 
-  // Fine-grained ±1 min per detent, on top of the coarser physical/on-screen
-  // buttons above — mirrors IssuePicker's use of the same dial.
+  // Fine-grained ±1 min per detent, atop coarser buttons; mirrors IssuePicker's dial use.
   useRotaryStep(
     useCallback(dir => setMinutes(m => clampMinutes(m + dir)), []),
     dialTarget === 'duration' && !unlimited,

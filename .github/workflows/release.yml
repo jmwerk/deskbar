@@ -9,8 +9,7 @@ permissions:
   pages: write
   id-token: write
 
-# Only one Pages deployment at a time; don't cancel one mid-flight if
-# another tag gets pushed while it's running.
+# Limit to one Pages deployment at a time; don't cancel mid-flight when a new tag is pushed.
 concurrency:
   group: pages
   cancel-in-progress: false

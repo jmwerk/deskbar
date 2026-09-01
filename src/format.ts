@@ -5,7 +5,7 @@ export function formatClock(totalSeconds: number): string {
   return `${m}:${sec.toString().padStart(2, '0')}`;
 }
 
-/** Compact "1h 45m" / "45m" duration label, for the today summary and history rows. */
+/** Compact "1h 45m" / "45m" duration label used in the today summary and history rows. */
 export function formatDuration(seconds: number): string {
   const totalMinutes = Math.round(seconds / 60);
   const h = Math.floor(totalMinutes / 60);
@@ -13,12 +13,7 @@ export function formatDuration(seconds: number): string {
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
 
-/**
- * Wall-clock time ("2:47 PM"), for Home's idle screensaver — not a
- * countdown. `timeZone: undefined` falls back to the runtime's own local
- * timezone; pass an explicit IANA zone (from config) when the device's
- * system timezone can't be trusted — see the note in history.ts's dayKey.
- */
+/** Wall-clock time for the idle screensaver; pass an IANA zone if system tz is untrusted. */
 export function formatWallClock(ms: number, timeZone?: string): string {
   return new Date(ms).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', timeZone });
 }

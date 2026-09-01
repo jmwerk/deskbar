@@ -1,12 +1,6 @@
-// Assembles the GitHub Pages release site: this version's zip, every prior
-// version's zip (re-copied forward so their URLs keep resolving — a Pages
-// deploy fully replaces the site each time), and a catalog.json valid
-// against bridgething's real catalog.v1 schema (scripts/catalog.schema.v1.json,
-// vendored from github.com/JoeyEamigh/bridgething — re-fetch it if catalog
-// releases change; ajv here is what actually catches drift).
+// Builds the release site: re-copies prior zips, validates catalog.json vs bridgething's schema.
 //
-// Runs in the release workflow after `npm run build`; needs
-// GITHUB_REPOSITORY (owner/repo), which GitHub Actions sets automatically.
+// Runs after `npm run build`; needs GITHUB_REPOSITORY, set automatically by GitHub Actions.
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync } from 'node:fs';
@@ -76,13 +70,7 @@ const newVersion = {
   changelog: changelogSinceLastTag(),
 };
 
-// --- Merge with whatever's already published --------------------------
-//
-// A Pages deploy is a full-replace snapshot, so anything not re-included
-// here disappears — including old zips other daemons may still be
-// pointed at. Carry the prior catalog's versions (and their files)
-// forward; only drop history if there's genuinely none to read (first
-// release, or a previous catalog that didn't validate).
+// Full-replace deploy: carry prior catalog versions/zips forward unless none exist yet.
 
 let priorVersions = [];
 try {
@@ -118,12 +106,7 @@ if (manifest.icon && existsSync(path.join(root, manifest.icon))) {
   await copyFile(path.join(root, manifest.icon), path.join(siteDir, manifest.icon));
 }
 
-// --- Screenshots ---------------------------------------------------
-//
-// Optional — the schema wants the key omitted entirely rather than an
-// empty array if there are none. Anything image-like in screenshots/,
-// sorted by filename so the order in the repo controls listing order
-// (the store shows the first one on the app card).
+// Optional screenshots: omit key if none; images sorted by filename set the app card's order.
 
 const screenshotsDir = path.join(root, 'screenshots');
 const screenshotUrls = [];
@@ -162,11 +145,7 @@ const catalog = {
   recommended_sources: [],
 };
 
-// --- Validate before publishing ----------------------------------------
-//
-// This is the check that would have caught last time's schema mismatch
-// before it ever reached the phone. Vendored schema, not a live fetch —
-// deterministic, and doesn't fail a release because bridgething.com is down.
+// Validate before publishing to catch schema mismatches early; vendored schema, not a live fetch.
 
 const schema = JSON.parse(await readFile(path.join(import.meta.dirname, 'catalog.schema.v1.json'), 'utf8'));
 const ajv = new Ajv2020({ allErrors: true, strict: false });

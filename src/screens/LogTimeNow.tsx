@@ -19,10 +19,7 @@ export function LogTimeNow({
   const [selected, setSelected] = useState<JiraIssue | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  // The physical dial is a single shared input — route it to whichever
-  // section was last touched instead of letting both the duration and the
-  // issue list respond to the same turn. Defaults to the issue list, since
-  // picking an issue is the more common dial interaction of the two.
+  // Shared dial routes to whichever section was last touched; defaults to issue list.
   const [dialTarget, setDialTarget] = useState<'duration' | 'issue'>('issue');
 
   const submit = useCallback(async () => {
@@ -58,7 +55,7 @@ export function LogTimeNow({
     ),
   );
 
-  // Fine-grained ±1 min per detent, on top of the coarser physical/on-screen buttons above.
+  // Fine-grained ±1 min per dial detent, on top of the coarser buttons above it.
   useRotaryStep(
     useCallback(dir => setMinutes(m => clampMinutes(m + dir)), []),
     dialTarget === 'duration',

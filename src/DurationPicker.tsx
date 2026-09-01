@@ -1,13 +1,6 @@
 import { DURATION_STEPS, useKeyFlash } from './physicalControls';
 
-/**
- * Flush against the screen's true top edge, lined up with the physical
- * preset buttons above it — the same treatment as Home's button-hint,
- * since these buttons are bound to the exact same physical buttons. Each
- * one nudges the duration by a fixed delta (coarse-to-fine, decrement then
- * increment) rather than jumping to an absolute preset, so the on-screen
- * buttons and the hardware buttons above them always do the same thing.
- */
+/** Bound to the same physical buttons; each nudges duration by a fixed delta, not a preset. */
 export function DurationHintBar({ unlimited, onStep }: { unlimited: boolean; onStep: (delta: number) => void }) {
   const pressedIndex = useKeyFlash(!unlimited);
   return (

@@ -2,9 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { buildWebhookPayload, fireFocusWebhook } from './webhook';
 import { resetMockState, setMockFetchFault } from './mockClient';
 
-// VITE_MOCK=1 (see .env.test) makes `client` in bridgething.ts the mock
-// client, so these exercise the real webhook.ts logic against it — no
-// module mocking needed.
+// VITE_MOCK=1 (.env.test) makes bridgething's client the mock; tests use real webhook.ts logic.
 
 beforeEach(() => {
   resetMockState();

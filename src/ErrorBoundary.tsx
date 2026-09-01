@@ -3,11 +3,7 @@ import { Component, type ErrorInfo, type ReactNode } from 'react';
 type Props = { children: ReactNode };
 type State = { error: Error | null };
 
-/**
- * There's no devtools on-device — a render throw with no boundary just
- * blanks the whole 800x480 screen. This keeps a crash to one screen and
- * offers the only recovery a kiosk display has: reload.
- */
+// No devtools on-device; a render throw blanks the screen. Confine crashes so reload can recover.
 export class ErrorBoundary extends Component<Props, State> {
   state: State = { error: null };
 

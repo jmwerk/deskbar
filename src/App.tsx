@@ -33,7 +33,6 @@ export default function App() {
   const showError = useCallback((message: string) => setToast({ message, kind: 'error' }), []);
   const showSuccess = useCallback((message: string) => setToast({ message, kind: 'success' }), []);
 
-  // Auto-dismiss any toast after a few seconds.
   useEffect(() => {
     if (!toast) return;
     const id = setTimeout(() => setToast(null), 4000);
@@ -85,10 +84,7 @@ export default function App() {
     }
   }, [session, update]);
 
-  // Never below what's already elapsed — otherwise the auto-end effect
-  // below would fire immediately and log only the shortened total instead
-  // of the time actually spent (endFocus's "completed" path trusts
-  // durationS as the final tally).
+  // Clamp to elapsed time; going lower fires auto-end early, logging a short total.
   const extendFocus = useCallback(
     (deltaMinutes: number) => {
       if (!session?.focus || session.focus.durationS == null) return;
@@ -131,18 +127,14 @@ export default function App() {
     [session, now, config, update, showError],
   );
 
-  // Auto-end when the countdown reaches zero (never while paused — the math
-  // already holds remainingS still then, this is just belt-and-braces).
-  // remainingS is null for an unlimited session, which has no zero to hit.
+  // Auto-end at remainingS 0, skipped while paused; null remainingS is unlimited.
   useEffect(() => {
     if (session?.status === 'focus' && !session.focus?.pausedAt && remainingS !== null && remainingS <= 0) {
       void endFocus(true);
     }
   }, [session, remainingS, endFocus]);
 
-  // Retry any worklogs that failed to log when a past session ended,
-  // once on launch — after Jira config actually loads, and only once per
-  // app session even if config changes again for an unrelated reason.
+  // Retry failed worklogs once on launch, after Jira config loads; not on later config changes.
   const retriedPendingRef = useRef(false);
   useEffect(() => {
     const jiraConfig = config.jira;

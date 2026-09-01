@@ -42,12 +42,7 @@ function textToBody(text: string): Uint8Array {
   return new TextEncoder().encode(text);
 }
 
-/**
- * Every Jira call is proxied through `client.net.fetch`, which routes the
- * request out through the connected phone's network stack (the device
- * itself has no direct internet access). This also sidesteps browser CORS,
- * since the request never runs inside a browser fetch.
- */
+// Every Jira call proxies through client.net.fetch, routed via the phone's network (avoids CORS too).
 async function jiraFetch(
   cfg: JiraConfig,
   path: string,
@@ -72,8 +67,7 @@ async function jiraFetch(
   });
 
   if (!res.ok) {
-    // `res.kind` is 'domain' (a NetError from the fetch itself, e.g. dns/timeout)
-    // or 'protocol' (a wire-level error from the daemon, e.g. missing permission).
+    // res.kind is 'domain' (fetch-level NetError, e.g. dns/timeout) or 'protocol' (daemon wire error).
     const detail = res.kind === 'domain' ? res.error.error.type : res.error.type;
     throw new JiraError(`Could not reach Jira (${detail})`);
   }
@@ -101,14 +95,7 @@ function safeJsonParse(text: string): unknown {
   }
 }
 
-/**
- * Search issues with a JQL string (defaults to "assigned to me, unresolved").
- *
- * Atlassian removed `/rest/api/3/search` in 2025 in favor of
- * `/rest/api/3/search/jql`. The new endpoint pages via `nextPageToken`
- * instead of `startAt`; we only ever fetch the first page here, which is
- * plenty for a device-screen picker.
- */
+// Searches via JQL (default: assigned to me, unresolved); uses search/jql, fetching only page one.
 export async function searchIssues(cfg: JiraConfig, jql: string): Promise<JiraIssue[]> {
   const data = (await jiraFetch(cfg, '/rest/api/3/search/jql', {
     method: 'POST',
@@ -131,16 +118,7 @@ export async function searchIssues(cfg: JiraConfig, jql: string): Promise<JiraIs
   }));
 }
 
-/**
- * Log time against an issue. `seconds` should be >= 60; Jira rounds
- * sub-minute worklogs down to zero. Returns the created worklog's id, so it
- * can be deleted later (see `deleteWorklog`) if the entry needs undoing.
- *
- * `adjustEstimate=leave` on both this and `deleteWorklog`: Jira's default
- * ("auto") silently subtracts logged time from the issue's Remaining
- * Estimate on create and adds it back on delete. Deskbar is only recording
- * time spent, not managing estimates, so it leaves that field alone.
- */
+// Logs time (seconds >= 60); returns worklog id. Uses adjustEstimate=leave to preserve estimates.
 export async function logWork(
   cfg: JiraConfig,
   issueKey: string,
@@ -164,7 +142,7 @@ export async function logWork(
   return { worklogId: data.id };
 }
 
-/** Delete a worklog previously created by `logWork`. See the `adjustEstimate` note above. */
+// Deletes a worklog created by logWork; see the adjustEstimate note above for why.
 export async function deleteWorklog(cfg: JiraConfig, issueKey: string, worklogId: string): Promise<void> {
   await jiraFetch(
     cfg,

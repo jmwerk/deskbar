@@ -10,25 +10,10 @@ import {
 
 const isMock = import.meta.env.VITE_MOCK === '1';
 
-/**
- * One client for the whole app. It auto-connects to the on-device daemon
- * over its local WebSocket and auto-reconnects if the connection drops.
- *
- * Set VITE_MOCK=1 to skip the daemon entirely and run against an in-browser
- * fake (see mockClient.ts) — no Car Thing, no network, useful when there's
- * no device on hand at all:
- *   VITE_MOCK=1 npm run dev
- */
+// Single app client; auto-reconnects to the daemon. VITE_MOCK=1 swaps in a fake client.
 export const client: AppBridgeClient = isMock ? mockClient : new BridgethingClient();
 
-/**
- * In mock mode only, expose fault injection on the console so you can
- * exercise error paths (a config push, a failed Jira/webhook request)
- * without editing mockClient.ts. E.g.:
- *   __deskbarMock.setFetchFault('/worklog', { status: 500 })
- *   __deskbarMock.setConfig({ focusWebhookUrl: 'https://example.com' })
- * See README's "Testing failure paths" section.
- */
+// In mock mode, expose __deskbarMock on the console for fault injection; see README.
 if (isMock) {
   (window as unknown as { __deskbarMock: unknown }).__deskbarMock = {
     setConfig: setMockConfig,

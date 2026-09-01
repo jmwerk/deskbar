@@ -19,8 +19,7 @@ export default tseslint.config(
       'react-refresh': reactRefresh,
     },
     rules: {
-      // Hand-picked rather than react-hooks' full `recommended-latest`,
-      // which targets the React Compiler and doesn't apply to this project.
+      // Hand-picked, not react-hooks' recommended-latest; targets React Compiler, doesn't apply here.
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],

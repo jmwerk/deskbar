@@ -12,11 +12,7 @@ function focusMessage(event: 'focus.started' | 'focus.stopped', detail: WebhookD
   return `${emoji} ${verb}${issue}${duration}`;
 }
 
-/**
- * Builds the request body for one webhook format. Kept pure and separate
- * from the actual `net.fetch` call so the payload shape can be tested
- * directly, without needing to intercept what the mock client sends.
- */
+/** Builds one webhook's request body; kept pure and separate from `net.fetch` so it's testable. */
 export function buildWebhookPayload(
   format: WebhookFormat,
   event: 'focus.started' | 'focus.stopped',
@@ -41,20 +37,7 @@ export function buildWebhookPayload(
   }
 }
 
-/**
- * bridgething has no API for toggling a phone's or PC's system Do Not
- * Disturb — that's outside what the SDK exposes. Instead, when a webhook
- * URL is configured, we POST an event to it on focus start/stop. Point
- * that at a Home Assistant/IFTTT/Shortcuts automation URL (format "json")
- * to trigger phone/PC Do Not Disturb, or at a Slack/Teams incoming webhook
- * (format "slack"/"teams") to post a status message there instead.
- *
- * Returns whether the webhook fired successfully. `true` also covers the
- * "no URL configured" case — there's nothing to report as a failure. Firing
- * itself is still best-effort: a failed automation hook never throws or
- * blocks the focus session, it's left to the caller to decide whether/how
- * to surface the `false` result to the user.
- */
+/** Best-effort webhook POST for focus events (DND proxy); never throws, false only on failure. */
 export async function fireFocusWebhook(
   url: string | undefined,
   format: WebhookFormat,
@@ -73,8 +56,7 @@ export async function fireFocusWebhook(
         redirect: 'follow',
       },
     });
-    // `res.ok` only means the daemon reached the URL and got a response back
-    // — the response itself can still be a 4xx/5xx from the target.
+    // `res.ok` only means the daemon got a response — it may still be a 4xx/5xx from the target.
     return res.ok && res.response.response.status >= 200 && res.response.response.status < 300;
   } catch (err) {
     console.warn('[deskbar] focus webhook failed', err);

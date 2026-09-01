@@ -1,6 +1,4 @@
-// Zips the built webapp into a bridgething-installable bundle:
-// index.html + assets at the zip root, plus manifest.json and the icon.
-// Run automatically as the last step of `npm run build`.
+// Zips the built webapp into a bridgething-installable bundle; runs after `npm run build`.
 import { createWriteStream, existsSync, mkdirSync } from 'node:fs';
 import { copyFile } from 'node:fs/promises';
 import path from 'node:path';

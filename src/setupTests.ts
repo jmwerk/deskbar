@@ -1,10 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 
-// Newer Node versions ship an experimental global `localStorage` that's
-// unusable without a `--localstorage-file` flag, and it shadows jsdom's own
-// working implementation. Swap in a minimal in-memory Storage so tests that
-// touch localStorage (mockClient's `store` surface) don't depend on which
-// one won that race.
+// Node's broken experimental global `localStorage` can shadow jsdom's; stub our own.
 class MemoryStorage implements Storage {
   private store = new Map<string, string>();
 

@@ -20,19 +20,13 @@ export function FocusRunning({
   totalS: number | null;
   paused: boolean;
   onTogglePause: () => void;
-  /** Nudge the remaining duration by `deltaMinutes`. No-op for an unlimited session (no total to extend). */
+  /** Nudge remaining duration by `deltaMinutes`; no-op when unlimited (no total). */
   onExtend: (deltaMinutes: number) => void;
   onEnd: () => void;
 }) {
   const timed = totalS != null;
 
-  // Back toggles pause/resume rather than ending the session outright —
-  // a real interruption is the common case, and losing the countdown
-  // entirely (and logging whatever time had accrued) shouldn't be the
-  // only option. Ending is still one tap/press away via the End Focus
-  // button below, from either state. The same 4 buttons that pick a
-  // duration on the setup screen extend/shorten it here instead, while
-  // running — they'd otherwise sit unused for the whole session.
+  // Back pauses/resumes, not ends; End Focus still exits. Duration buttons extend/shorten while running.
   useKeydown(
     useCallback(
       e => {

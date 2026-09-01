@@ -1,10 +1,6 @@
 import type { ClientSurfaces, ConfigChanged } from '@bridgething/client';
 
-/**
- * The subset of BridgethingClient this app actually touches. Both the real
- * client and the mock below satisfy this, so `bridgething.ts` can hand out
- * either one without the rest of the app knowing which.
- */
+/** Subset of BridgethingClient the app uses; real & mock both satisfy it, so callers don't care which. */
 export type AppBridgeClient = {
   config: Pick<ClientSurfaces['config'], 'list' | 'onChanged'>;
   store: Pick<ClientSurfaces['store'], 'get' | 'put'>;
@@ -38,21 +34,12 @@ function decodeBody(body: Uint8Array | null | undefined): string {
   return body ? new TextDecoder().decode(body) : '';
 }
 
-// --- Fault injection -------------------------------------------------
-//
-// The real daemon can fail in ways the happy-path mock above never does:
-// a stale config pushed from the phone, a 401/500 from Jira, a webhook
-// target that's down. These let you (or a test) simulate that without
-// touching real hardware or the mock's own request-matching logic.
-//
-// From a browser console during `npm run dev:mock`, use
-// `window.__deskbarMock` (wired up in bridgething.ts); from a test, import
-// these directly.
+// Fault injection: simulate daemon failures (stale config, Jira, webhook down) via console or tests.
 
 export type MockFetchFault = {
-  /** HTTP status the mocked response reports (default 500 if omitted and not `throws`). */
+  /** HTTP status the mocked response reports; defaults to 500 unless `throws` is set. */
   status?: number;
-  /** Simulate the request itself failing (DNS/timeout/connection reset) rather than getting an HTTP response. */
+  /** Simulates the request itself failing (DNS/timeout/reset) instead of returning an HTTP response. */
   throws?: boolean;
 };
 
@@ -81,14 +68,12 @@ export function clearAllMockFetchFaults(): void {
   fetchFaults.clear();
 }
 
-/** Reset config, faults, and persisted store state — mainly for test isolation. */
+/** Resets config, faults, and persisted store state, mainly to isolate tests from each other. */
 export function resetMockState(): void {
   currentConfig = { ...DEFAULT_MOCK_CONFIG };
   fetchFaults.clear();
   configListeners.clear();
-  // `.key(i)`/`.length` rather than `Object.keys()` — real browser
-  // localStorage exposes stored keys as enumerable properties, but that's
-  // not guaranteed for every Storage implementation (e.g. a test polyfill).
+  // Use `.key(i)`/`.length`, not `Object.keys()`: some Storage polyfills don't enumerate keys.
   const staleKeys: string[] = [];
   for (let i = 0; i < window.localStorage.length; i++) {
     const key = window.localStorage.key(i);
@@ -104,14 +89,7 @@ function matchingFault(url: string): MockFetchFault | undefined {
   return undefined;
 }
 
-/**
- * Stands in for the on-device daemon so `npm run dev:mock` is fully usable
- * with no Car Thing at all. `store` persists to localStorage (so a reload
- * keeps your status/timer, same as the real device). `net.fetch` fakes just
- * enough of the Jira REST surface for the issue picker and worklog calls to
- * work; anything else (the focus webhook) just reports success — unless a
- * fault has been injected for that URL, see above.
- */
+/** Stands in for the daemon so dev:mock works without a Car Thing; fakes Jira, honors fault injection. */
 export const mockClient: AppBridgeClient = {
   config: {
     async list() {
