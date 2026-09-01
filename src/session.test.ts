@@ -40,4 +40,11 @@ describe('activeElapsedS', () => {
     const f = focus({ durationS: null, pausedMs: 20_000 });
     expect(activeElapsedS(f, 80_000)).toBe(60);
   });
+
+  it('clamps to 0 rather than going negative when now predates startedAt', () => {
+    // now's once-a-second tick can still be a shade older than a startedAt
+    // set from a fresh Date.now() the instant a session starts.
+    const f = focus({ startedAt: 90_000 });
+    expect(activeElapsedS(f, 89_500)).toBe(0);
+  });
 });
