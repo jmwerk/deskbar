@@ -1,0 +1,729 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens. Deskbar keeps bridgething-fresh's --color- and --spacing- naming convention but
+ * tunes the actual values and adds domain tokens (available/busy/panel) a now-playing widget's
+ * palette doesn't need. Type scale stays deskbar's own tuned px values rather than the scaffold's
+ * generic rem scale: this UI is fit tightly to 800x480 (e.g. the 104px countdown clock), and the
+ * scaffold's scale was tuned for a different, more compact layout.
+ */
+@theme {
+  --color-bg: #0b0d10;
+  --color-off-white: #f5f6f7;
+  --color-muted: #8a9099;
+  --color-accent: #3b82f6;
+  --color-available: #2ecc71;
+  --color-busy: #e74c3c;
+  --color-panel: #16191d;
+
+  --color-edge: color-mix(in srgb, var(--color-off-white) 14%, transparent);
+  --color-edge-strong: color-mix(in srgb, var(--color-off-white) 20%, transparent);
+
+  --font-body: -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* bridgething overlay stacks notification/pairing toasts here, on top of the app, for up to
+     ~5s each; keep persistent/critical UI out of this corner. See HARDWARE.md. */
+  --spacing-toast-safe-w: 300px;
+  --spacing-toast-safe-h: 280px;
+}
+
+/*
+ * The physical rotary dial permanently covers part of the top-right corner (see HARDWARE.md) —
+ * unlike the toast zone above, its extent has never been measured, so there's no token for it.
+ * The enforceable rule instead: nothing interactive gets `absolute`/`fixed` positioning in the
+ * top-right quadrant. Every rule below that places something near an edge (tile-badge, the
+ * history delete hint, the toast) deliberately keeps it on the top-left or full-width instead.
+ */
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    background: var(--color-bg);
+    color: var(--color-off-white);
+    font-family: var(--font-body);
+    font-size: 18px;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    color: inherit;
+    transition:
+      transform 100ms ease,
+      filter 100ms ease,
+      box-shadow 150ms ease,
+      background 150ms ease,
+      border-color 150ms ease;
+  }
+
+  button:active {
+    transform: scale(0.96);
+    filter: brightness(0.9);
+  }
+
+  label {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-muted);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@layer components {
+  .screen {
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 28px;
+    animation: fade-in 200ms ease;
+  }
+
+  .loading-screen {
+    gap: 16px;
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    border: 4px solid var(--color-edge);
+    border-top-color: var(--color-accent);
+    animation: spin 0.8s linear infinite;
+  }
+
+  .center {
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Home — landing screen: status banner, today's tracked time, and the three quick-action tiles */
+
+  .status-banner {
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    padding: 12px 0;
+    border-radius: 14px;
+    margin-bottom: 14px;
+  }
+
+  .status-available {
+    background: color-mix(in srgb, var(--color-available) 20%, transparent);
+    color: var(--color-available);
+  }
+
+  .status-busy {
+    background: color-mix(in srgb, var(--color-busy) 20%, transparent);
+    color: var(--color-busy);
+  }
+
+  .status-focus {
+    background: color-mix(in srgb, var(--color-accent) 20%, transparent);
+    color: var(--color-accent);
+  }
+
+  .today-bar {
+    align-self: center;
+    margin-bottom: 10px;
+    padding: 6px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--color-edge);
+    background: var(--color-panel);
+    color: var(--color-muted);
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  /* Idle screensaver — fixed, not absolute: covers the full viewport regardless of
+     the home screen's own positioning context, same as the toast overlay below. */
+  .screensaver {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg);
+    animation: fade-in 400ms ease;
+    z-index: 40;
+  }
+
+  .screensaver-clock {
+    font-size: 96px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-muted);
+  }
+
+  .tiles {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .tile {
+    position: relative;
+    border: none;
+    border-radius: 18px;
+    font-size: 28px;
+    font-weight: 800;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  }
+
+  .tile.selected {
+    box-shadow:
+      0 0 0 4px rgba(255, 255, 255, 0.55) inset,
+      0 6px 18px rgba(0, 0, 0, 0.35);
+  }
+
+  /* Top-left, not top-right: the dial safe zone is the other top corner. */
+  .tile-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    background: #fff;
+    color: var(--color-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  }
+
+  .tile-available {
+    background: var(--color-available);
+  }
+
+  .tile-busy {
+    background: var(--color-busy);
+  }
+
+  .tile-focus {
+    background: var(--color-accent);
+  }
+
+  .hint {
+    margin-top: 12px;
+    font-size: 18px;
+    line-height: 1.35;
+    color: var(--color-muted);
+    text-align: center;
+  }
+
+  /* Cancels .screen's 20px/28px padding for this element only, so it sits flush against
+     the screen's true top, left, and right edges — it needs to line up with the physical
+     preset buttons mounted directly above it, not with the rest of the inset page content. */
+  .button-hint {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 3px;
+    margin: -20px -28px 14px;
+  }
+
+  .button-hint-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 9px 4px;
+    background: var(--color-panel);
+    /* Square top, rounded bottom: this reads as the button's own physical material
+       continuing down into the screen surface, rather than as a separate floating badge. */
+    border-radius: 0 0 8px 8px;
+    transition:
+      transform 100ms ease,
+      filter 100ms ease;
+  }
+
+  /* Briefly brightens/shrinks when the matching physical button is pressed (see useKeyFlash)
+     — visible feedback for a press that never actually touches this DOM element. */
+  .button-hint-item.pressed {
+    transform: scale(0.93);
+    filter: brightness(1.3);
+  }
+
+  .button-hint-available {
+    background: color-mix(in srgb, var(--color-available) 30%, var(--color-panel));
+  }
+  .button-hint-busy {
+    background: color-mix(in srgb, var(--color-busy) 30%, var(--color-panel));
+  }
+  .button-hint-focus {
+    background: color-mix(in srgb, var(--color-accent) 30%, var(--color-panel));
+  }
+
+  .button-hint-label {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--color-off-white);
+  }
+
+  .hint.error {
+    color: var(--color-busy);
+  }
+
+  .retry-link {
+    margin-left: 8px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--color-accent);
+    font-size: 16px;
+    font-weight: 700;
+    text-decoration: underline;
+  }
+
+  /* Focus setup — duration picker and Jira issue selection screen shown before starting a session */
+
+  .focus-setup h1 {
+    font-size: 26px;
+    margin: 0 0 12px;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+
+  /* Flush with the screen's true top edge, same treatment as Home's button-hint —
+     these buttons are bound to the same physical buttons 1-4. Each nudges the duration by a fixed
+     delta rather than jumping to an absolute preset, so there's no "selected" state to show here. */
+  .preset-hint {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 3px;
+    margin: -20px -28px 14px;
+    /* Full width regardless of the parent's align-items (Focus Running centers its other children,
+       which would shrink this to fit content, not span edge-to-edge like the setup screens). */
+    align-self: stretch;
+  }
+
+  .preset-hint-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 9px 4px;
+    border: none;
+    background: var(--color-panel);
+    border-radius: 0 0 8px 8px;
+    font-family: inherit;
+    transition:
+      transform 100ms ease,
+      filter 100ms ease;
+  }
+
+  .preset-hint-item:disabled {
+    opacity: 0.4;
+  }
+
+  /* Briefly brightens/shrinks when the matching physical button is pressed (see useKeyFlash)
+     — visible feedback for a press that never actually touches this DOM element. */
+  .preset-hint-item.pressed {
+    transform: scale(0.93);
+    filter: brightness(1.3);
+  }
+
+  .preset-hint-label {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--color-off-white);
+  }
+
+  .duration-value {
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  /* A subtle echo of .issue-row.selected's accent color, so both halves of
+     the screen use the same color to say "the dial is currently pointed at me". */
+  .duration-value.dial-focused {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
+    text-underline-offset: 4px;
+  }
+
+  .btn-toggle {
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--color-edge);
+    background: var(--color-panel);
+    color: var(--color-off-white);
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .issue-picker {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .filter-chip {
+    border: 1px solid var(--color-edge);
+    background: var(--color-panel);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-muted);
+  }
+
+  .filter-chip.selected {
+    border-color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 20%, var(--color-panel));
+    color: var(--color-off-white);
+  }
+
+  .issue-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .issue-row {
+    text-align: left;
+    border: 1px solid var(--color-edge);
+    background: var(--color-panel);
+    border-radius: 12px;
+    padding: 12px 14px;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 19px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+
+  .issue-row.selected {
+    border-color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 15%, var(--color-panel));
+  }
+
+  .issue-key {
+    font-weight: 700;
+    color: var(--color-accent);
+    flex-shrink: 0;
+  }
+
+  .issue-summary {
+    color: var(--color-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .actions {
+    display: flex;
+    gap: 14px;
+    margin-top: 16px;
+    /* Full width regardless of the parent's align-items (Focus Running centers its other children,
+       which would shrink this to fit content instead of letting the flex:1 buttons split evenly). */
+    align-self: stretch;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger {
+    flex: 1;
+    padding: 16px;
+    border-radius: 14px;
+    border: none;
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .btn-primary {
+    background: var(--color-accent);
+    color: #fff;
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--color-accent) 45%, transparent);
+  }
+
+  .btn-secondary {
+    background: var(--color-panel);
+    border: 1px solid var(--color-edge);
+    color: var(--color-off-white);
+  }
+
+  .btn-danger {
+    background: color-mix(in srgb, var(--color-busy) 14%, var(--color-panel));
+    border: 1px solid color-mix(in srgb, var(--color-busy) 45%, var(--color-edge));
+    color: var(--color-busy);
+  }
+
+  /* Focus running — active countdown screen shown while a focus session is currently in progress */
+
+  /* Everything below the duration hint bar (which needs to stay flush against the
+     true top edge, like it does on the setup screens) is centered in the remaining
+     space rather than as part of one centered group with it — otherwise the hint bar
+     would get pulled down and centered along with the clock instead of staying pinned to the top. */
+  .focus-running-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 18px;
+  }
+
+  .focus-eyebrow {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  .clock {
+    font-size: 104px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .clock-paused {
+    color: var(--color-muted);
+  }
+
+  .issue-tag {
+    font-size: 20px;
+    color: var(--color-muted);
+  }
+
+  .progress-track {
+    width: 80%;
+    height: 10px;
+    background: var(--color-panel);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-accent), color-mix(in srgb, var(--color-accent) 60%, #fff));
+    transition: width 1s linear;
+  }
+
+  /* Today / history — today's total tracked time and the scrollable list of past time entries */
+
+  .history-total {
+    color: var(--color-muted);
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+
+  .history-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .history-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    border: 1px solid var(--color-edge);
+    background: var(--color-panel);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 17px;
+    text-align: left;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+
+  .history-issue {
+    font-weight: 700;
+    color: var(--color-accent);
+    flex-shrink: 0;
+  }
+
+  .history-summary {
+    flex: 1;
+    color: var(--color-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .history-duration {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* "x" hint sits at the left, not right: top-right is unpressable under the dial. See HARDWARE.md. */
+  .history-delete-hint {
+    flex-shrink: 0;
+    width: 20px;
+    text-align: center;
+    color: var(--color-muted);
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  /*
+   * The dial physically overlaps the screen's top-right corner (see HARDWARE.md), so nothing
+   * here relies on a small corner-anchored target: the whole `.history-row` above is the tap
+   * target for opening this confirm state, and Cancel/Delete below span the full row width
+   * rather than sitting as small pills off to one side.
+   */
+  .history-row-confirm {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    border-color: color-mix(in srgb, var(--color-busy) 45%, var(--color-edge));
+  }
+
+  .history-confirm-label {
+    color: var(--color-busy);
+    font-weight: 700;
+  }
+
+  .history-confirm-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .history-confirm-cancel,
+  .history-confirm-delete {
+    flex: 1;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: none;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .history-confirm-cancel {
+    background: var(--color-bg);
+    border: 1px solid var(--color-edge);
+    color: var(--color-off-white);
+  }
+
+  .history-confirm-delete {
+    background: var(--color-busy);
+    color: #fff;
+  }
+
+  .history-confirm-cancel:disabled,
+  .history-confirm-delete:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  /* Toast — transient success/error notification banner shown at the top of the screen */
+
+  .toast {
+    position: fixed;
+    top: 20px;
+    left: 28px;
+    /* Every screen anchors its own controls to the bottom edge (the preset hints on
+       Home, and Cancel/Start on Focus Setup), so the toast lives at the top of the
+       screen instead. Capped width keeps it clear of the top-right corner reserved
+       for bridgething's notification toasts and the physical dial (see --spacing-toast-safe-w). */
+    max-width: calc(100vw - var(--spacing-toast-safe-w) - 56px);
+    color: var(--color-off-white);
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.35;
+    padding: 12px 18px;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+    text-align: left;
+    animation: fade-in 200ms ease;
+    z-index: 50;
+  }
+
+  .toast-error {
+    background: color-mix(in srgb, var(--color-busy) 22%, var(--color-panel));
+    border: 1px solid color-mix(in srgb, var(--color-busy) 45%, var(--color-edge));
+  }
+
+  .toast-success {
+    background: color-mix(in srgb, var(--color-available) 22%, var(--color-panel));
+    border: 1px solid color-mix(in srgb, var(--color-available) 45%, var(--color-edge));
+  }
+
+  /* Error boundary — fallback screen rendered when an unrecoverable rendering error occurs */
+
+  .error-screen {
+    gap: 12px;
+    text-align: center;
+  }
+
+  .error-title {
+    font-size: 26px;
+    font-weight: 800;
+  }
+
+  .error-reload {
+    margin-top: 10px;
+    flex: none;
+    padding: 14px 32px;
+  }
+}

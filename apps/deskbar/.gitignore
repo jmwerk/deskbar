@@ -1,12 +1,6 @@
 node_modules
 dist
-build
-site
 .dev-extension
 .DS_Store
 *.log
-*.tgz
-*.zip
 .env*
-!.env.test
-tsconfig.tsbuildinfo
