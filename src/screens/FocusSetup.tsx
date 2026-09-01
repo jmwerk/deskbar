@@ -17,8 +17,9 @@ export function FocusSetup({
   const [minutes, setMinutes] = useState(config.defaultFocusMinutes);
   const [unlimited, setUnlimited] = useState(false);
   const [selected, setSelected] = useState<JiraIssue | undefined>(undefined);
-  // Dial is one shared input: route by last-touched section, not both; issue list is default.
-  const [dialTarget, setDialTarget] = useState<'duration' | 'issue'>('issue');
+  // Dial is one shared input: route by last-touched section, not both; issue list is default
+  // when it exists, otherwise duration is the only thing left for the dial to control.
+  const [dialTarget, setDialTarget] = useState<'duration' | 'issue'>(config.jira ? 'issue' : 'duration');
 
   useKeydown(
     useCallback(

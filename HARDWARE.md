@@ -25,14 +25,14 @@ Confirmed by reading bridgething's own source
 `hardware` surface only covers display-backlight control. Every physical
 input reaches the webapp as a plain browser event, not through the SDK:
 
-| Control     | Event                                 | Confirmed how                                                |
-| ----------- | ------------------------------------- | ------------------------------------------------------------ |
-| Preset 1-4  | `keydown` key `"1"`-`"4"`             | bridgething source (develop.md)                              |
-| Mode        | `keydown` key `"m"`                   | bridgething source (develop.md)                              |
-| Back        | `keydown` key `"Escape"`              | bridgething source (develop.md)                              |
-| Rotary dial | `wheel`, horizontal `deltaX`          | bridgething source (develop.md)                              |
-| Dial push   | `keydown` key `"Enter"` **and** `" "` | **real hardware**: both fire; not documented by bridgething  |
-| Touch       | normal pointer/touch events           | bridgething source (develop.md)                              |
+| Control     | Event                                 | Confirmed how                                               |
+| ----------- | ------------------------------------- | ----------------------------------------------------------- |
+| Preset 1-4  | `keydown` key `"1"`-`"4"`             | bridgething source (develop.md)                             |
+| Mode        | `keydown` key `"m"`                   | bridgething source (develop.md)                             |
+| Back        | `keydown` key `"Escape"`              | bridgething source (develop.md)                             |
+| Rotary dial | `wheel`, horizontal `deltaX`          | bridgething source (develop.md)                             |
+| Dial push   | `keydown` key `"Enter"` **and** `" "` | **real hardware**: both fire; not documented by bridgething |
+| Touch       | normal pointer/touch events           | bridgething source (develop.md)                             |
 
 **Dial push-button**: bridgething's own docs only describe the dial as
 rotate-only. There's no press/click event anywhere in its docs or the

@@ -248,7 +248,9 @@ label {
   /* Square top, rounded bottom: this reads as the button's own physical material
      continuing down into the screen surface, rather than as a separate floating badge. */
   border-radius: 0 0 8px 8px;
-  transition: transform 100ms ease, filter 100ms ease;
+  transition:
+    transform 100ms ease,
+    filter 100ms ease;
 }
 
 /* Briefly brightens/shrinks when the matching physical button is pressed (see useKeyFlash)
@@ -325,7 +327,9 @@ label {
   background: var(--panel);
   border-radius: 0 0 8px 8px;
   font-family: inherit;
-  transition: transform 100ms ease, filter 100ms ease;
+  transition:
+    transform 100ms ease,
+    filter 100ms ease;
 }
 
 .preset-hint-item:disabled {

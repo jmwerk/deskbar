@@ -61,10 +61,7 @@ export function FocusRunning({
         )}
         {totalS != null && (
           <div className="progress-track">
-            <div
-              className="progress-fill"
-              style={{ width: `${Math.min(1, Math.max(0, elapsedS / totalS)) * 100}%` }}
-            />
+            <div className="progress-fill" style={{ width: `${Math.min(1, Math.max(0, elapsedS / totalS)) * 100}%` }} />
           </div>
         )}
         <div className="actions">

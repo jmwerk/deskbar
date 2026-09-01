@@ -1,7 +1,7 @@
 {
   "name": "deskbar",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "description": "A BUSY Bar style status/focus/Jira-time-tracking app for the Car Thing, built on bridgething.",
   "license": "MIT",
