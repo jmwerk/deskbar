@@ -11,6 +11,7 @@ import {
   type HistoryEntry,
 } from './history';
 import { deleteWorklog, logWork } from './jira';
+import { clampMinutes } from './physicalControls';
 import { loadPendingWorklogs, queuePendingWorklog, removePendingWorklog } from './retryQueue';
 import { activeElapsedS, loadSession, saveSession, type SessionState } from './session';
 import { Toast } from './Toast';
@@ -83,6 +84,21 @@ export default function App() {
       update({ status: 'focus', focus: { ...focus, pausedAt: Date.now() } });
     }
   }, [session, update]);
+
+  // Never below what's already elapsed — otherwise the auto-end effect
+  // below would fire immediately and log only the shortened total instead
+  // of the time actually spent (endFocus's "completed" path trusts
+  // durationS as the final tally).
+  const extendFocus = useCallback(
+    (deltaMinutes: number) => {
+      if (!session?.focus || session.focus.durationS == null) return;
+      const currentMinutes = session.focus.durationS / 60;
+      const elapsedMinutes = elapsedS / 60;
+      const nextMinutes = Math.max(clampMinutes(currentMinutes + deltaMinutes), elapsedMinutes);
+      update({ status: 'focus', focus: { ...session.focus, durationS: Math.round(nextMinutes * 60) } });
+    },
+    [session, elapsedS, update],
+  );
 
   const endFocus = useCallback(
     async (completed: boolean) => {
@@ -169,6 +185,7 @@ export default function App() {
         totalS={session.focus.durationS}
         paused={!!session.focus.pausedAt}
         onTogglePause={togglePause}
+        onExtend={extendFocus}
         onEnd={() => void endFocus(false)}
       />
     );

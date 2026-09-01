@@ -318,6 +318,10 @@ label {
   grid-template-columns: repeat(4, 1fr);
   gap: 3px;
   margin: -20px -28px 14px;
+  /* Full width regardless of a parent's align-items (Focus Running centers
+     its other children, which would otherwise shrink this to fit its
+     content instead of spanning edge-to-edge like on the setup screens). */
+  align-self: stretch;
 }
 
 .preset-hint-item {
@@ -491,7 +495,16 @@ label {
 
 /* Focus running */
 
-.focus-running {
+/* Everything below the duration hint bar (which needs to stay flush at
+   the true top edge, like the setup screens') is centered in the
+   remaining space rather than as part of one centered group with it —
+   otherwise the hint bar gets pulled down and centered along with the
+   clock instead of staying pinned to the top. */
+.focus-running-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
