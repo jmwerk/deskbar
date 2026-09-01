@@ -246,15 +246,22 @@ label {
 
 .button-hint-item {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  gap: 1px;
-  padding: 5px 4px 7px;
+  justify-content: center;
+  padding: 9px 4px;
   background: var(--panel);
   /* Square top, rounded bottom: reads as the button's own material
      continuing down into the screen, not a separate floating badge. */
   border-radius: 0 0 8px 8px;
+  transition: transform 100ms ease, filter 100ms ease;
+}
+
+/* Briefly brightens/shrinks when the matching physical button is pressed
+   (see useKeyFlash) — visible feedback for a press that never actually
+   touches this DOM element. */
+.button-hint-item.pressed {
+  transform: scale(0.93);
+  filter: brightness(1.3);
 }
 
 .button-hint-available {
@@ -267,16 +274,10 @@ label {
   background: color-mix(in srgb, var(--focus) 30%, var(--panel));
 }
 
-.button-hint-num {
-  font-size: 13px;
+.button-hint-label {
+  font-size: 16px;
   font-weight: 800;
   color: var(--fg);
-}
-
-.button-hint-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--muted);
 }
 
 .hint.error {
@@ -309,9 +310,9 @@ label {
 }
 
 /* Flush with the screen's true top edge, same treatment as Home's
-   button-hint — these presets are bound to the same physical buttons 1-4.
-   No per-item color-coding here (a duration has no tile to match), just a
-   "selected" state. */
+   button-hint — these buttons are bound to the same physical buttons 1-4.
+   Each nudges the duration by a fixed delta rather than jumping to an
+   absolute preset, so there's no "selected" state to show here. */
 .preset-hint {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -321,52 +322,56 @@ label {
 
 .preset-hint-item {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  gap: 1px;
-  padding: 5px 4px 7px;
+  justify-content: center;
+  padding: 9px 4px;
   border: none;
   background: var(--panel);
   border-radius: 0 0 8px 8px;
   font-family: inherit;
+  transition: transform 100ms ease, filter 100ms ease;
 }
 
-.preset-hint-item.selected {
-  background: color-mix(in srgb, var(--focus) 30%, var(--panel));
+.preset-hint-item:disabled {
+  opacity: 0.4;
 }
 
-.preset-hint-num {
-  font-size: 13px;
+/* Briefly brightens/shrinks when the matching physical button is pressed
+   (see useKeyFlash) — visible feedback for a press that never actually
+   touches this DOM element. */
+.preset-hint-item.pressed {
+  transform: scale(0.93);
+  filter: brightness(1.3);
+}
+
+.preset-hint-label {
+  font-size: 16px;
   font-weight: 800;
   color: var(--fg);
 }
 
-.preset-hint-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--muted);
-}
-
-.preset-hint-item.selected .preset-hint-label {
-  color: var(--focus);
-}
-
-.stepper {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+.duration-value {
   font-size: 22px;
+  font-weight: 700;
 }
 
-.stepper button {
-  width: 56px;
-  height: 56px;
+/* Subtle echo of .issue-row.selected's --focus accent, so both halves of
+   the screen use the same color to say "the dial is pointed at me". */
+.duration-value.dial-focused {
+  color: var(--focus);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--focus) 50%, transparent);
+  text-underline-offset: 4px;
+}
+
+.btn-toggle {
+  padding: 10px 16px;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--panel);
-  font-size: 26px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  color: var(--fg);
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .issue-picker {

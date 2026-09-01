@@ -15,11 +15,15 @@ export function IssuePicker({
   selected,
   onSelect,
   allowNone = true,
+  dialEnabled = true,
 }: {
   config: Config;
   selected: JiraIssue | undefined;
   onSelect: (issue: JiraIssue | undefined) => void;
   allowNone?: boolean;
+  /** Screens with their own dial-controlled value (e.g. a duration) pass
+   *  this so only one thing on screen responds to a given dial turn. */
+  dialEnabled?: boolean;
 }) {
   const [issues, setIssues] = useState<JiraIssue[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -77,7 +81,7 @@ export function IssuePicker({
     },
     [pickList, selected, onSelect],
   );
-  useRotaryStep(onDialStep, !!config.jira && pickList.length > 0);
+  useRotaryStep(onDialStep, dialEnabled && !!config.jira && pickList.length > 0);
 
   // Keep the selected row in view when the dial moves the selection off-screen.
   const selectedRowRef = useRef<HTMLButtonElement>(null);
@@ -122,7 +126,7 @@ export function IssuePicker({
         {allowNone && (
           <button
             ref={!selected ? selectedRowRef : undefined}
-            className={`issue-row ${!selected ? 'selected' : ''}`}
+            className={`issue-row ${!selected && dialEnabled ? 'selected' : ''}`}
             onClick={() => onSelect(undefined)}
           >
             No issue — just a timer
@@ -132,7 +136,7 @@ export function IssuePicker({
           <button
             key={issue.key}
             ref={selected?.key === issue.key ? selectedRowRef : undefined}
-            className={`issue-row ${selected?.key === issue.key ? 'selected' : ''}`}
+            className={`issue-row ${selected?.key === issue.key && dialEnabled ? 'selected' : ''}`}
             onClick={() => onSelect(issue)}
           >
             <span className="issue-key">{issue.key}</span>

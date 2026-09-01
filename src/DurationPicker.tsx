@@ -1,34 +1,56 @@
-import { PRESET_MINUTES } from './physicalControls';
+import { DURATION_STEPS, useKeyFlash } from './physicalControls';
 
 /**
  * Flush against the screen's true top edge, lined up with the physical
  * preset buttons above it — the same treatment as Home's button-hint,
- * since these presets are bound to the exact same buttons. No
- * color-coding here though: unlike a status, a duration has no tile to
- * match, so "selected" is the only state that needs a color.
+ * since these buttons are bound to the exact same physical buttons. Each
+ * one nudges the duration by a fixed delta (coarse-to-fine, decrement then
+ * increment) rather than jumping to an absolute preset, so the on-screen
+ * buttons and the hardware buttons above them always do the same thing.
  */
-export function PresetHint({ minutes, onChange }: { minutes: number; onChange: (minutes: number) => void }) {
+export function DurationHintBar({ unlimited, onStep }: { unlimited: boolean; onStep: (delta: number) => void }) {
+  const pressedIndex = useKeyFlash(!unlimited);
   return (
     <div className="preset-hint">
-      {PRESET_MINUTES.map((p, i) => (
-        <button key={p} className={`preset-hint-item ${minutes === p ? 'selected' : ''}`} onClick={() => onChange(p)}>
-          <span className="preset-hint-num">{i + 1}</span>
-          <span className="preset-hint-label">{p}m</span>
+      {DURATION_STEPS.map((delta, i) => (
+        <button
+          key={delta}
+          className={`preset-hint-item ${pressedIndex === i ? 'pressed' : ''}`}
+          disabled={unlimited}
+          onClick={() => onStep(delta)}
+        >
+          <span className="preset-hint-label">{delta > 0 ? `+${delta}` : delta}m</span>
         </button>
       ))}
     </div>
   );
 }
 
-export function DurationRow({ minutes, onChange }: { minutes: number; onChange: (minutes: number) => void }) {
+export function DurationRow({
+  minutes,
+  unlimited,
+  allowUnlimited,
+  onToggleUnlimited,
+  dialFocused,
+}: {
+  minutes: number;
+  unlimited: boolean;
+  allowUnlimited?: boolean;
+  onToggleUnlimited?: () => void;
+  /** True while the physical dial is currently routed to this value, not the issue list. */
+  dialFocused?: boolean;
+}) {
   return (
     <div className="row">
       <label>Duration</label>
-      <div className="stepper">
-        <button onClick={() => onChange(Math.max(5, minutes - 5))}>−</button>
-        <span>{minutes} min</span>
-        <button onClick={() => onChange(Math.min(240, minutes + 5))}>+</button>
-      </div>
+      <span className={`duration-value ${dialFocused ? 'dial-focused' : ''}`}>
+        {unlimited ? 'Unlimited' : `${minutes} min`}
+      </span>
+      {allowUnlimited && (
+        <button className="btn-toggle" onClick={onToggleUnlimited}>
+          {unlimited ? 'Set duration' : 'Unlimited'}
+        </button>
+      )}
     </div>
   );
 }

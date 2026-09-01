@@ -5,7 +5,7 @@ import { useKeydown } from '../physicalControls';
 export function FocusRunning({
   issueKey,
   issueSummary,
-  remainingS,
+  elapsedS,
   totalS,
   paused,
   onTogglePause,
@@ -13,8 +13,9 @@ export function FocusRunning({
 }: {
   issueKey?: string;
   issueSummary?: string;
-  remainingS: number;
-  totalS: number;
+  elapsedS: number;
+  /** Planned duration in seconds, or null for an unlimited/stopwatch session. */
+  totalS: number | null;
   paused: boolean;
   onTogglePause: () => void;
   onEnd: () => void;
@@ -36,20 +37,26 @@ export function FocusRunning({
     ),
   );
 
-  const progress = Math.min(1, Math.max(0, 1 - remainingS / totalS));
+  const displayS = totalS != null ? Math.max(0, totalS - elapsedS) : elapsedS;
+  const eyebrow = paused ? 'Paused' : totalS != null ? 'Focus session' : 'Tracking time';
   return (
     <div className="screen focus-running">
-      <div className="focus-eyebrow">{paused ? 'Paused' : 'Focus session'}</div>
-      <div className={`clock ${paused ? 'clock-paused' : ''}`}>{formatClock(remainingS)}</div>
+      <div className="focus-eyebrow">{eyebrow}</div>
+      <div className={`clock ${paused ? 'clock-paused' : ''}`}>{formatClock(displayS)}</div>
       {issueKey && (
         <div className="issue-tag">
           {issueKey}
           {issueSummary ? ` — ${issueSummary}` : ''}
         </div>
       )}
-      <div className="progress-track">
-        <div className="progress-fill" style={{ width: `${progress * 100}%` }} />
-      </div>
+      {totalS != null && (
+        <div className="progress-track">
+          <div
+            className="progress-fill"
+            style={{ width: `${Math.min(1, Math.max(0, elapsedS / totalS)) * 100}%` }}
+          />
+        </div>
+      )}
       <div className="actions">
         <button className="btn-secondary" onClick={onTogglePause}>
           {paused ? 'Resume' : 'Pause'}

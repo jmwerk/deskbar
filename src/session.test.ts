@@ -35,4 +35,9 @@ describe('activeElapsedS', () => {
     const f = focus({ pausedMs: 5_000, pausedAt: 30_000 });
     expect(activeElapsedS(f, 45_000)).toBe(25); // 45s wall - 5s - 15s(ongoing) = 25s
   });
+
+  it('works the same for an unlimited (durationS: null) session, since it never reads durationS', () => {
+    const f = focus({ durationS: null, pausedMs: 20_000 });
+    expect(activeElapsedS(f, 80_000)).toBe(60);
+  });
 });

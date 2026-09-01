@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { formatDuration, formatWallClock } from '../format';
 import { BoltIcon, BusyIcon, CheckIcon } from '../icons';
-import { HOME_IDLE_TIMEOUT_MS, useIdle, useKeydown } from '../physicalControls';
+import { HOME_IDLE_TIMEOUT_MS, useIdle, useKeydown, useKeyFlash } from '../physicalControls';
 import type { Status } from '../session';
 
 export function Home({
@@ -28,6 +28,7 @@ export function Home({
   // to (useIdle's own activity listener already "consumes" that first
   // event, so the preset handler simply never sees it).
   const idle = useIdle(HOME_IDLE_TIMEOUT_MS);
+  const pressedIndex = useKeyFlash(!idle);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     if (!idle) return;
@@ -66,25 +67,17 @@ export function Home({
           itself rather than a floating badge; each tab is tinted to match
           the tile it controls, so the color runs button -> tab -> tile. */}
       <div className="button-hint">
-        <div className="button-hint-item button-hint-available">
-          <span className="button-hint-num">1</span>
+        <div className={`button-hint-item button-hint-available ${pressedIndex === 0 ? 'pressed' : ''}`}>
           <span className="button-hint-label">Available</span>
         </div>
-        <div className="button-hint-item button-hint-busy">
-          <span className="button-hint-num">2</span>
+        <div className={`button-hint-item button-hint-busy ${pressedIndex === 1 ? 'pressed' : ''}`}>
           <span className="button-hint-label">Busy</span>
         </div>
-        <div className="button-hint-item button-hint-focus">
-          <span className="button-hint-num">3</span>
+        <div className={`button-hint-item button-hint-focus ${pressedIndex === 2 ? 'pressed' : ''}`}>
           <span className="button-hint-label">Focus</span>
         </div>
-        <div className="button-hint-item">
-          {jiraConfigured && (
-            <>
-              <span className="button-hint-num">4</span>
-              <span className="button-hint-label">Log time</span>
-            </>
-          )}
+        <div className={`button-hint-item ${pressedIndex === 3 ? 'pressed' : ''}`}>
+          {jiraConfigured && <span className="button-hint-label">Log time</span>}
         </div>
       </div>
       <div className={`status-banner status-${status}`}>{statusLabel(status)}</div>

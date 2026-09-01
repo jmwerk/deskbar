@@ -1,10 +1,10 @@
 import { useCallback, useState } from 'react';
 import type { Config } from '../config';
-import { DurationRow, PresetHint } from '../DurationPicker';
+import { DurationHintBar, DurationRow } from '../DurationPicker';
 import type { NewHistoryEntry } from '../history';
 import { IssuePicker } from '../IssuePicker';
 import { JiraError, logWork, type JiraIssue } from '../jira';
-import { PRESET_MINUTES, useKeydown } from '../physicalControls';
+import { clampMinutes, DURATION_STEPS, useKeydown, useRotaryStep } from '../physicalControls';
 
 export function LogTimeNow({
   config,
@@ -19,6 +19,11 @@ export function LogTimeNow({
   const [selected, setSelected] = useState<JiraIssue | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // The physical dial is a single shared input — route it to whichever
+  // section was last touched instead of letting both the duration and the
+  // issue list respond to the same turn. Defaults to the issue list, since
+  // picking an issue is the more common dial interaction of the two.
+  const [dialTarget, setDialTarget] = useState<'duration' | 'issue'>('issue');
 
   const submit = useCallback(async () => {
     if (!config.jira || !selected || busy) return;
@@ -37,9 +42,9 @@ export function LogTimeNow({
   useKeydown(
     useCallback(
       e => {
-        const presetIndex = ['1', '2', '3', '4'].indexOf(e.key);
-        if (presetIndex !== -1) {
-          setMinutes(PRESET_MINUTES[presetIndex]);
+        const stepIndex = ['1', '2', '3', '4'].indexOf(e.key);
+        if (stepIndex !== -1) {
+          setMinutes(m => clampMinutes(m + DURATION_STEPS[stepIndex]));
         } else if (e.key === 'Escape') {
           onCancel();
         } else if (e.key === 'Enter' || e.key === ' ') {
@@ -53,16 +58,33 @@ export function LogTimeNow({
     ),
   );
 
+  // Fine-grained ±1 min per detent, on top of the coarser physical/on-screen buttons above.
+  useRotaryStep(
+    useCallback(dir => setMinutes(m => clampMinutes(m + dir)), []),
+    dialTarget === 'duration',
+  );
+
   return (
-    <div className="screen focus-setup">
-      <PresetHint minutes={minutes} onChange={setMinutes} />
+    <div
+      className="screen focus-setup"
+      onPointerDown={e => {
+        if (!(e.target as Element).closest('.issue-picker')) setDialTarget('duration');
+      }}
+    >
+      <DurationHintBar unlimited={false} onStep={delta => setMinutes(m => clampMinutes(m + delta))} />
       <h1>Log Time</h1>
 
-      <DurationRow minutes={minutes} onChange={setMinutes} />
+      <DurationRow minutes={minutes} unlimited={false} dialFocused={dialTarget === 'duration'} />
 
-      <div className="issue-picker">
+      <div className="issue-picker" onPointerDown={() => setDialTarget('issue')}>
         <label>Log time to</label>
-        <IssuePicker config={config} selected={selected} onSelect={setSelected} allowNone={false} />
+        <IssuePicker
+          config={config}
+          selected={selected}
+          onSelect={setSelected}
+          allowNone={false}
+          dialEnabled={dialTarget === 'issue'}
+        />
         {error && <div className="hint error">{error}</div>}
       </div>
 

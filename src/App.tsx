@@ -64,10 +64,13 @@ export default function App() {
     void saveSession(next);
   }, []);
 
+  const elapsedS = useMemo(() => (session?.focus ? activeElapsedS(session.focus, now) : 0), [session, now]);
+
+  // Null while a session is unlimited (no fixed duration to count down from).
   const remainingS = useMemo(() => {
-    if (!session?.focus) return 0;
-    return session.focus.durationS - activeElapsedS(session.focus, now);
-  }, [session, now]);
+    if (!session?.focus || session.focus.durationS == null) return null;
+    return session.focus.durationS - elapsedS;
+  }, [session, elapsedS]);
 
   const togglePause = useCallback(() => {
     if (!session?.focus) return;
@@ -85,37 +88,38 @@ export default function App() {
     async (completed: boolean) => {
       if (!session?.focus) return;
       const { durationS, issueKey, issueSummary } = session.focus;
-      const elapsedS = completed ? durationS : activeElapsedS(session.focus, now);
+      const finalElapsedS = completed && durationS != null ? durationS : activeElapsedS(session.focus, now);
       update({ status: 'available' });
       const webhookOk = await fireFocusWebhook(config.focusWebhookUrl, config.focusWebhookFormat, 'focus.stopped', {
         issueKey,
-        durationS: elapsedS,
+        durationS: finalElapsedS,
       });
       if (!webhookOk) showError('Focus automation webhook failed to fire.');
       if (config.jira && issueKey) {
         try {
-          const { worklogId } = await logWork(config.jira, issueKey, elapsedS, 'Logged via Deskbar');
+          const { worklogId } = await logWork(config.jira, issueKey, finalElapsedS, 'Logged via Deskbar');
           void appendHistoryEntry({
             issueKey,
             issueSummary,
-            seconds: elapsedS,
+            seconds: finalElapsedS,
             loggedAt: Date.now(),
             worklogId,
           }).then(setHistory);
         } catch (err) {
           console.warn('[deskbar] failed to log work to Jira', err);
           showError(`Couldn't log time to ${issueKey} — the session still ended.`);
-          void queuePendingWorklog({ issueKey, issueSummary, seconds: elapsedS, createdAt: Date.now() });
+          void queuePendingWorklog({ issueKey, issueSummary, seconds: finalElapsedS, createdAt: Date.now() });
         }
       }
     },
     [session, now, config, update, showError],
   );
 
-  // Auto-end when the countdown reaches zero (never while paused — the
-  // math already holds remainingS still then, this is just belt-and-braces).
+  // Auto-end when the countdown reaches zero (never while paused — the math
+  // already holds remainingS still then, this is just belt-and-braces).
+  // remainingS is null for an unlimited session, which has no zero to hit.
   useEffect(() => {
-    if (session?.status === 'focus' && !session.focus?.pausedAt && remainingS <= 0) {
+    if (session?.status === 'focus' && !session.focus?.pausedAt && remainingS !== null && remainingS <= 0) {
       void endFocus(true);
     }
   }, [session, remainingS, endFocus]);
@@ -161,7 +165,7 @@ export default function App() {
       <FocusRunning
         issueKey={session.focus.issueKey}
         issueSummary={session.focus.issueSummary}
-        remainingS={remainingS}
+        elapsedS={elapsedS}
         totalS={session.focus.durationS}
         paused={!!session.focus.pausedAt}
         onTogglePause={togglePause}
@@ -179,7 +183,7 @@ export default function App() {
           setScreen('home');
           const webhookOk = await fireFocusWebhook(config.focusWebhookUrl, config.focusWebhookFormat, 'focus.started', {
             issueKey: issue?.key,
-            durationS,
+            durationS: durationS ?? undefined,
           });
           if (!webhookOk) showError('Focus automation webhook failed to fire.');
         }}

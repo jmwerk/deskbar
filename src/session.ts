@@ -4,7 +4,8 @@ export type Status = 'available' | 'busy' | 'focus';
 
 export type FocusSession = {
   startedAt: number; // unix ms
-  durationS: number;
+  /** Total planned seconds, or null for an unlimited/stopwatch-style session. */
+  durationS: number | null;
   issueKey?: string;
   issueSummary?: string;
   /** unix ms when the current pause began, or null/absent while running. */
