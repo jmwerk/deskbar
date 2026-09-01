@@ -191,6 +191,13 @@ and hands off to `scripts/build-catalog-site.mjs`, which:
   the card) — omitted entirely if the folder's empty, since the schema
   wants that key left off rather than sent as `[]`.
 
+Regenerate `screenshots/*.png` with `npm run screenshots` instead of
+capturing them by hand — it drives the real app in `dev:mock` mode
+(Playwright + Chromium, installed once via `npx playwright install
+chromium`) through Home, Focus Setup, Focus Running, Paused and Today, at
+the device's actual 800x480, so they can't drift out of sync with a UI
+change the way a manually-captured set can.
+
 Everything then deploys to `https://<owner>.github.io/<repo>/`. GitHub
 Pages serves it with `Access-Control-Allow-Origin: *`, which is what
 bridgething's catalog fetch needs.
@@ -288,6 +295,7 @@ index.html, src/        the webapp itself (React + TypeScript + Vite)
 scripts/package-webapp.mjs      zips dist/ + manifest.json + icon.png after `vite build`
 scripts/build-catalog-site.mjs  builds the GitHub Pages release site (zip + catalog.json)
 scripts/catalog.schema.v1.json  vendored copy of bridgething's real catalog.v1 schema
+scripts/capture-screenshots.mjs regenerates screenshots/*.png via Playwright against dev:mock (`npm run screenshots`)
 catalog.example.json    example catalog.v1 document for self-hosted distribution
 .github/workflows/ci.yml         lint/typecheck/test/build on push and PR
 .github/workflows/release.yml    builds + publishes a release to GitHub Pages on a version tag
