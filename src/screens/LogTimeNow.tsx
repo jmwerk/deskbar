@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import type { Config } from '../config';
-import { DurationPicker } from '../DurationPicker';
+import { DurationRow, PresetHint } from '../DurationPicker';
 import type { NewHistoryEntry } from '../history';
 import { IssuePicker } from '../IssuePicker';
 import { JiraError, logWork, type JiraIssue } from '../jira';
@@ -55,9 +55,10 @@ export function LogTimeNow({
 
   return (
     <div className="screen focus-setup">
+      <PresetHint minutes={minutes} onChange={setMinutes} />
       <h1>Log Time</h1>
 
-      <DurationPicker minutes={minutes} onChange={setMinutes} />
+      <DurationRow minutes={minutes} onChange={setMinutes} />
 
       <div className="issue-picker">
         <label>Log time to</label>

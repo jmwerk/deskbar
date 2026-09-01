@@ -7,7 +7,6 @@ import { useEffect, useState } from 'react';
  * "Escape", and the rotary dial as `wheel` with horizontal `deltaX`.
  */
 export const PRESET_MINUTES = [15, 25, 45, 60];
-export const PRESET_LABELS = ['①', '②', '③', '④'];
 
 /** How long Home sits untouched before the idle screensaver takes over. */
 export const HOME_IDLE_TIMEOUT_MS = 3 * 60_000;

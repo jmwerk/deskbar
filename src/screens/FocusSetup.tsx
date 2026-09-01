@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import type { Config } from '../config';
-import { DurationPicker } from '../DurationPicker';
+import { DurationRow, PresetHint } from '../DurationPicker';
 import { IssuePicker } from '../IssuePicker';
 import type { JiraIssue } from '../jira';
 import { PRESET_MINUTES, useKeydown } from '../physicalControls';
@@ -41,9 +41,10 @@ export function FocusSetup({
 
   return (
     <div className="screen focus-setup">
+      <PresetHint minutes={minutes} onChange={setMinutes} />
       <h1>Start Focus</h1>
 
-      <DurationPicker minutes={minutes} onChange={setMinutes} />
+      <DurationRow minutes={minutes} onChange={setMinutes} />
 
       {config.jira && (
         <div className="issue-picker">

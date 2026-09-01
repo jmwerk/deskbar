@@ -79,6 +79,13 @@ tab is also tinted to match the tile it controls (Available/Busy/Focus),
 reading as the physical button's own color continuing down into the
 screen rather than a separate floating badge.
 
+The same flush-edge treatment was extended to the Duration picker's preset
+row (`PresetHint` in `DurationPicker.tsx`, used on Focus Setup and Log Time
+Now) since those presets are bound to the same physical buttons 1-4. Unlike
+Home's tabs, these have no per-status color to borrow — a duration has no
+matching tile — so only the currently-selected preset gets a tint (generic
+`--focus` blue) rather than every tab having its own color.
+
 ## Screen occlusion / safe zones
 
 Two different things occlude the top-right corner of the screen, and

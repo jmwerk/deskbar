@@ -308,28 +308,47 @@ label {
   margin-bottom: 14px;
 }
 
-.presets {
+/* Flush with the screen's true top edge, same treatment as Home's
+   button-hint — these presets are bound to the same physical buttons 1-4.
+   No per-item color-coding here (a duration has no tile to match), just a
+   "selected" state. */
+.preset-hint {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+  margin: -20px -28px 14px;
+}
+
+.preset-hint-item {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-}
-
-.preset-chip {
-  flex: 0 0 64px;
-  padding: 10px 4px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
+  justify-content: flex-start;
+  gap: 1px;
+  padding: 5px 4px 7px;
+  border: none;
   background: var(--panel);
-  color: var(--fg);
-  font-size: 16px;
-  font-weight: 700;
-  text-align: center;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  border-radius: 0 0 8px 8px;
+  font-family: inherit;
 }
 
-.preset-chip.selected {
-  border-color: var(--focus);
-  background: color-mix(in srgb, var(--focus) 22%, var(--panel));
+.preset-hint-item.selected {
+  background: color-mix(in srgb, var(--focus) 30%, var(--panel));
+}
+
+.preset-hint-num {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--fg);
+}
+
+.preset-hint-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.preset-hint-item.selected .preset-hint-label {
   color: var(--focus);
 }
 
