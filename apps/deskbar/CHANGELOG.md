@@ -1,12 +1,18 @@
 # deskbar
 
+## 0.5.0
+
+Migrated to the `@bridgething/source` monorepo layout, `@bridgething/client` 0.12.1, React 19,
+and push-to-main auto-publish. Rewrote the CSS as a Tailwind v4 design-token system (same DOM and
+safe-zone layout throughout, so nothing on screen actually moved) and added a real settings
+webapp backed by the existing config fields, replacing the phone app's auto-generated form as the
+primary way to edit settings.
+
 ## 0.4.0
 
-Bumped to the `@bridgething/source` monorepo layout, `@bridgething/client` 0.12.1, a Tailwind v4
-design-token UI, React 19, and a real settings webapp. Fixed dial routing on Focus Setup when
-Jira isn't configured, let a running countdown be extended/shortened from the physical presets,
-clamped active-elapsed time to 0 to fix a one-second countdown glitch, and added a script to
-regenerate catalog screenshots automatically.
+Fixed dial routing on Focus Setup when Jira isn't configured, let a running countdown be
+extended/shortened from the physical presets, clamped active-elapsed time to 0 to fix a
+one-second countdown glitch, and added a script to regenerate catalog screenshots automatically.
 
 ## 0.3.0
 

@@ -1,13 +1,16 @@
 {
   "id": "01931b6e-6d1b-7c2a-9c3e-9d3a2f8b7a10",
   "name": "Deskbar",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Busy/available/focus status, a focus timer, and Jira worklog time tracking.",
   "icon": "icon.png",
   "role": "standard",
   "rendersVoiceDisplay": false,
   "settings": "settings.html",
-  "art": { "heroPx": 248, "thumbPx": 96 },
+  "art": {
+    "heroPx": 248,
+    "thumbPx": 96
+  },
   "config": [
     {
       "type": "string",
