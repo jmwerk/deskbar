@@ -12,9 +12,9 @@ asserting it.
   panel bridgething documents and targets.
 - About 2.4x denser than a typical desktop monitor. Sizes that read fine
   on a laptop (14-16px body text, 44px touch targets) show up as fine
-  print and unreliable tap targets here, so `styles.css` scales
+  print and unreliable tap targets here, so `index.css` scales
   everything up accordingly instead of using desktop-web defaults.
-- Desktop-browser testing (`npm run dev`/`dev:mock`) will always look
+- Desktop-browser testing (`bun run dev`/`dev:mock`) will always look
   oversized next to how the UI reads on-device, for the same reason.
 
 ## Physical controls
@@ -104,7 +104,7 @@ they're not the same kind of constraint:
   A large, full-width tap target holds up better here than a
   precisely-avoided corner, since the target then extends into safe
   territory too, regardless of exactly where the dial's edge falls (see
-  `.history-row` in `styles.css`: the whole row is the tap target, and
+  `.history-row` in `index.css`: the whole row is the tap target, and
   its "delete" hint icon sits at the row's _left_ end, not under the
   dial).
 - **bridgething's own notification/pairing toast overlay**: confirmed by
@@ -115,8 +115,8 @@ right:8px; width:46%; max-width:300px; }`. Up to 3 toasts stack
   that's a ~300px-wide, ~280px-tall opaque box in the top-right corner,
   though most of the time it's just one ~90px-tall toast. This overlay
   is `pointer-events:none`, so it never blocks taps; it only visually
-  covers whatever's underneath while a toast is showing. `styles.css`
-  documents this as `--toast-safe-w`/`--toast-safe-h`.
+  covers whatever's underneath while a toast is showing. `index.css`
+  documents this as `--spacing-toast-safe-w`/`--spacing-toast-safe-h`.
 - Everything else bridgething renders (call/connection banners, volume
   level, voice-turn indicator, Bluetooth pairing PIN modal) shows up
   top-center or bottom-center, not top-right.

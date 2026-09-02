@@ -61,7 +61,7 @@ async function backdateFocusSession(page, minutesElapsed) {
   await page.reload();
 }
 
-// .screen fades/slides over 200ms (styles.css); wait it out so shots avoid mid-transition.
+// .screen fades/slides over 200ms (index.css); wait it out so shots avoid mid-transition.
 const FADE_IN_MS = 250;
 
 async function shoot(page, name) {

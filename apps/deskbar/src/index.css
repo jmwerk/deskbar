@@ -16,8 +16,11 @@
   --color-busy: #e74c3c;
   --color-panel: #16191d;
 
-  --color-edge: color-mix(in srgb, var(--color-off-white) 14%, transparent);
-  --color-edge-strong: color-mix(in srgb, var(--color-off-white) 20%, transparent);
+  /* Flat, not a translucent color-mix like bridgething-fresh's own --color-edge: this token
+     backs borders against both --color-bg and --color-panel, and a translucent value would
+     blend to a different visible color over each — opaque keeps it identical everywhere,
+     matching the original --border it replaces exactly. */
+  --color-edge: #262b31;
 
   --font-body: -apple-system, 'Segoe UI', Roboto, sans-serif;
 
