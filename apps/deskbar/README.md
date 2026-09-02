@@ -89,6 +89,7 @@ for exactly this:
 // Fail every request whose URL contains this substring, until cleared.
 __deskbarMock.setFetchFault('/worklog', { status: 500 });
 __deskbarMock.setFetchFault('/webhook', { throws: true }); // simulate a dead connection, not just a bad response
+__deskbarMock.setFetchFault('/worklog', { unreachable: 'timeout' }); // Jira itself unreachable (DNS/timeout/etc.)
 __deskbarMock.clearFetchFault('/worklog');
 __deskbarMock.clearAllFetchFaults();
 

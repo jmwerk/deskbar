@@ -18,6 +18,15 @@ describe('logWork', () => {
     setMockFetchFault('/worklog', { status: 403 });
     await expect(logWork(cfg, 'DESK-1', 900)).rejects.toBeInstanceOf(JiraError);
   });
+
+  // Exercises the `res.kind === 'domain'` branch of jiraFetch's error handling — the only place
+  // in the app that reasons over net.fetch's typed-result discriminated union — which nothing
+  // else here reaches (the `status` fault above resolves ok:true, and `throws` bypasses the
+  // typed-result contract entirely).
+  it('throws a JiraError naming the reason when the request cannot reach Jira at all', async () => {
+    setMockFetchFault('/worklog', { unreachable: 'timeout' });
+    await expect(logWork(cfg, 'DESK-1', 900)).rejects.toThrow(/timeout/);
+  });
 });
 
 describe('deleteWorklog', () => {

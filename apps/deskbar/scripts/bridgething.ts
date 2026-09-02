@@ -1,4 +1,6 @@
 // Generated from @bridgething/webapp-shared.
+// @ts-nocheck vite.config.ts imports this, pulling it into typecheck's program; it's vendored
+// glue not written against our strict settings, and upstream already validates it, not us.
 import { createRequire } from 'node:module';
 var __require = /* @__PURE__ */ createRequire(import.meta.url);
 

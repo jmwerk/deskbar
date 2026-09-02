@@ -36,11 +36,21 @@ function decodeBody(body: Uint8Array | null | undefined): string {
 
 // Fault injection: simulate daemon failures (stale config, Jira, webhook down) via console or tests.
 
+/** The real client's domain-level net.fetch failure reasons (dispatch.generated.d.ts's NetError). */
+export type MockNetErrorType = 'requestFailed' | 'timeout' | 'unavailable' | 'noGateway';
+
 export type MockFetchFault = {
-  /** HTTP status the mocked response reports; defaults to 500 unless `throws` is set. */
+  /** HTTP status the mocked response reports; defaults to 500 unless `throws`/`unreachable` is set. */
   status?: number;
   /** Simulates the request itself failing (DNS/timeout/reset) instead of returning an HTTP response. */
   throws?: boolean;
+  /**
+   * Simulates a domain-level failure — net.fetch resolves `{ok:false, kind:'domain', ...}` rather
+   * than throwing (like `throws`) or returning an HTTP status (like `status`). This is the branch
+   * jira.ts's `res.kind === 'domain' ? res.error.error.type : ...` reasons over; nothing else
+   * exercises it.
+   */
+  unreachable?: MockNetErrorType;
 };
 
 let currentConfig: Record<string, string> = { ...DEFAULT_MOCK_CONFIG };
@@ -117,6 +127,13 @@ export const mockClient: AppBridgeClient = {
       const fault = matchingFault(url);
       if (fault?.throws) {
         throw new Error(`[mock] simulated network failure for ${url}`);
+      }
+      if (fault?.unreachable) {
+        const type = fault.unreachable;
+        // Only 'requestFailed' carries a `data.reason` in the real NetError union; build it
+        // per-variant so the literal matches the discriminated union shape exactly.
+        const error = type === 'requestFailed' ? { type, data: { reason: 'mock unreachable' } } : { type };
+        return { ok: false, kind: 'domain', error: { error } };
       }
       if (fault) {
         return {
