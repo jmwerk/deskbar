@@ -1,0 +1,51 @@
+{
+  "$schema": "https://apps.bridgething.com/schemas/catalog/v1.json",
+  "schema": "catalog.v1",
+  "updated_at": "2026-09-02T13:04:36.005Z",
+  "repo": {
+    "name": "deskbar",
+    "description": "Webapps by deskbar.",
+    "homepage": "https://github.com/jmwerk/deskbar",
+    "icon": null
+  },
+  "apps": [
+    {
+      "id": "01931b6e-6d1b-7c2a-9c3e-9d3a2f8b7a10",
+      "name": "Deskbar",
+      "description": "Busy/available/focus status, a focus timer, and Jira worklog time tracking.",
+      "author": "jmwerk",
+      "icon": "https://jmwerk.github.io/deskbar/icons/01931b6e-6d1b-7c2a-9c3e-9d3a2f8b7a10.png",
+      "screenshots": [
+        "https://jmwerk.github.io/deskbar/screenshots/01931b6e-6d1b-7c2a-9c3e-9d3a2f8b7a10/01-home.png",
+        "https://jmwerk.github.io/deskbar/screenshots/01931b6e-6d1b-7c2a-9c3e-9d3a2f8b7a10/02-focus-setup.png",
+        "https://jmwerk.github.io/deskbar/screenshots/01931b6e-6d1b-7c2a-9c3e-9d3a2f8b7a10/03-focus-running.png",
+        "https://jmwerk.github.io/deskbar/screenshots/01931b6e-6d1b-7c2a-9c3e-9d3a2f8b7a10/04-paused.png",
+        "https://jmwerk.github.io/deskbar/screenshots/01931b6e-6d1b-7c2a-9c3e-9d3a2f8b7a10/05-today.png"
+      ],
+      "homepage": "https://github.com/jmwerk/deskbar",
+      "source": "https://github.com/jmwerk/deskbar",
+      "versions": [
+        {
+          "version": "0.5.0",
+          "released_at": "2026-09-02T13:04:35.891Z",
+          "download": {
+            "url": "https://jmwerk.github.io/deskbar/r/01931b6e-6d1b-7c2a-9c3e-9d3a2f8b7a10/0.5.0.zip",
+            "size": 333009,
+            "sha256": "a07f28769cba225ea35e89d56bb09734a1884b20aa6f38a617c0a98e7c993216"
+          },
+          "settings": {
+            "url": "https://jmwerk.github.io/deskbar/s/01931b6e-6d1b-7c2a-9c3e-9d3a2f8b7a10/0.5.0.html",
+            "size": 26637,
+            "sha256": "a06f7063cce7ea668111a9b459867ae1c62b67cd83b1675d6dd415f0e17da27c"
+          },
+          "permissions": [
+            "net.fetch"
+          ],
+          "min_libbridgething_version": "0.12.1",
+          "changelog": "Migrated to the `@bridgething/source` monorepo layout, `@bridgething/client` 0.12.1, React 19,\nand push-to-main auto-publish. Rewrote the CSS as a Tailwind v4 design-token system (same DOM and\nsafe-zone layout throughout, so nothing on screen actually moved) and added a real settings\nwebapp backed by the existing config fields, replacing the phone app's auto-generated form as the\nprimary way to edit settings."
+        }
+      ]
+    }
+  ],
+  "recommended_sources": []
+}
