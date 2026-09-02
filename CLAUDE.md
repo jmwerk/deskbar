@@ -18,8 +18,6 @@ Listen with a `keydown` handler and a `wheel` handler on `window`.
 
 Make horizontal wheel scroll move through the main list. Five fast presses of Mode returns to the launcher.
 
-Deskbar-specific hardware findings (safe zones, the dial-press key binding, why `m` must stay unbound) live in `apps/deskbar/HARDWARE.md` — read that before touching physical-control code.
-
 ## The client
 
 ```ts
@@ -46,7 +44,6 @@ bun run dev                            # the only app, against a connected Car T
 bun run dev <slug>                     # name it when there is more than one
 bun run --cwd apps/<slug> dev          # always works
 bun run --cwd apps/<slug> dev:device   # show that server on the device's own screen
-bun run --cwd apps/<slug> dev:mock     # a fake bridgething client, no hardware needed (deskbar only)
 bun run --cwd apps/<slug> push         # build and install onto the connected device
 bun run --cwd apps/<slug> build        # writes dist/
 bun run --cwd apps/<slug> typecheck    # checks src, settings and extension together
@@ -86,11 +83,11 @@ bun run check
 
 `new` scaffolds into `apps/<slug>`. Never add an app by hand: the scaffold generates the uuid, writes the store listing, wires the dev server to a connected device, and lands the tsconfig and scripts CI expects.
 
-`shot` captures the kiosk over CDP into `apps/<slug>/screenshots/`. Chromium's debugging port is 9223 and is bound to the device's loopback, so it goes through an ssh tunnel; the command opens and closes one itself. Up to six, filename order, first is the store card. Deskbar also keeps `apps/deskbar/scripts/capture-screenshots.mjs`, a Playwright script that drives the mock client to reproduce specific seeded states (a paused focus session, a populated Today list) without hardware — run it with `bun run --cwd apps/deskbar screenshots`.
+`shot` captures the kiosk over CDP into `apps/<slug>/screenshots/`. Chromium's debugging port is 9223 and is bound to the device's loopback, so it goes through an ssh tunnel; the command opens and closes one itself. Up to six, filename order, first is the store card.
 
 `bump` writes `public/manifest.json` and `package.json` together and opens the changelog section. Editing one without the other fails the build.
 
-`check` is the whole gate and is exactly what CI runs: typecheck, build, bundle, generate the catalog, validate it against `catalog.v1` and the cross-reference invariants. Deskbar's own lint/format/test suite is not part of `check` (this template ships none of those tools) and runs as separate steps in CI. Run `check` before claiming anything works.
+`check` is the whole gate and is exactly what CI runs: typecheck, build, bundle, generate the catalog, validate it against `catalog.v1` and the cross-reference invariants. Run it before claiming anything works.
 
 Pushing to main publishes. `bun run publish --dry-run` assembles the exact bytes that would be pushed, into `site/`, without pushing.
 
