@@ -1,0 +1,111 @@
+{
+  "id": "01931b6e-6d1b-7c2a-9c3e-9d3a2f8b7a10",
+  "name": "Deskbar",
+  "version": "0.5.0",
+  "description": "Busy/available/focus status, a focus timer, and Jira worklog time tracking.",
+  "icon": "icon.png",
+  "role": "standard",
+  "rendersVoiceDisplay": false,
+  "settings": "settings.html",
+  "art": {
+    "heroPx": 248,
+    "thumbPx": 96
+  },
+  "config": [
+    {
+      "type": "string",
+      "data": {
+        "key": "jiraBaseUrl",
+        "label": "Jira site URL (e.g. https://yourteam.atlassian.net)",
+        "pattern": "^https://.+",
+        "minLength": null,
+        "maxLength": 200,
+        "default": null
+      }
+    },
+    {
+      "type": "string",
+      "data": {
+        "key": "jiraEmail",
+        "label": "Jira account email",
+        "pattern": null,
+        "minLength": null,
+        "maxLength": 200,
+        "default": null
+      }
+    },
+    {
+      "type": "secret",
+      "data": {
+        "key": "jiraApiToken",
+        "label": "Jira API token",
+        "pattern": null,
+        "minLength": null,
+        "maxLength": 500,
+        "default": null
+      }
+    },
+    {
+      "type": "string",
+      "data": {
+        "key": "jiraJql",
+        "label": "JQL for the issue picker (defaults to issues assigned to you)",
+        "pattern": null,
+        "minLength": null,
+        "maxLength": 500,
+        "default": "assignee = currentUser() AND resolution = Unresolved ORDER BY updated DESC"
+      }
+    },
+    {
+      "type": "string",
+      "data": {
+        "key": "focusWebhookUrl",
+        "label": "Optional webhook to call on focus start/stop — a Home Assistant/IFTTT/Shortcuts automation URL to trigger phone/PC Do Not Disturb, or a Slack/Teams incoming webhook URL to post your status there",
+        "pattern": null,
+        "minLength": null,
+        "maxLength": 500,
+        "default": null
+      }
+    },
+    {
+      "type": "enum",
+      "data": {
+        "key": "focusWebhookFormat",
+        "label": "Focus webhook payload format",
+        "choices": ["json", "slack", "teams"],
+        "default": "json"
+      }
+    },
+    {
+      "type": "number",
+      "data": {
+        "key": "defaultFocusMinutes",
+        "label": "Default focus session length (minutes)",
+        "min": 5,
+        "max": 240,
+        "step": 5,
+        "default": 25
+      }
+    },
+    {
+      "type": "string",
+      "data": {
+        "key": "timezone",
+        "label": "Your timezone as an IANA name (e.g. America/New_York) — only needed if the device's system clock isn't already set to it; leave blank otherwise",
+        "pattern": null,
+        "minLength": null,
+        "maxLength": 100,
+        "default": null
+      }
+    }
+  ],
+  "permissions": ["net.fetch"],
+  "overlays": {
+    "notifications": true,
+    "call": true,
+    "pairing": true,
+    "connection": true,
+    "volume": true,
+    "voice": false
+  }
+}
