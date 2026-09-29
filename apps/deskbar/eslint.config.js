@@ -27,6 +27,11 @@ export default tseslint.config(
     },
   },
   {
+    // entry point that mounts itself, so it has no exports to refresh
+    files: ['settings/main.tsx'],
+    rules: { 'react-refresh/only-export-components': 'off' },
+  },
+  {
     files: ['*.config.ts'],
     extends: [...tseslint.configs.recommended],
     languageOptions: {
