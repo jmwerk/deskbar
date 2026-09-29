@@ -104,12 +104,12 @@ describe('useIdle', () => {
 
   it('starts not-idle and stays that way before the timeout elapses', () => {
     const { result } = renderHook(() => useIdle(1000));
-    expect(result.current).toBe(false);
+    expect(result.current[0]).toBe(false);
 
     act(() => {
       vi.advanceTimersByTime(999);
     });
-    expect(result.current).toBe(false);
+    expect(result.current[0]).toBe(false);
   });
 
   it('goes idle once the timeout elapses with no activity', () => {
@@ -118,7 +118,7 @@ describe('useIdle', () => {
     act(() => {
       vi.advanceTimersByTime(1000);
     });
-    expect(result.current).toBe(true);
+    expect(result.current[0]).toBe(true);
   });
 
   it('resets on a keydown, wheel, or pointerdown', () => {
@@ -131,13 +131,13 @@ describe('useIdle', () => {
     act(() => {
       vi.advanceTimersByTime(900);
     });
-    expect(result.current).toBe(false); // only 900ms since the reset
+    expect(result.current[0]).toBe(false); // only 900ms since the reset
 
     act(() => {
       window.dispatchEvent(new WheelEvent('wheel', { deltaX: 10 }));
       vi.advanceTimersByTime(1000);
     });
-    expect(result.current).toBe(true);
+    expect(result.current[0]).toBe(true);
   });
 
   it('restarts the timer fresh on mount', () => {
@@ -145,11 +145,25 @@ describe('useIdle', () => {
     act(() => {
       vi.advanceTimersByTime(1000);
     });
-    expect(first.result.current).toBe(true);
+    expect(first.result.current[0]).toBe(true);
     first.unmount();
 
     // A fresh mount (e.g. navigating back to Home) shouldn't inherit idle.
     const second = renderHook(() => useIdle(1000));
-    expect(second.result.current).toBe(false);
+    expect(second.result.current[0]).toBe(false);
+  });
+
+  it('sleeps on demand and wakes on the next input', () => {
+    const { result } = renderHook(() => useIdle(1000));
+
+    act(() => {
+      result.current[1]();
+    });
+    expect(result.current[0]).toBe(true);
+
+    act(() => {
+      window.dispatchEvent(new PointerEvent('pointerdown'));
+    });
+    expect(result.current[0]).toBe(false);
   });
 });

@@ -194,7 +194,7 @@
     color: var(--color-accent);
   }
 
-  /* Home dock: clock, now-playing and today's total along the bottom edge. The top-right is
+  /* Bottom dock (Home, Focus Running): clock, now-playing, today total. The top-right is
      under the dial and bridgething's toasts, so persistent info and taps stay down here. */
   .dock {
     display: flex;
@@ -207,7 +207,10 @@
 
   .dock-clock {
     flex-shrink: 0;
-    padding-left: 4px;
+    height: 100%;
+    padding: 0 0 0 4px;
+    border: none;
+    background: none;
     font-size: 26px;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
@@ -689,7 +692,7 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    gap: 18px;
+    gap: 14px;
   }
 
   .focus-eyebrow {
@@ -700,9 +703,11 @@
     color: var(--color-muted);
   }
 
+  /* Tight line box: the default adds ~20px, which the now-playing dock below can't spare. */
   .clock {
     font-size: 104px;
     font-weight: 800;
+    line-height: 1;
     font-variant-numeric: tabular-nums;
   }
 
@@ -716,6 +721,7 @@
   }
 
   .progress-track {
+    flex-shrink: 0;
     width: 80%;
     height: 10px;
     background: var(--color-panel);
@@ -874,7 +880,7 @@
     border: 1px solid color-mix(in srgb, var(--color-available) 45%, var(--color-edge));
   }
 
-  /* Now playing: full-screen player over Home, laid out like Focus Running */
+  /* Now playing: full-screen player over Home or Focus Running, laid out like Focus Running */
 
   /* Washed in the artwork's own color (useArtTint), falling back to the accent. Panels go
      translucent here so the wash shows through the tabs, progress track and Back button. */
@@ -947,6 +953,25 @@
   .now-playing-album {
     font-size: 17px;
     color: var(--color-muted);
+  }
+
+  /* The running focus clock, so opening the player doesn't hide how much time is left. */
+  .focus-timer-pill {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 22px;
+    border-radius: 14px;
+    border: 1px solid var(--color-edge);
+    background: var(--color-panel);
+    font-size: 24px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .focus-timer-paused {
+    color: rgb(245 246 247 / 0.55);
   }
 
   /* Taller than the bar itself so the drag target is finger-sized. */

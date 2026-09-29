@@ -28,7 +28,7 @@ export function Home({
   onOpenHistory: () => void;
 }) {
   // Dims to a clock when idle; presets disable so the wake key can't also fire its action.
-  const idle = useIdle(HOME_IDLE_TIMEOUT_MS);
+  const [idle, sleepNow] = useIdle(HOME_IDLE_TIMEOUT_MS);
   const [playerOpen, setPlayerOpen] = useState(false);
   const closePlayer = useCallback(() => setPlayerOpen(false), []);
   const presetsLive = !idle && !playerOpen;
@@ -56,7 +56,7 @@ export function Home({
       {idle && (
         <div className="screensaver">
           <div className="screensaver-clock">{clock}</div>
-          {player.track && (
+          {player.track && player.playing && (
             <div className="screensaver-track">
               {player.track.title}
               {player.track.artist && ` · ${player.track.artist}`}
@@ -119,7 +119,9 @@ export function Home({
       )}
       {/* Ambient info lives along the bottom: the top-right is under the dial and the toast overlay. */}
       <div className="dock">
-        <div className="dock-clock">{clock}</div>
+        <button className="dock-clock" aria-label="Show clock" onClick={sleepNow}>
+          {clock}
+        </button>
         <NowPlayingChip player={player} onOpen={() => setPlayerOpen(true)} />
         {jiraConfigured && (
           <button className="today-bar" onClick={onOpenHistory}>

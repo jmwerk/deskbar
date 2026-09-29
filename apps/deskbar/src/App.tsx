@@ -178,6 +178,7 @@ export default function App() {
         elapsedS={elapsedS}
         totalS={session.focus.durationS}
         paused={!!session.focus.pausedAt}
+        player={player}
         onTogglePause={togglePause}
         onExtend={extendFocus}
         onEnd={() => void endFocus(false)}
