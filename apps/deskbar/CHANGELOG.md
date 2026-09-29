@@ -1,5 +1,9 @@
 # deskbar
 
+## 0.7.0
+
+The focus timer now has the now-playing widget along the bottom: tap it for the full-screen player, which shows the focus timer beside Back, or press the dial to play/pause without leaving the timer. Tap the clock in Home's dock to show the screensaver right away. The screensaver only shows the current track while it's playing.
+
 ## 0.6.0
 
 Added a bottom dock to Home with a clock, a now-playing widget for the phone's Spotify (tap it for a full-screen player: presets 1-4 are previous, play/pause, next and like, the dial seeks, dial press plays/pauses, Back closes), and today's logged time. The idle screensaver also shows the current track.
