@@ -1,10 +1,28 @@
 import type { ClientSurfaces, ConfigChanged } from '@bridgething/client';
 
+type PlayerStateReply = Parameters<Parameters<ClientSurfaces['player']['onSnapshot']>[0]>[0];
+type MediaItem = NonNullable<PlayerStateReply['state']['track']>;
+
+/** The slice of a player snapshot the now-playing UI reads, so the mock needn't build a full PlayerState. */
+export type NowPlayingReply = {
+  state: {
+    track: Pick<MediaItem, 'title' | 'artist' | 'album' | 'artworkId' | 'durationMs'> | null;
+    playback: Pick<PlayerStateReply['state']['playback'], 'state' | 'positionMs'>;
+  };
+};
+
+type NowPlayingResult = { ok: true; response: NowPlayingReply } | { ok: false };
+
 /** Subset of BridgethingClient the app uses; real & mock both satisfy it, so callers don't care which. */
 export type AppBridgeClient = {
   config: Pick<ClientSurfaces['config'], 'list' | 'onChanged'>;
   store: Pick<ClientSurfaces['store'], 'get' | 'put'>;
   net: Pick<ClientSurfaces['net'], 'fetch'>;
+  player: Pick<ClientSurfaces['player'], 'pause' | 'resume' | 'skipNext' | 'skipPrev' | 'seekTo'> & {
+    onSnapshot(handler: (reply: NowPlayingReply) => void): () => void;
+    stateGet(): Promise<NowPlayingResult>;
+  };
+  asset: Pick<ClientSurfaces['asset'], 'get'>;
 };
 
 const DEFAULT_MOCK_CONFIG: Record<string, string> = {
@@ -53,7 +71,30 @@ export type MockFetchFault = {
   unreachable?: MockNetErrorType;
 };
 
+// The second title is long enough to exercise the marquee.
+const MOCK_TRACKS = [
+  {
+    title: 'Midnight City',
+    artist: 'M83',
+    album: 'Hurry Up, We\u2019re Dreaming',
+    durationMs: 244_000,
+    color: '#7c3aed',
+  },
+  {
+    title: 'Intro (Extended Mix, Remastered 2011)',
+    artist: 'M83 and Zola Jesus',
+    album: 'Hurry Up, We\u2019re Dreaming',
+    durationMs: 322_000,
+    color: '#0e7490',
+  },
+  { title: 'Outro', artist: 'M83', album: 'Hurry Up, We\u2019re Dreaming', durationMs: 247_000, color: '#b45309' },
+];
+
+type MockPlayback = { index: number; playing: boolean; positionMs: number; at: number };
+
 let currentConfig: Record<string, string> = { ...DEFAULT_MOCK_CONFIG };
+let playback: MockPlayback | null = { index: 0, playing: true, positionMs: 42_000, at: Date.now() };
+const playerListeners = new Set<(reply: NowPlayingReply) => void>();
 const configListeners = new Set<(msg: ConfigChanged) => void>();
 const fetchFaults = new Map<string, MockFetchFault>();
 
@@ -78,11 +119,52 @@ export function clearAllMockFetchFaults(): void {
   fetchFaults.clear();
 }
 
+function livePositionMs(p: MockPlayback): number {
+  const raw = p.positionMs + (p.playing ? Date.now() - p.at : 0);
+  return Math.min(raw, MOCK_TRACKS[p.index].durationMs);
+}
+
+function nowPlaying(): NowPlayingReply {
+  if (!playback) return { state: { track: null, playback: { state: 'stopped', positionMs: 0 } } };
+  const t = MOCK_TRACKS[playback.index];
+  return {
+    state: {
+      track: {
+        title: t.title,
+        artist: t.artist,
+        album: t.album,
+        artworkId: `mock-art-${playback.index}`,
+        durationMs: t.durationMs,
+      },
+      playback: { state: playback.playing ? 'playing' : 'paused', positionMs: livePositionMs(playback) },
+    },
+  };
+}
+
+function setPlayback(next: MockPlayback | null): void {
+  playback = next;
+  const reply = nowPlaying();
+  playerListeners.forEach(fn => fn(reply));
+}
+
+function mockArtwork(index: number): Uint8Array {
+  const { title, color } = MOCK_TRACKS[index];
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="248" height="248"><rect width="248" height="248" fill="${color}"/><circle cx="124" cy="124" r="70" fill="rgba(255,255,255,0.16)"/><text x="124" y="154" font-family="sans-serif" font-size="92" font-weight="700" fill="#fff" text-anchor="middle">${title[0]}</text></svg>`;
+  return new TextEncoder().encode(svg);
+}
+
+/** Simulate the phone going away (or coming back with a track), as if Spotify stopped reporting. */
+export function setMockNowPlaying(on: boolean): void {
+  setPlayback(on ? { index: 0, playing: true, positionMs: 0, at: Date.now() } : null);
+}
+
 /** Resets config, faults, and persisted store state, mainly to isolate tests from each other. */
 export function resetMockState(): void {
   currentConfig = { ...DEFAULT_MOCK_CONFIG };
   fetchFaults.clear();
   configListeners.clear();
+  playerListeners.clear();
+  playback = { index: 0, playing: true, positionMs: 42_000, at: Date.now() };
   // Use `.key(i)`/`.length`, not `Object.keys()`: some Storage polyfills don't enumerate keys.
   const staleKeys: string[] = [];
   for (let i = 0; i < window.localStorage.length; i++) {
@@ -168,6 +250,42 @@ export const mockClient: AppBridgeClient = {
 
       // The focus webhook (or anything else) — pretend the automation fired.
       return { ok: true, response: { response: { status: 200, headers: [], body: new Uint8Array() } } };
+    },
+  },
+  player: {
+    onSnapshot(handler) {
+      playerListeners.add(handler);
+      return () => playerListeners.delete(handler);
+    },
+    async stateGet() {
+      return { ok: true, response: nowPlaying() };
+    },
+    async pause() {
+      if (playback) setPlayback({ ...playback, playing: false, positionMs: livePositionMs(playback), at: Date.now() });
+    },
+    async resume() {
+      if (playback) setPlayback({ ...playback, playing: true, at: Date.now() });
+    },
+    async skipNext() {
+      if (playback)
+        setPlayback({ ...playback, index: (playback.index + 1) % MOCK_TRACKS.length, positionMs: 0, at: Date.now() });
+    },
+    async skipPrev() {
+      if (!playback) return;
+      // Mirrors allowSeeking: a track more than 3s in restarts rather than going back.
+      const restart = livePositionMs(playback) > 3000;
+      const index = restart ? playback.index : (playback.index - 1 + MOCK_TRACKS.length) % MOCK_TRACKS.length;
+      setPlayback({ ...playback, index, positionMs: 0, at: Date.now() });
+    },
+    async seekTo({ positionMs }) {
+      if (playback) setPlayback({ ...playback, positionMs, at: Date.now() });
+    },
+  },
+  asset: {
+    async get({ id, requestId }) {
+      const index = Number(id.replace('mock-art-', ''));
+      if (!MOCK_TRACKS[index]) return { ok: false, kind: 'domain', error: { requestId, id } };
+      return { ok: true, response: { requestId, id, bytes: mockArtwork(index), mime: 'image/svg+xml' } };
     },
   },
 };

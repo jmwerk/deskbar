@@ -1,14 +1,18 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { formatDuration, formatWallClock } from '../format';
 import { BoltIcon, BusyIcon, CheckIcon } from '../icons';
+import { NowPlayingChip, NowPlayingSheet } from '../NowPlaying';
 import { HOME_IDLE_TIMEOUT_MS, useIdle, useKeydown, useKeyFlash } from '../physicalControls';
 import type { Status } from '../session';
+import type { Player } from '../usePlayer';
 
 export function Home({
   status,
   jiraConfigured,
   todaySeconds,
+  now,
   timezone,
+  player,
   onSelect,
   onLogNow,
   onOpenHistory,
@@ -16,20 +20,20 @@ export function Home({
   status: Status;
   jiraConfigured: boolean;
   todaySeconds: number;
+  now: number;
   timezone?: string;
+  player: Player;
   onSelect: (status: Status) => void;
   onLogNow: () => void;
   onOpenHistory: () => void;
 }) {
   // Dims to a clock when idle; presets disable so the wake key can't also fire its action.
   const idle = useIdle(HOME_IDLE_TIMEOUT_MS);
-  const pressedIndex = useKeyFlash(!idle);
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    if (!idle) return;
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, [idle]);
+  const [playerOpen, setPlayerOpen] = useState(false);
+  const closePlayer = useCallback(() => setPlayerOpen(false), []);
+  const presetsLive = !idle && !playerOpen;
+  const pressedIndex = useKeyFlash(presetsLive);
+  const clock = formatWallClock(now, timezone);
 
   useKeydown(
     useCallback(
@@ -44,14 +48,20 @@ export function Home({
       },
       [onSelect, onLogNow, jiraConfigured],
     ),
-    !idle,
+    presetsLive,
   );
 
   return (
     <div className="screen home">
       {idle && (
         <div className="screensaver">
-          <div className="screensaver-clock">{formatWallClock(now, timezone)}</div>
+          <div className="screensaver-clock">{clock}</div>
+          {player.track && (
+            <div className="screensaver-track">
+              {player.track.title}
+              {player.track.artist && ` · ${player.track.artist}`}
+            </div>
+          )}
         </div>
       )}
       {/* Negative margins flush this to the screen's edge, aligning with the preset buttons above. */}
@@ -70,11 +80,6 @@ export function Home({
         </div>
       </div>
       <div className={`status-banner status-${status}`}>{statusLabel(status)}</div>
-      {jiraConfigured && (
-        <button className="today-bar" onClick={onOpenHistory}>
-          Today: {formatDuration(todaySeconds)} logged
-        </button>
-      )}
       <div className="tiles">
         <button
           className={`tile tile-available ${status === 'available' ? 'selected' : ''}`}
@@ -112,6 +117,17 @@ export function Home({
           Set your Jira site, email and API token from the Deskbar settings on your phone to enable time tracking.
         </div>
       )}
+      {/* Ambient info lives along the bottom: the top-right is under the dial and the toast overlay. */}
+      <div className="dock">
+        <div className="dock-clock">{clock}</div>
+        <NowPlayingChip player={player} onOpen={() => setPlayerOpen(true)} />
+        {jiraConfigured && (
+          <button className="today-bar" onClick={onOpenHistory}>
+            Today: {formatDuration(todaySeconds)}
+          </button>
+        )}
+      </div>
+      {playerOpen && <NowPlayingSheet player={player} enabled={!idle} onDismiss={closePlayer} />}
     </div>
   );
 }

@@ -31,8 +31,14 @@ instead:
   reachable.
 - **Log time now:** Log time to an issue directly, no timer required,
   from Home's fourth preset.
+- **Clock and now playing:** A dock along the bottom of Home shows the
+  time, whatever your phone's Spotify is playing, and today's logged
+  total. Tap the track for a full-screen player: the dial seeks, pressing
+  the dial plays/pauses, Back closes it. With no phone connected it just
+  says "Nothing playing". It sits at the bottom because the top-right
+  corner is under the dial and bridgething's notification toasts.
 - **Today:** A running total of what you've logged today, tappable from
-  Home, with each session listed out. You can delete any entry, which
+  Home's dock, with each session listed out. You can delete any entry, which
   removes its worklog from Jira too (entries logged before this feature
   existed don't have a worklog id to delete by, so those only get removed
   from Deskbar).
@@ -95,6 +101,9 @@ __deskbarMock.clearAllFetchFaults();
 
 // Push a config change, as if the phone app had just saved new settings.
 __deskbarMock.setConfig({ focusWebhookUrl: 'https://example.com/webhook' });
+
+// Phone stops reporting playback, so Home's dock shows "Nothing playing"; pass true to resume.
+__deskbarMock.setNowPlaying(false);
 ```
 
 To exercise the pending-worklog retry queue: fail `/worklog` (above), end
