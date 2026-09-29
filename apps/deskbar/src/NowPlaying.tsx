@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type CSSProperties } from 'react';
 import { useArtTint } from './artTint';
 import { formatClock } from './format';
-import { HeartIcon, MusicIcon, PauseIcon, PlayIcon, SkipBackIcon, SkipForwardIcon } from './icons';
+import { BoltIcon, HeartIcon, MusicIcon, PauseIcon, PlayIcon, SkipBackIcon, SkipForwardIcon } from './icons';
 import { ScrollText } from './ScrollText';
 import { useKeydown, useKeyFlash, useRotaryStep } from './physicalControls';
 import type { Player } from './usePlayer';
@@ -97,10 +97,13 @@ function Scrubber({ player }: { player: Player }) {
 export function NowPlayingSheet({
   player,
   enabled,
+  focusTimer,
   onDismiss,
 }: {
   player: Player;
   enabled: boolean;
+  /** Shown beside Back while a focus session runs underneath: remaining (or elapsed) seconds. */
+  focusTimer?: { seconds: number; paused: boolean };
   onDismiss: () => void;
 }) {
   const { track, playing, liked, toggle, toggleLike, skip, seekBy } = player;
@@ -191,6 +194,16 @@ export function NowPlayingSheet({
       <Scrubber player={player} />
 
       <div className="actions">
+        {focusTimer && (
+          <button
+            className={`focus-timer-pill ${focusTimer.paused ? 'focus-timer-paused' : ''}`}
+            aria-label="Focus timer"
+            onClick={onDismiss}
+          >
+            <BoltIcon size={22} />
+            {formatClock(focusTimer.seconds)}
+          </button>
+        )}
         <button className="btn-secondary" onClick={onDismiss}>
           Back
         </button>

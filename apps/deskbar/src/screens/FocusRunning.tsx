@@ -88,7 +88,9 @@ export function FocusRunning({
       <div className="dock">
         <NowPlayingChip player={player} onOpen={() => setPlayerOpen(true)} />
       </div>
-      {playerOpen && <NowPlayingSheet player={player} enabled onDismiss={closePlayer} />}
+      {playerOpen && (
+        <NowPlayingSheet player={player} enabled focusTimer={{ seconds: displayS, paused }} onDismiss={closePlayer} />
+      )}
     </div>
   );
 }

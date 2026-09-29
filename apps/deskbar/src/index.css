@@ -952,6 +952,25 @@
     color: var(--color-muted);
   }
 
+  /* The running focus clock, so opening the player doesn't hide how much time is left. */
+  .focus-timer-pill {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 22px;
+    border-radius: 14px;
+    border: 1px solid var(--color-edge);
+    background: var(--color-panel);
+    font-size: 24px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .focus-timer-paused {
+    color: rgb(245 246 247 / 0.55);
+  }
+
   /* Taller than the bar itself so the drag target is finger-sized. */
   .scrubber {
     position: relative;
