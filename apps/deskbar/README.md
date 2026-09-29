@@ -33,8 +33,9 @@ instead:
   from Home's fourth preset.
 - **Clock and now playing:** A dock along the bottom of Home shows the
   time, whatever your phone's Spotify is playing, and today's logged
-  total. Tap the track for a full-screen player: presets 1-3 are
-  previous, play/pause and next, the dial seeks, pressing the dial
+  total. Tap the track for a full-screen player: presets 1-4 are
+  previous, play/pause, next and like (saves the track to your Spotify
+  library), the dial seeks, pressing the dial
   plays/pauses, Back closes it. With no phone connected it just
   says "Nothing playing". It sits at the bottom because the top-right
   corner is under the dial and bridgething's notification toasts.

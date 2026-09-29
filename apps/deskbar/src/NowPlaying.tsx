@@ -110,8 +110,8 @@ function Scrubber({ player }: { player: Player }) {
 }
 
 /**
- * Full-screen player over Home, laid out like Focus Running. Presets 1-3 are previous,
- * play/pause and next (labelled in the flush tabs); the dial seeks, dial push toggles, Back closes.
+ * Full-screen player over Home, laid out like Focus Running. Presets 1-4 are previous,
+ * play/pause, next and like (labelled in the flush tabs); the dial seeks, dial push toggles, Back closes.
  */
 export function NowPlayingSheet({
   player,
@@ -122,7 +122,7 @@ export function NowPlayingSheet({
   enabled: boolean;
   onDismiss: () => void;
 }) {
-  const { track, playing, toggle, skip, seekBy } = player;
+  const { track, playing, liked, toggle, toggleLike, skip, seekBy } = player;
   const pressedIndex = useKeyFlash(enabled);
 
   useKeydown(
@@ -131,11 +131,12 @@ export function NowPlayingSheet({
         if (e.key === '1') skip(-1);
         else if (e.key === '2' || e.key === 'Enter' || e.key === ' ') toggle();
         else if (e.key === '3') skip(1);
+        else if (e.key === '4') toggleLike();
         else if (e.key === 'Escape') onDismiss();
         else return;
         e.preventDefault();
       },
-      [skip, toggle, onDismiss],
+      [skip, toggle, toggleLike, onDismiss],
     ),
     enabled,
   );
@@ -157,14 +158,21 @@ export function NowPlayingSheet({
 
   return (
     <div className="screen now-playing-screen" role="dialog" aria-label="Now playing">
-      {/* Same flush tabs as Home and Focus; the fourth stays blank, like Home without Jira. */}
+      {/* Same flush tabs as Home and Focus; Like takes Home's green tint while the track is saved. */}
       <div className="preset-hint">
         {tabs.map((tab, i) => (
           <button key={i} className={`preset-hint-item ${pressedIndex === i ? 'pressed' : ''}`} onClick={tab.onClick}>
             <span className="preset-hint-label">{tab.label}</span>
           </button>
         ))}
-        <div className={`preset-hint-item ${pressedIndex === 3 ? 'pressed' : ''}`} />
+        <button
+          className={`preset-hint-item ${liked ? 'preset-hint-liked' : ''} ${pressedIndex === 3 ? 'pressed' : ''}`}
+          disabled={liked == null}
+          aria-pressed={liked ?? false}
+          onClick={toggleLike}
+        >
+          <span className="preset-hint-label">{liked ? 'Liked' : 'Like'}</span>
+        </button>
       </div>
 
       <div className="now-playing-body">

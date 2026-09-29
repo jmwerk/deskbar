@@ -13,7 +13,10 @@ export type Player = {
   playing: boolean;
   positionMs: number;
   durationMs: number;
+  /** Null when the current item can't be saved to the library. */
+  liked: boolean | null;
   toggle: () => void;
+  toggleLike: () => void;
   seekBy: (deltaMs: number) => void;
   seekTo: (ms: number) => void;
   skip: (dir: 1 | -1) => void;
@@ -21,6 +24,10 @@ export type Player = {
 
 // Last daemon report plus when it arrived, so the playhead extrapolates between snapshots.
 type Snapshot = {
+  uri: string | null;
+  persistentId: string | null;
+  liked: boolean;
+  likeSupported: boolean;
   title: string;
   artist: string | null;
   album: string | null;
@@ -40,6 +47,10 @@ function toSnapshot({ state }: NowPlayingReply, at: number): Snapshot | null {
   const { track, playback } = state;
   if (!track?.title) return null;
   return {
+    uri: track.uri,
+    persistentId: track.persistentId,
+    liked: track.liked ?? false,
+    likeSupported: track.uri != null && track.isLikeSupported !== false,
     title: track.title,
     artist: track.artist,
     album: track.album,
@@ -56,6 +67,8 @@ export function usePlayer(client: AppBridgeClient): Player {
   const [snap, setSnap] = useState<Snapshot | null>(null);
   const [artUrl, setArtUrl] = useState<string | null>(null);
   const [positionMs, setPositionMs] = useState(0);
+  // Optimistic or event-driven like state, keyed by uri so it can't leak onto the next track.
+  const [likeOverride, setLikeOverride] = useState<{ uri: string; liked: boolean } | null>(null);
 
   const retired = useRef<{ url: string; timer: ReturnType<typeof setTimeout> } | null>(null);
   const retire = useCallback((url: string) => {
@@ -85,6 +98,11 @@ export function usePlayer(client: AppBridgeClient): Player {
     });
     return off;
   }, [client]);
+
+  useEffect(() => client.library.onFavoriteChanged(({ uri, liked }) => setLikeOverride({ uri, liked })), [client]);
+
+  // The phone's own report wins once it moves, e.g. a like made on the phone after a tap here.
+  useEffect(() => setLikeOverride(null), [snap?.uri, snap?.liked]);
 
   useEffect(() => {
     if (!snap?.artId) {
@@ -134,6 +152,16 @@ export function usePlayer(client: AppBridgeClient): Player {
 
   const seekTo = useCallback((ms: number) => seekBy(ms - positionMs), [seekBy, positionMs]);
 
+  const likeUri = snap?.likeSupported ? snap.uri : null;
+  const liked = likeUri == null ? null : likeOverride?.uri === likeUri ? likeOverride.liked : (snap?.liked ?? false);
+
+  const toggleLike = useCallback(() => {
+    if (likeUri == null || liked == null) return;
+    setLikeOverride({ uri: likeUri, liked: !liked });
+    const kind = likeUri.startsWith('spotify:episode:') ? 'podcastEpisode' : 'track';
+    void client.library.favoritesToggle({ item: { uri: likeUri, kind, persistentId: snap?.persistentId ?? null } });
+  }, [client, likeUri, liked, snap?.persistentId]);
+
   const skip = useCallback(
     (dir: 1 | -1) => {
       void (dir === 1 ? client.player.skipNext() : client.player.skipPrev({ allowSeeking: true }));
@@ -146,7 +174,9 @@ export function usePlayer(client: AppBridgeClient): Player {
     playing: snap?.playing ?? false,
     positionMs,
     durationMs: snap?.durationMs ?? 0,
+    liked,
     toggle,
+    toggleLike,
     seekBy,
     seekTo,
     skip,

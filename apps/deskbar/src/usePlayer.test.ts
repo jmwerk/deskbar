@@ -57,6 +57,36 @@ describe('usePlayer', () => {
     expect(result.current.positionMs).toBeGreaterThanOrEqual(start + 1900);
   });
 
+  it('toggles like on the current track and keeps it per track', async () => {
+    const { result } = renderHook(() => usePlayer(mockClient));
+    await waitFor(() => expect(result.current.track).not.toBeNull());
+    expect(result.current.liked).toBe(false);
+
+    await act(async () => result.current.toggleLike());
+    expect(result.current.liked).toBe(true);
+
+    await act(async () => result.current.skip(1));
+    expect(result.current.liked).toBe(false);
+
+    await act(async () => result.current.skip(-1));
+    expect(result.current.liked).toBe(true);
+
+    await act(async () => result.current.toggleLike());
+    expect(result.current.liked).toBe(false);
+  });
+
+  it('shows a like made elsewhere', async () => {
+    const { result } = renderHook(() => usePlayer(mockClient));
+    await waitFor(() => expect(result.current.track).not.toBeNull());
+
+    await act(async () =>
+      mockClient.library.favoritesToggle({
+        item: { uri: 'spotify:track:mock-0', kind: 'track', persistentId: null },
+      }),
+    );
+    expect(result.current.liked).toBe(true);
+  });
+
   it('reports no track when the phone stops reporting playback', async () => {
     const { result } = renderHook(() => usePlayer(mockClient));
     await waitFor(() => expect(result.current.track).not.toBeNull());

@@ -491,6 +491,10 @@
     opacity: 0.4;
   }
 
+  .preset-hint-liked {
+    background: color-mix(in srgb, var(--color-available) 30%, var(--color-panel));
+  }
+
   /* Briefly brightens/shrinks when the matching physical button is pressed (see useKeyFlash)
      — visible feedback for a press that never actually touches this DOM element. */
   .preset-hint-item.pressed {

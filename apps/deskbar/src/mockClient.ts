@@ -1,12 +1,17 @@
 import type { ClientSurfaces, ConfigChanged } from '@bridgething/client';
 
+type FavoriteChanged = Parameters<Parameters<ClientSurfaces['library']['onFavoriteChanged']>[0]>[0];
+
 type PlayerStateReply = Parameters<Parameters<ClientSurfaces['player']['onSnapshot']>[0]>[0];
 type MediaItem = NonNullable<PlayerStateReply['state']['track']>;
 
 /** The slice of a player snapshot the now-playing UI reads, so the mock needn't build a full PlayerState. */
 export type NowPlayingReply = {
   state: {
-    track: Pick<MediaItem, 'title' | 'artist' | 'album' | 'artworkId' | 'durationMs'> | null;
+    track: Pick<
+      MediaItem,
+      'uri' | 'persistentId' | 'title' | 'artist' | 'album' | 'artworkId' | 'durationMs' | 'liked' | 'isLikeSupported'
+    > | null;
     playback: Pick<PlayerStateReply['state']['playback'], 'state' | 'positionMs'>;
   };
 };
@@ -23,6 +28,7 @@ export type AppBridgeClient = {
     stateGet(): Promise<NowPlayingResult>;
   };
   asset: Pick<ClientSurfaces['asset'], 'get'>;
+  library: Pick<ClientSurfaces['library'], 'favoritesToggle' | 'onFavoriteChanged'>;
 };
 
 const DEFAULT_MOCK_CONFIG: Record<string, string> = {
@@ -95,6 +101,10 @@ type MockPlayback = { index: number; playing: boolean; positionMs: number; at: n
 let currentConfig: Record<string, string> = { ...DEFAULT_MOCK_CONFIG };
 let playback: MockPlayback | null = { index: 0, playing: true, positionMs: 42_000, at: Date.now() };
 const playerListeners = new Set<(reply: NowPlayingReply) => void>();
+const likedUris = new Set<string>();
+const favoriteListeners = new Set<(msg: FavoriteChanged) => void>();
+
+const mockUri = (index: number) => `spotify:track:mock-${index}`;
 const configListeners = new Set<(msg: ConfigChanged) => void>();
 const fetchFaults = new Map<string, MockFetchFault>();
 
@@ -130,6 +140,10 @@ function nowPlaying(): NowPlayingReply {
   return {
     state: {
       track: {
+        uri: mockUri(playback.index),
+        persistentId: null,
+        liked: likedUris.has(mockUri(playback.index)),
+        isLikeSupported: true,
         title: t.title,
         artist: t.artist,
         album: t.album,
@@ -164,6 +178,8 @@ export function resetMockState(): void {
   fetchFaults.clear();
   configListeners.clear();
   playerListeners.clear();
+  likedUris.clear();
+  favoriteListeners.clear();
   playback = { index: 0, playing: true, positionMs: 42_000, at: Date.now() };
   // Use `.key(i)`/`.length`, not `Object.keys()`: some Storage polyfills don't enumerate keys.
   const staleKeys: string[] = [];
@@ -279,6 +295,19 @@ export const mockClient: AppBridgeClient = {
     },
     async seekTo({ positionMs }) {
       if (playback) setPlayback({ ...playback, positionMs, at: Date.now() });
+    },
+  },
+  library: {
+    async favoritesToggle({ item }) {
+      const liked = !likedUris.has(item.uri);
+      if (liked) likedUris.add(item.uri);
+      else likedUris.delete(item.uri);
+      favoriteListeners.forEach(fn => fn({ uri: item.uri, liked }));
+      setPlayback(playback);
+    },
+    onFavoriteChanged(handler) {
+      favoriteListeners.add(handler);
+      return () => favoriteListeners.delete(handler);
     },
   },
   asset: {
