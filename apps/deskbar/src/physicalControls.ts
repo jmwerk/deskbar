@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 // Car Thing controls bypass bridgething client: keydown 1-4/m/Escape, wheel deltaX for dial.
 // Minute deltas the 4 buttons apply to a duration: coarse-to-fine, decrement then increment.
@@ -28,27 +28,32 @@ export function useKeydown(onKeyDown: (e: KeyboardEvent) => void, enabled = true
 }
 
 // True after timeoutMs of no input events; resets on any, restarting fresh on every mount.
-export function useIdle(timeoutMs: number): boolean {
+// sleepNow goes idle immediately, and the next input wakes it like a timed-out idle would.
+export function useIdle(timeoutMs: number): [idle: boolean, sleepNow: () => void] {
   const [idle, setIdle] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => {
-    let timer: ReturnType<typeof setTimeout>;
     const reset = () => {
       setIdle(false);
-      clearTimeout(timer);
-      timer = setTimeout(() => setIdle(true), timeoutMs);
+      clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => setIdle(true), timeoutMs);
     };
     reset();
     window.addEventListener('keydown', reset);
     window.addEventListener('wheel', reset);
     window.addEventListener('pointerdown', reset);
     return () => {
-      clearTimeout(timer);
+      clearTimeout(timerRef.current);
       window.removeEventListener('keydown', reset);
       window.removeEventListener('wheel', reset);
       window.removeEventListener('pointerdown', reset);
     };
   }, [timeoutMs]);
-  return idle;
+  const sleepNow = useCallback(() => {
+    clearTimeout(timerRef.current);
+    setIdle(true);
+  }, []);
+  return [idle, sleepNow];
 }
 
 const HINT_KEYS = ['1', '2', '3', '4'];

@@ -207,7 +207,10 @@
 
   .dock-clock {
     flex-shrink: 0;
-    padding-left: 4px;
+    height: 100%;
+    padding: 0 0 0 4px;
+    border: none;
+    background: none;
     font-size: 26px;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
