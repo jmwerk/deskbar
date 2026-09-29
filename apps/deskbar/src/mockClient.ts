@@ -77,23 +77,17 @@ export type MockFetchFault = {
   unreachable?: MockNetErrorType;
 };
 
-// The second title is long enough to exercise the marquee.
+// Fictional tracks in Deskbar's status colors; the second title is long enough to scroll.
 const MOCK_TRACKS = [
+  { title: 'Heads Down', artist: 'The Standups', album: 'Office Hours', durationMs: 244_000, color: '#3b82f6' },
   {
-    title: 'Midnight City',
-    artist: 'M83',
-    album: 'Hurry Up, We\u2019re Dreaming',
-    durationMs: 244_000,
-    color: '#7c3aed',
-  },
-  {
-    title: 'Intro (Extended Mix, Remastered 2011)',
-    artist: 'M83 and Zola Jesus',
-    album: 'Hurry Up, We\u2019re Dreaming',
+    title: 'Five More Minutes (Calendar Invite Declined Remix)',
+    artist: 'The Standups featuring Do Not Disturb',
+    album: 'Office Hours',
     durationMs: 322_000,
-    color: '#0e7490',
+    color: '#e74c3c',
   },
-  { title: 'Outro', artist: 'M83', album: 'Hurry Up, We\u2019re Dreaming', durationMs: 247_000, color: '#b45309' },
+  { title: 'Available', artist: 'The Standups', album: 'Office Hours', durationMs: 247_000, color: '#2ecc71' },
 ];
 
 type MockPlayback = { index: number; playing: boolean; positionMs: number; at: number };
@@ -161,9 +155,13 @@ function setPlayback(next: MockPlayback | null): void {
   playerListeners.forEach(fn => fn(reply));
 }
 
+// A diagonal gradient with three stacked bars, echoing Home's three status tiles.
 function mockArtwork(index: number): Uint8Array {
-  const { title, color } = MOCK_TRACKS[index];
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="248" height="248"><rect width="248" height="248" fill="${color}"/><circle cx="124" cy="124" r="70" fill="rgba(255,255,255,0.16)"/><text x="124" y="154" font-family="sans-serif" font-size="92" font-weight="700" fill="#fff" text-anchor="middle">${title[0]}</text></svg>`;
+  const { color } = MOCK_TRACKS[index];
+  const bars = [60, 112, 164]
+    .map((y, i) => `<rect x="44" y="${y}" width="${160 - i * 36}" height="24" rx="12" fill="rgba(255,255,255,0.85)"/>`)
+    .join('');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="248" height="248"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${color}"/><stop offset="1" stop-color="#0b0d10"/></linearGradient></defs><rect width="248" height="248" fill="url(#g)"/>${bars}</svg>`;
   return new TextEncoder().encode(svg);
 }
 

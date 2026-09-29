@@ -117,6 +117,23 @@
   }
 }
 
+/* Rest, pan to the end, rest, pan back: 70% of the cycle moving, matching MOVING_SHARE. */
+@keyframes scroll-text-pan {
+  0%,
+  15% {
+    transform: translateX(0);
+  }
+
+  50%,
+  65% {
+    transform: translateX(var(--scroll-shift));
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -934,9 +951,21 @@
 
   /* Taller than the bar itself so the drag target is finger-sized. */
   .scrubber {
+    position: relative;
     display: flex;
     align-items: center;
     height: 28px;
+  }
+
+  /* The input does the dragging; it's invisible so the progress bar underneath is what shows. */
+  .scrubber-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
     touch-action: none;
   }
 
@@ -962,19 +991,25 @@
     color: var(--color-muted);
   }
 
-  .marquee {
+  .scroll-text {
     display: block;
     min-width: 0;
     overflow: hidden;
-  }
-
-  .marquee-track {
-    display: inline-flex;
     white-space: nowrap;
   }
 
-  .marquee-copy {
-    flex-shrink: 0;
+  .scroll-text-line {
+    display: inline-block;
+  }
+
+  .scroll-text-moving .scroll-text-line {
+    animation: scroll-text-pan var(--scroll-duration) ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-text-moving .scroll-text-line {
+      animation: none;
+    }
   }
 
   /* Error boundary — fallback screen rendered when an unrecoverable rendering error occurs */

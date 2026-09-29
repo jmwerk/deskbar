@@ -1,23 +1,13 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type CSSProperties,
-  type PointerEvent as ReactPointerEvent,
-} from 'react';
+import { useCallback, useEffect, useState, type CSSProperties } from 'react';
 import { useArtTint } from './artTint';
 import { formatClock } from './format';
 import { HeartIcon, MusicIcon, PauseIcon, PlayIcon, SkipBackIcon, SkipForwardIcon } from './icons';
-import { Marquee } from './Marquee';
+import { ScrollText } from './ScrollText';
 import { useKeydown, useKeyFlash, useRotaryStep } from './physicalControls';
 import type { Player } from './usePlayer';
 
 // One dial detent scrubs this far while the player is open.
 const SEEK_STEP_MS = 10_000;
-
-// A released scrub keeps its position this long while the daemon catches up with the seek.
-const SCRUB_HOLD_MS = 500;
 
 // Keeps the icon tabs the same height as the text tabs on Home and Focus.
 const TAB_ICON = 24;
@@ -45,8 +35,8 @@ export function NowPlayingChip({ player, onOpen }: { player: Player; onOpen: () 
         </span>
       )}
       <span className="now-playing-chip-text">
-        <Marquee text={track.title} className="now-playing-chip-title" />
-        {track.artist && <Marquee text={track.artist} className="now-playing-chip-artist" />}
+        <ScrollText text={track.title} className="now-playing-chip-title" />
+        {track.artist && <ScrollText text={track.artist} className="now-playing-chip-artist" />}
       </span>
       <span className={`eq ${playing ? 'eq-playing' : ''}`} aria-label={playing ? 'playing' : 'paused'}>
         <span />
@@ -57,63 +47,43 @@ export function NowPlayingChip({ player, onOpen }: { player: Player; onOpen: () 
   );
 }
 
-// Deskbar's progress bar, made draggable: the fill tracks the finger 1:1 while held.
+// Deskbar's progress bar with a native range input laid invisibly over it for touch and keys.
 function Scrubber({ player }: { player: Player }) {
-  const bar = useRef<HTMLDivElement>(null);
-  const hold = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const [scrub, setScrub] = useState<{ pct: number; held: boolean } | null>(null);
-
   const { positionMs, durationMs, seekTo } = player;
-  const held = scrub?.held ?? false;
-  const live = durationMs > 0 ? Math.min(1, positionMs / durationMs) : 0;
-  const pct = scrub ? scrub.pct : live;
-  const elapsedMs = durationMs > 0 ? pct * durationMs : positionMs;
+  const [dragMs, setDragMs] = useState<number | null>(null);
 
-  useEffect(() => () => clearTimeout(hold.current), []);
-
-  const at = useCallback((clientX: number) => {
-    const el = bar.current;
-    if (!el) return 0;
-    const { left, width } = el.getBoundingClientRect();
-    return width > 0 ? Math.min(1, Math.max(0, (clientX - left) / width)) : 0;
-  }, []);
-
-  const grab = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (durationMs <= 0) return;
-    e.preventDefault();
-    e.currentTarget.setPointerCapture(e.pointerId);
-    clearTimeout(hold.current);
-    setScrub({ pct: at(e.clientX), held: true });
+  const commit = () => {
+    if (dragMs == null) return;
+    seekTo(dragMs);
+    setDragMs(null);
   };
 
-  const move = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (held) setScrub({ pct: at(e.clientX), held: true });
-  };
-
-  const release = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (!held) return;
-    const p = at(e.clientX);
-    seekTo(p * durationMs);
-    setScrub({ pct: p, held: false });
-    hold.current = setTimeout(() => setScrub(null), SCRUB_HOLD_MS);
-  };
+  const shownMs = dragMs ?? positionMs;
+  const pct = durationMs > 0 ? Math.min(100, (shownMs / durationMs) * 100) : 0;
 
   return (
     <div className="scrubber-block">
-      <div
-        ref={bar}
-        className={`scrubber ${held ? 'held' : ''}`}
-        onPointerDown={grab}
-        onPointerMove={move}
-        onPointerUp={release}
-        onPointerCancel={release}
-      >
+      <div className={`scrubber ${dragMs != null ? 'held' : ''}`}>
         <div className="progress-track">
-          <div className="progress-fill" style={{ width: `${pct * 100}%` }} />
+          <div className="progress-fill" style={{ width: `${pct}%` }} />
         </div>
+        <input
+          type="range"
+          className="scrubber-input"
+          aria-label="Seek"
+          min={0}
+          max={Math.max(durationMs, 1)}
+          step={1000}
+          value={Math.round(shownMs)}
+          disabled={durationMs <= 0}
+          onChange={e => setDragMs(Number(e.target.value))}
+          onPointerUp={commit}
+          onKeyUp={commit}
+          onBlur={commit}
+        />
       </div>
       <div className="scrubber-times">
-        <span>{formatClock(elapsedMs / 1000)}</span>
+        <span>{formatClock(shownMs / 1000)}</span>
         <span>{durationMs > 0 ? formatClock(durationMs / 1000) : ''}</span>
       </div>
     </div>
@@ -212,9 +182,9 @@ export function NowPlayingSheet({
         )}
         <div className="now-playing-meta">
           <div className="focus-eyebrow">{playing ? 'Now playing' : 'Paused'}</div>
-          <Marquee text={track?.title ?? 'Nothing playing'} className="now-playing-title" />
-          {track?.artist && <Marquee text={track.artist} className="issue-tag" />}
-          {track?.album && <Marquee text={track.album} className="now-playing-album" />}
+          <ScrollText text={track?.title ?? 'Nothing playing'} className="now-playing-title" />
+          {track?.artist && <ScrollText text={track.artist} className="issue-tag" />}
+          {track?.album && <ScrollText text={track.album} className="now-playing-album" />}
         </div>
       </div>
 

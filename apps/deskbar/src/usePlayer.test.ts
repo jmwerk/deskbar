@@ -18,8 +18,8 @@ describe('usePlayer', () => {
     const { result } = renderHook(() => usePlayer(mockClient));
 
     await waitFor(() => expect(result.current.track?.artUrl).toBe('blob:mock-art'));
-    expect(result.current.track?.title).toBe('Midnight City');
-    expect(result.current.track?.artist).toBe('M83');
+    expect(result.current.track?.title).toBe('Heads Down');
+    expect(result.current.track?.artist).toBe('The Standups');
     expect(result.current.playing).toBe(true);
     expect(result.current.durationMs).toBe(244_000);
   });
@@ -32,7 +32,7 @@ describe('usePlayer', () => {
     expect(result.current.playing).toBe(false);
 
     await act(async () => result.current.skip(1));
-    expect(result.current.track?.title).toBe('Intro (Extended Mix, Remastered 2011)');
+    expect(result.current.track?.title).toBe('Five More Minutes (Calendar Invite Declined Remix)');
   });
 
   it('clamps seekBy to the track bounds', async () => {
@@ -45,6 +45,32 @@ describe('usePlayer', () => {
 
     await act(async () => result.current.seekBy(10 * 60_000));
     expect(result.current.positionMs).toBe(244_000);
+  });
+
+  it('moves the playhead on seek before the phone confirms it', async () => {
+    const silent = { ...mockClient, player: { ...mockClient.player, seekTo: vi.fn(async () => {}) } };
+    const { result } = renderHook(() => usePlayer(silent));
+    await waitFor(() => expect(result.current.track).not.toBeNull());
+    await act(async () => result.current.toggle());
+
+    act(() => result.current.seekTo(100_000));
+    expect(result.current.positionMs).toBe(100_000);
+    expect(silent.player.seekTo).toHaveBeenCalledWith({ positionMs: 100_000 });
+  });
+
+  it('reuses cached artwork when skipping back to a recent track', async () => {
+    const get = vi.spyOn(mockClient.asset, 'get');
+    const { result } = renderHook(() => usePlayer(mockClient));
+    await waitFor(() => expect(result.current.track?.artUrl).not.toBeNull());
+
+    await act(async () => result.current.skip(1));
+    await waitFor(() => expect(get).toHaveBeenCalledTimes(2));
+    await act(async () => result.current.skip(-1));
+
+    await waitFor(() => expect(result.current.track?.title).toBe('Heads Down'));
+    expect(result.current.track?.artUrl).not.toBeNull();
+    expect(get).toHaveBeenCalledTimes(2);
+    get.mockRestore();
   });
 
   it('extrapolates the playhead between snapshots while playing', async () => {

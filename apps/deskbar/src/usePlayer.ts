@@ -22,145 +22,130 @@ export type Player = {
   skip: (dir: 1 | -1) => void;
 };
 
-// Last daemon report plus when it arrived, so the playhead extrapolates between snapshots.
-type Snapshot = {
-  uri: string | null;
-  persistentId: string | null;
-  liked: boolean;
-  likeSupported: boolean;
-  title: string;
-  artist: string | null;
-  album: string | null;
-  artId: string | null;
-  playing: boolean;
-  positionMs: number;
-  durationMs: number;
-  at: number;
-};
+type Track = NonNullable<NowPlayingReply['state']['track']>;
 
-// A replaced artwork blob stays alive this long so the crossfade off it doesn't blank.
-const ARTWORK_LINGER_MS = 700;
+// What the phone last said, stamped with when we heard it.
+type Report = { track: Track; title: string; playing: boolean; positionMs: number; receivedAt: number };
 
-const TICK_MS = 250;
+// Re-render cadence while playing; the playhead itself is computed from the clock, not stepped.
+const PLAYHEAD_REFRESH_MS = 500;
 
-function toSnapshot({ state }: NowPlayingReply, at: number): Snapshot | null {
-  const { track, playback } = state;
-  if (!track?.title) return null;
+// Covers kept as object URLs: the current one plus a couple back, so skipping back reuses them.
+const ART_CACHE_SIZE = 3;
+
+function toReport({ state }: NowPlayingReply): Report | null {
+  const title = state.track?.title;
+  if (!state.track || !title) return null;
   return {
-    uri: track.uri,
-    persistentId: track.persistentId,
-    liked: track.liked ?? false,
-    likeSupported: track.uri != null && track.isLikeSupported !== false,
-    title: track.title,
-    artist: track.artist,
-    album: track.album,
-    artId: track.artworkId,
-    playing: playback.state === 'playing',
-    positionMs: playback.positionMs,
-    durationMs: track.durationMs ?? 0,
-    at,
+    track: state.track,
+    title,
+    playing: state.playback.state === 'playing',
+    positionMs: state.playback.positionMs,
+    receivedAt: Date.now(),
   };
+}
+
+// Artwork arrives as bytes over the daemon; turn it into object URLs and revoke the oldest past the cap.
+function useArtwork(client: AppBridgeClient, artId: string | null): string | null {
+  const cache = useRef(new Map<string, string>());
+  const [url, setUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const urls = cache.current;
+    return () => urls.forEach(u => URL.revokeObjectURL(u));
+  }, []);
+
+  useEffect(() => {
+    if (!artId) {
+      setUrl(null);
+      return;
+    }
+    const urls = cache.current;
+    const hit = urls.get(artId);
+    if (hit) {
+      // Re-insert so Map order stays least-recently-used first.
+      urls.delete(artId);
+      urls.set(artId, hit);
+      setUrl(hit);
+      return;
+    }
+    let stale = false;
+    void client.asset.get({ id: artId, requestId: crypto.randomUUID() }).then(res => {
+      if (stale || !res.ok) return;
+      // Bytes can arrive as a plain number array depending on the transport's decoding.
+      const bytes = Uint8Array.from(res.response.bytes as unknown as number[]);
+      const created = URL.createObjectURL(new Blob([bytes], { type: res.response.mime ?? 'image/jpeg' }));
+      urls.set(artId, created);
+      while (urls.size > ART_CACHE_SIZE) {
+        const [oldestId, oldestUrl] = urls.entries().next().value!;
+        urls.delete(oldestId);
+        URL.revokeObjectURL(oldestUrl);
+      }
+      setUrl(created);
+    });
+    return () => {
+      stale = true;
+    };
+  }, [client, artId]);
+
+  return url;
 }
 
 /** Now-playing state from the phone's Spotify; `track` is null with no phone or nothing playing. */
 export function usePlayer(client: AppBridgeClient): Player {
-  const [snap, setSnap] = useState<Snapshot | null>(null);
-  const [artUrl, setArtUrl] = useState<string | null>(null);
-  const [positionMs, setPositionMs] = useState(0);
-  // Optimistic or event-driven like state, keyed by uri so it can't leak onto the next track.
+  const [report, setReport] = useState<Report | null>(null);
+  const [now, setNow] = useState(() => Date.now());
+  // A tap here or a change reported elsewhere, keyed by uri so it can't leak onto the next track.
   const [likeOverride, setLikeOverride] = useState<{ uri: string; liked: boolean } | null>(null);
 
-  const retired = useRef<{ url: string; timer: ReturnType<typeof setTimeout> } | null>(null);
-  const retire = useCallback((url: string) => {
-    if (retired.current) {
-      clearTimeout(retired.current.timer);
-      URL.revokeObjectURL(retired.current.url);
-    }
-    retired.current = {
-      url,
-      timer: setTimeout(() => {
-        retired.current = null;
-        URL.revokeObjectURL(url);
-      }, ARTWORK_LINGER_MS),
-    };
-  }, []);
-  useEffect(
-    () => () => {
-      if (retired.current) URL.revokeObjectURL(retired.current.url);
-    },
-    [],
-  );
-
   useEffect(() => {
-    const off = client.player.onSnapshot(reply => setSnap(toSnapshot(reply, Date.now())));
+    const off = client.player.onSnapshot(reply => setReport(toReport(reply)));
     void client.player.stateGet().then(res => {
-      if (res.ok) setSnap(toSnapshot(res.response, Date.now()));
+      if (res.ok) setReport(toReport(res.response));
     });
     return off;
   }, [client]);
 
   useEffect(() => client.library.onFavoriteChanged(({ uri, liked }) => setLikeOverride({ uri, liked })), [client]);
 
+  const track = report?.track ?? null;
+  const playing = report?.playing ?? false;
+  const durationMs = track?.durationMs ?? 0;
+
   // The phone's own report wins once it moves, e.g. a like made on the phone after a tap here.
-  useEffect(() => setLikeOverride(null), [snap?.uri, snap?.liked]);
+  useEffect(() => setLikeOverride(null), [track?.uri, track?.liked]);
 
   useEffect(() => {
-    if (!snap?.artId) {
-      setArtUrl(null);
-      return;
-    }
-    let dead = false;
-    let url: string | null = null;
-    void client.asset.get({ id: snap.artId, requestId: crypto.randomUUID() }).then(res => {
-      if (dead || !res.ok) return;
-      // msgpack can hand bytes over as a plain number array; Uint8Array.from accepts both.
-      const bytes = Uint8Array.from(res.response.bytes as unknown as number[]);
-      url = URL.createObjectURL(new Blob([bytes], { type: res.response.mime ?? 'image/jpeg' }));
-      setArtUrl(url);
-    });
-    return () => {
-      dead = true;
-      if (url) retire(url);
-    };
-  }, [client, snap?.artId, retire]);
-
-  useEffect(() => {
-    if (!snap) return;
-    const { positionMs: base, at, playing, durationMs: total } = snap;
-    const step = () => {
-      const raw = base + (playing ? Date.now() - at : 0);
-      setPositionMs(total > 0 ? Math.min(raw, total) : raw);
-    };
-    step();
+    setNow(Date.now());
     if (!playing) return;
-    const id = setInterval(step, TICK_MS);
+    const id = setInterval(() => setNow(Date.now()), PLAYHEAD_REFRESH_MS);
     return () => clearInterval(id);
-  }, [snap]);
+  }, [playing, report]);
 
-  const toggle = useCallback(() => {
-    void (snap?.playing ? client.player.pause() : client.player.resume());
-  }, [client, snap?.playing]);
+  const artUrl = useArtwork(client, track?.artworkId ?? null);
 
-  const seekBy = useCallback(
-    (deltaMs: number) => {
-      const total = snap?.durationMs ?? 0;
-      const next = Math.max(0, Math.min(total > 0 ? total : Infinity, positionMs + deltaMs));
-      void client.player.seekTo({ positionMs: Math.round(next) });
+  let positionMs = 0;
+  if (report) {
+    const elapsed = playing ? Math.max(0, now - report.receivedAt) : 0;
+    positionMs = report.positionMs + elapsed;
+    if (durationMs > 0) positionMs = Math.min(positionMs, durationMs);
+  }
+
+  const seekTo = useCallback(
+    (ms: number) => {
+      const clamped = Math.round(Math.max(0, durationMs > 0 ? Math.min(ms, durationMs) : ms));
+      // Move the playhead now rather than on the phone's next report, so every control feels instant.
+      setReport(r => (r ? { ...r, positionMs: clamped, receivedAt: Date.now() } : r));
+      void client.player.seekTo({ positionMs: clamped });
     },
-    [client, snap?.durationMs, positionMs],
+    [client, durationMs],
   );
 
-  const seekTo = useCallback((ms: number) => seekBy(ms - positionMs), [seekBy, positionMs]);
+  const seekBy = useCallback((deltaMs: number) => seekTo(positionMs + deltaMs), [seekTo, positionMs]);
 
-  const likeUri = snap?.likeSupported ? snap.uri : null;
-  const liked = likeUri == null ? null : likeOverride?.uri === likeUri ? likeOverride.liked : (snap?.liked ?? false);
-
-  const toggleLike = useCallback(() => {
-    if (likeUri == null || liked == null) return;
-    setLikeOverride({ uri: likeUri, liked: !liked });
-    const kind = likeUri.startsWith('spotify:episode:') ? 'podcastEpisode' : 'track';
-    void client.library.favoritesToggle({ item: { uri: likeUri, kind, persistentId: snap?.persistentId ?? null } });
-  }, [client, likeUri, liked, snap?.persistentId]);
+  const toggle = useCallback(() => {
+    void (playing ? client.player.pause() : client.player.resume());
+  }, [client, playing]);
 
   const skip = useCallback(
     (dir: 1 | -1) => {
@@ -169,11 +154,21 @@ export function usePlayer(client: AppBridgeClient): Player {
     [client],
   );
 
+  const likeUri = track?.uri != null && track.isLikeSupported !== false ? track.uri : null;
+  const liked = likeUri == null ? null : likeOverride?.uri === likeUri ? likeOverride.liked : (track?.liked ?? false);
+
+  const toggleLike = useCallback(() => {
+    if (likeUri == null || liked == null) return;
+    setLikeOverride({ uri: likeUri, liked: !liked });
+    const kind = likeUri.startsWith('spotify:episode:') ? 'podcastEpisode' : 'track';
+    void client.library.favoritesToggle({ item: { uri: likeUri, kind, persistentId: track?.persistentId ?? null } });
+  }, [client, likeUri, liked, track?.persistentId]);
+
   return {
-    track: snap ? { title: snap.title, artist: snap.artist, album: snap.album, artUrl } : null,
-    playing: snap?.playing ?? false,
+    track: report && track ? { title: report.title, artist: track.artist, album: track.album, artUrl } : null,
+    playing,
     positionMs,
-    durationMs: snap?.durationMs ?? 0,
+    durationMs,
     liked,
     toggle,
     toggleLike,
