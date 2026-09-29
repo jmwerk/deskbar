@@ -1,5 +1,9 @@
 # deskbar
 
+## 0.5.1
+
+Update dependencies (React 19.3, Vite 8.3, ESLint 10.11 and tooling)
+
 ## 0.5.0
 
 Migrated to the `@bridgething/source` monorepo layout, `@bridgething/client` 0.12.1, React 19,
