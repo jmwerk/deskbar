@@ -1,5 +1,9 @@
 # deskbar
 
+## 0.7.1
+
+A long Jira issue summary no longer pushes the focus timer's buttons into the now-playing bar. The issue now stays on one line and scrolls when it's too long to fit.
+
 ## 0.7.0
 
 The focus timer now has the now-playing widget along the bottom: tap it for the full-screen player, which shows the focus timer beside Back, or press the dial to play/pause without leaving the timer. Tap the clock in Home's dock to show the screensaver right away. The screensaver only shows the current track while it's playing.
