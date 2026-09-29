@@ -16,6 +16,7 @@
     "catalog": "bridgething-source catalog",
     "publish": "bridgething-source publish",
     "skills": "bridgething-source skills",
+    "demo": "bun scripts/demo.ts",
     "format": "prettier --write \"*.json\" \"*.js\""
   },
   "devDependencies": {

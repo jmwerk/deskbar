@@ -31,3 +31,6 @@ jobs:
 
       - name: build every unpublished version and push the catalog
         run: bun run publish
+
+      - name: refresh the browser demo
+        run: bun run demo --publish

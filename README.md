@@ -4,6 +4,8 @@ Webapps by deskbar, for the Spotify Car Thing running [bridgething](https://brid
 
 Currently one app, [`apps/deskbar`](apps/deskbar/README.md): a BUSY Bar style status/focus/Jira-time-tracking app. See its own README for what it does, physical controls, and mock-mode development.
 
+**[Try it in your browser](https://jmwerk.github.io/deskbar/demo/)**: the real app in mock mode, with the Car Thing's presets, dial and Back button around it. `bun run demo` builds it into `build/demo/`; the publish workflow refreshes it on the `gh-pages` branch after every push to main.
+
 ## First run
 
 1. Push this repo to `https://github.com/jmwerk/deskbar`.
