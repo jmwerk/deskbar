@@ -4,6 +4,8 @@
 
 Added a bottom dock to Home with a clock, a now-playing widget for the phone's Spotify (tap it for a full-screen player: presets 1-4 are previous, play/pause, next and like, the dial seeks, dial press plays/pauses, Back closes), and today's logged time. The idle screensaver also shows the current track.
 
+The now-playing dock and player were inspired by [gyeonggi](https://github.com/espeon/gyeonggi) by Natalie Bridgers.
+
 ## 0.5.1
 
 Update dependencies (React 19.3, Vite 8.3, ESLint 10.11 and tooling)
