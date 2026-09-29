@@ -56,7 +56,7 @@ export function Home({
       {idle && (
         <div className="screensaver">
           <div className="screensaver-clock">{clock}</div>
-          {player.track && (
+          {player.track && player.playing && (
             <div className="screensaver-track">
               {player.track.title}
               {player.track.artist && ` · ${player.track.artist}`}
