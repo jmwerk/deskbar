@@ -1,7 +1,7 @@
 {
   "$schema": "https://apps.bridgething.com/schemas/catalog/v1.json",
   "schema": "catalog.v1",
-  "updated_at": "2026-09-02T13:04:36.005Z",
+  "updated_at": "2026-09-29T16:54:37.283Z",
   "repo": {
     "name": "deskbar",
     "description": "Webapps by deskbar.",
@@ -25,6 +25,25 @@
       "homepage": "https://github.com/jmwerk/deskbar",
       "source": "https://github.com/jmwerk/deskbar",
       "versions": [
+        {
+          "version": "0.5.1",
+          "released_at": "2026-09-29T16:54:37.264Z",
+          "download": {
+            "url": "https://jmwerk.github.io/deskbar/r/01931b6e-6d1b-7c2a-9c3e-9d3a2f8b7a10/0.5.1.zip",
+            "size": 412030,
+            "sha256": "7d4e627dbf998475b2b1c7c80ee9dfdc1f1bf72ff50c7d5199dd82943c4d47dc"
+          },
+          "settings": {
+            "url": "https://jmwerk.github.io/deskbar/s/01931b6e-6d1b-7c2a-9c3e-9d3a2f8b7a10/0.5.1.html",
+            "size": 26637,
+            "sha256": "a06f7063cce7ea668111a9b459867ae1c62b67cd83b1675d6dd415f0e17da27c"
+          },
+          "permissions": [
+            "net.fetch"
+          ],
+          "min_libbridgething_version": "0.12.1",
+          "changelog": "Update dependencies (React 19.3, Vite 8.3, ESLint 10.11 and tooling)"
+        },
         {
           "version": "0.5.0",
           "released_at": "2026-09-02T13:04:35.891Z",
