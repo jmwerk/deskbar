@@ -1,5 +1,9 @@
 # deskbar
 
+## 0.6.0
+
+Added a bottom dock to Home with a clock, a now-playing widget for the phone's Spotify (tap it for a full-screen player: dial seeks, dial press plays/pauses, Back closes), and today's logged time. The idle screensaver also shows the current track.
+
 ## 0.5.1
 
 Update dependencies (React 19.3, Vite 8.3, ESLint 10.11 and tooling)
