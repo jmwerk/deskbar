@@ -91,7 +91,7 @@ function Scrubber({ player }: { player: Player }) {
 }
 
 /**
- * Full-screen player over Home, laid out like Focus Running. Presets 1-4 are previous,
+ * Full-screen player over Home or Focus Running, laid out like Focus Running. Presets 1-4 are previous,
  * play/pause, next and like (labelled in the flush tabs); the dial seeks, dial push toggles, Back closes.
  */
 export function NowPlayingSheet({

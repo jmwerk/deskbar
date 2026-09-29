@@ -1,7 +1,9 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { DurationHintBar } from '../DurationPicker';
 import { formatClock } from '../format';
+import { NowPlayingChip, NowPlayingSheet } from '../NowPlaying';
 import { DURATION_STEPS, useKeydown } from '../physicalControls';
+import type { Player } from '../usePlayer';
 
 export function FocusRunning({
   issueKey,
@@ -9,6 +11,7 @@ export function FocusRunning({
   elapsedS,
   totalS,
   paused,
+  player,
   onTogglePause,
   onExtend,
   onEnd,
@@ -19,12 +22,16 @@ export function FocusRunning({
   /** Planned duration in seconds, or null for an unlimited/stopwatch session. */
   totalS: number | null;
   paused: boolean;
+  player: Player;
   onTogglePause: () => void;
   /** Nudge remaining duration by `deltaMinutes`; no-op when unlimited (no total). */
   onExtend: (deltaMinutes: number) => void;
   onEnd: () => void;
 }) {
   const timed = totalS != null;
+  const [playerOpen, setPlayerOpen] = useState(false);
+  const closePlayer = useCallback(() => setPlayerOpen(false), []);
+  const { track, toggle: togglePlayback } = player;
 
   // Back pauses/resumes, not ends; End Focus still exits. Duration buttons extend/shorten while running.
   useKeydown(
@@ -36,13 +43,18 @@ export function FocusRunning({
           onExtend(DURATION_STEPS[stepIndex]);
         } else if (e.key === 'Escape') {
           onTogglePause();
+        } else if (e.key === 'Enter' || e.key === ' ') {
+          // Dial push is otherwise unused here, so it controls music without leaving the timer.
+          if (!track) return;
+          togglePlayback();
         } else {
           return;
         }
         e.preventDefault();
       },
-      [timed, onExtend, onTogglePause],
+      [timed, track, onExtend, onTogglePause, togglePlayback],
     ),
+    !playerOpen,
   );
 
   const displayS = totalS != null ? Math.max(0, totalS - elapsedS) : elapsedS;
@@ -73,6 +85,10 @@ export function FocusRunning({
           </button>
         </div>
       </div>
+      <div className="dock">
+        <NowPlayingChip player={player} onOpen={() => setPlayerOpen(true)} />
+      </div>
+      {playerOpen && <NowPlayingSheet player={player} enabled onDismiss={closePlayer} />}
     </div>
   );
 }
