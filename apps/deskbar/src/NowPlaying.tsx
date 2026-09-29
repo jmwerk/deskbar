@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { formatClock } from './format';
-import { MusicIcon } from './icons';
+import { HeartIcon, MusicIcon, PauseIcon, PlayIcon, SkipBackIcon, SkipForwardIcon } from './icons';
 import { Marquee } from './Marquee';
 import { useKeydown, useKeyFlash, useRotaryStep } from './physicalControls';
 import type { Player } from './usePlayer';
@@ -10,6 +10,9 @@ const SEEK_STEP_MS = 10_000;
 
 // A released scrub keeps its position this long while the daemon catches up with the seek.
 const SCRUB_HOLD_MS = 500;
+
+// Keeps the icon tabs the same height as the text tabs on Home and Focus.
+const TAB_ICON = 24;
 
 /** The dock's compact now-playing entry; a quiet placeholder when no phone or nothing is playing. */
 export function NowPlayingChip({ player, onOpen }: { player: Player; onOpen: () => void }) {
@@ -151,9 +154,13 @@ export function NowPlayingSheet({
   }, [track, onDismiss]);
 
   const tabs = [
-    { label: 'Previous', onClick: () => skip(-1) },
-    { label: playing ? 'Pause' : 'Play', onClick: toggle },
-    { label: 'Next', onClick: () => skip(1) },
+    { label: 'Previous', icon: <SkipBackIcon size={TAB_ICON} />, onClick: () => skip(-1) },
+    {
+      label: playing ? 'Pause' : 'Play',
+      icon: playing ? <PauseIcon size={TAB_ICON} /> : <PlayIcon size={TAB_ICON} />,
+      onClick: toggle,
+    },
+    { label: 'Next', icon: <SkipForwardIcon size={TAB_ICON} />, onClick: () => skip(1) },
   ];
 
   return (
@@ -161,17 +168,23 @@ export function NowPlayingSheet({
       {/* Same flush tabs as Home and Focus; Like takes Home's green tint while the track is saved. */}
       <div className="preset-hint">
         {tabs.map((tab, i) => (
-          <button key={i} className={`preset-hint-item ${pressedIndex === i ? 'pressed' : ''}`} onClick={tab.onClick}>
-            <span className="preset-hint-label">{tab.label}</span>
+          <button
+            key={i}
+            className={`preset-hint-item preset-hint-icon ${pressedIndex === i ? 'pressed' : ''}`}
+            aria-label={tab.label}
+            onClick={tab.onClick}
+          >
+            {tab.icon}
           </button>
         ))}
         <button
-          className={`preset-hint-item ${liked ? 'preset-hint-liked' : ''} ${pressedIndex === 3 ? 'pressed' : ''}`}
-          disabled={liked == null}
+          className={`preset-hint-item preset-hint-icon ${liked ? 'preset-hint-liked' : ''} ${pressedIndex === 3 ? 'pressed' : ''}`}
+          aria-label="Like"
           aria-pressed={liked ?? false}
+          disabled={liked == null}
           onClick={toggleLike}
         >
-          <span className="preset-hint-label">{liked ? 'Liked' : 'Like'}</span>
+          <HeartIcon size={TAB_ICON} filled={!!liked} />
         </button>
       </div>
 

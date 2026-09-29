@@ -491,6 +491,11 @@
     opacity: 0.4;
   }
 
+  /* 9px padding around a 24px glyph matches the 42px text tabs on Home. */
+  .preset-hint-icon {
+    color: var(--color-off-white);
+  }
+
   .preset-hint-liked {
     background: color-mix(in srgb, var(--color-available) 30%, var(--color-panel));
   }
