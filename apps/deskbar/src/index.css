@@ -692,7 +692,7 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    gap: 18px;
+    gap: 14px;
   }
 
   .focus-eyebrow {
@@ -703,9 +703,11 @@
     color: var(--color-muted);
   }
 
+  /* Tight line box: the default adds ~20px, which the now-playing dock below can't spare. */
   .clock {
     font-size: 104px;
     font-weight: 800;
+    line-height: 1;
     font-variant-numeric: tabular-nums;
   }
 
@@ -719,6 +721,7 @@
   }
 
   .progress-track {
+    flex-shrink: 0;
     width: 80%;
     height: 10px;
     background: var(--color-panel);
