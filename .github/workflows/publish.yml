@@ -32,5 +32,16 @@ jobs:
       - name: build every unpublished version and push the catalog
         run: bun run publish
 
+      # after publish, so a failed release never gets a tag; an existing tag is never moved
+      - name: tag the released version
+        run: |
+          tag="v$(jq -r .version apps/deskbar/package.json)"
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
+            echo "$tag already exists"
+            exit 0
+          fi
+          git tag "$tag"
+          git push origin "refs/tags/$tag"
+
       - name: refresh the browser demo
         run: bun run demo --publish
