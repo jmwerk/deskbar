@@ -720,6 +720,11 @@
     color: var(--color-muted);
   }
 
+  /* One line at any summary length: a wrapped summary pushes the buttons into the dock. */
+  .focus-issue {
+    align-self: stretch;
+  }
+
   .progress-track {
     flex-shrink: 0;
     width: 80%;
