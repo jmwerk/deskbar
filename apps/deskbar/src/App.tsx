@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
-import { watchConfig } from './bridgething';
+import { client, watchConfig } from './bridgething';
 import { DEFAULT_CONFIG, parseConfig, type Config } from './config';
 import { formatDuration } from './format';
 import {
@@ -15,6 +15,7 @@ import { clampMinutes } from './physicalControls';
 import { loadPendingWorklogs, queuePendingWorklog, removePendingWorklog } from './retryQueue';
 import { activeElapsedS, loadSession, saveSession, type SessionState } from './session';
 import { Toast } from './Toast';
+import { usePlayer } from './usePlayer';
 import { fireFocusWebhook } from './webhook';
 import { FocusRunning } from './screens/FocusRunning';
 import { FocusSetup } from './screens/FocusSetup';
@@ -29,6 +30,7 @@ export default function App() {
   const [now, setNow] = useState(() => Date.now());
   const [toast, setToast] = useState<{ message: string; kind: 'success' | 'error' } | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const player = usePlayer(client);
 
   const showError = useCallback((message: string) => setToast({ message, kind: 'error' }), []);
   const showSuccess = useCallback((message: string) => setToast({ message, kind: 'success' }), []);
@@ -230,7 +232,9 @@ export default function App() {
         status={session.status}
         jiraConfigured={!!config.jira}
         todaySeconds={todaySeconds}
+        now={now}
         timezone={config.timezone}
+        player={player}
         onSelect={status => {
           if (status === 'focus') setScreen('focusSetup');
           else update({ status });

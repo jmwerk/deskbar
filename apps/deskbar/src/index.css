@@ -38,6 +38,13 @@
  * history delete hint, the toast) deliberately keeps it on the top-left or full-width instead.
  */
 
+/* Registered so the now-playing wash animates between tracks instead of snapping. */
+@property --art-tint {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #3b82f6;
+}
+
 @layer base {
   :root {
     color-scheme: dark;
@@ -96,6 +103,34 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes eq-bounce {
+  0%,
+  100% {
+    height: 4px;
+  }
+
+  50% {
+    height: 16px;
+  }
+}
+
+/* Rest, pan to the end, rest, pan back: 70% of the cycle moving, matching MOVING_SHARE. */
+@keyframes scroll-text-pan {
+  0%,
+  15% {
+    transform: translateX(0);
+  }
+
+  50%,
+  65% {
+    transform: translateX(var(--scroll-shift));
+  }
+
+  100% {
+    transform: translateX(0);
   }
 }
 
@@ -159,16 +194,121 @@
     color: var(--color-accent);
   }
 
+  /* Home dock: clock, now-playing and today's total along the bottom edge. The top-right is
+     under the dial and bridgething's toasts, so persistent info and taps stay down here. */
+  .dock {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    height: 56px;
+    margin-top: 14px;
+    flex-shrink: 0;
+  }
+
+  .dock-clock {
+    flex-shrink: 0;
+    padding-left: 4px;
+    font-size: 26px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
   .today-bar {
-    align-self: center;
-    margin-bottom: 10px;
-    padding: 6px 16px;
-    border-radius: 999px;
+    flex-shrink: 0;
+    height: 100%;
+    padding: 0 18px;
+    border-radius: 14px;
     border: 1px solid var(--color-edge);
     background: var(--color-panel);
     color: var(--color-muted);
-    font-size: 15px;
+    font-size: 16px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .now-playing-chip {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 7px 16px 7px 7px;
+    border-radius: 14px;
+    border: 1px solid var(--color-edge);
+    background: var(--color-panel);
+    text-align: left;
+  }
+
+  .now-playing-chip-empty {
+    color: var(--color-muted);
+  }
+
+  .now-playing-chip-art {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 1px solid rgb(255 255 255 / 0.1);
+    object-fit: cover;
+  }
+
+  .now-playing-art-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg);
+    color: var(--color-muted);
+  }
+
+  .now-playing-chip-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+  }
+
+  .now-playing-chip-title {
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .now-playing-chip-artist {
+    font-size: 13px;
     font-weight: 600;
+    color: var(--color-muted);
+  }
+
+  /* Three bars that bounce while playing and rest low when paused, so state reads at a glance. */
+  .eq {
+    flex-shrink: 0;
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 16px;
+  }
+
+  .eq span {
+    width: 3px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--color-available);
+    opacity: 0.5;
+  }
+
+  .eq-playing span {
+    opacity: 1;
+    animation: eq-bounce 900ms ease-in-out infinite;
+  }
+
+  .eq-playing span:nth-child(2) {
+    animation-delay: -300ms;
+  }
+
+  .eq-playing span:nth-child(3) {
+    animation-delay: -600ms;
   }
 
   /* Idle screensaver — fixed, not absolute: covers the full viewport regardless of
@@ -177,6 +317,8 @@
     position: fixed;
     inset: 0;
     display: flex;
+    flex-direction: column;
+    gap: 8px;
     align-items: center;
     justify-content: center;
     background: var(--color-bg);
@@ -191,8 +333,19 @@
     color: var(--color-muted);
   }
 
+  .screensaver-track {
+    max-width: 80%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 20px;
+    font-weight: 600;
+    color: color-mix(in srgb, var(--color-muted) 70%, transparent);
+  }
+
   .tiles {
     flex: 1;
+    min-height: 0;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 16px;
@@ -360,6 +513,15 @@
 
   .preset-hint-item:disabled {
     opacity: 0.4;
+  }
+
+  /* 9px padding around a 24px glyph matches the 42px text tabs on Home. */
+  .preset-hint-icon {
+    color: var(--color-off-white);
+  }
+
+  .preset-hint-liked {
+    background: color-mix(in srgb, var(--color-available) 30%, var(--color-panel));
   }
 
   /* Briefly brightens/shrinks when the matching physical button is pressed (see useKeyFlash)
@@ -710,6 +872,144 @@
   .toast-success {
     background: color-mix(in srgb, var(--color-available) 22%, var(--color-panel));
     border: 1px solid color-mix(in srgb, var(--color-available) 45%, var(--color-edge));
+  }
+
+  /* Now playing: full-screen player over Home, laid out like Focus Running */
+
+  /* Washed in the artwork's own color (useArtTint), falling back to the accent. Panels go
+     translucent here so the wash shows through the tabs, progress track and Back button. */
+  .now-playing-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    --art-tint: var(--color-accent);
+    --color-panel: rgb(0 0 0 / 0.28);
+    --color-edge: rgb(255 255 255 / 0.12);
+    background:
+      radial-gradient(80% 100% at 15% 30%, color-mix(in srgb, var(--art-tint) 90%, #fff 10%), transparent 75%),
+      radial-gradient(70% 90% at 95% 100%, color-mix(in srgb, var(--art-tint) 70%, transparent), transparent 70%),
+      linear-gradient(
+        160deg,
+        color-mix(in srgb, var(--art-tint) 70%, var(--color-bg)),
+        color-mix(in srgb, var(--art-tint) 30%, var(--color-bg))
+      );
+    transition: --art-tint 600ms ease;
+  }
+
+  /* The accent blue fights most artwork colors; white reads on all of them. */
+  .now-playing-screen .progress-fill {
+    background: var(--color-off-white);
+  }
+
+  .now-playing-screen .focus-eyebrow,
+  .now-playing-screen .issue-tag,
+  .now-playing-screen .now-playing-album,
+  .now-playing-screen .scrubber-times {
+    color: rgb(245 246 247 / 0.78);
+  }
+
+  .now-playing-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+
+  .now-playing-art {
+    flex-shrink: 0;
+    width: 200px;
+    height: 200px;
+    border-radius: 18px;
+    border: 1px solid var(--color-edge);
+    object-fit: cover;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  }
+
+  .now-playing-art.now-playing-art-placeholder {
+    background: var(--color-panel);
+  }
+
+  .now-playing-meta {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .now-playing-title {
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1.15;
+  }
+
+  .now-playing-album {
+    font-size: 17px;
+    color: var(--color-muted);
+  }
+
+  /* Taller than the bar itself so the drag target is finger-sized. */
+  .scrubber {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 28px;
+  }
+
+  /* The input does the dragging; it's invisible so the progress bar underneath is what shows. */
+  .scrubber-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+    touch-action: none;
+  }
+
+  .scrubber .progress-track {
+    width: 100%;
+    transition: height 150ms ease;
+  }
+
+  .scrubber.held .progress-track {
+    height: 14px;
+  }
+
+  .scrubber.held .progress-fill {
+    transition: none;
+  }
+
+  .scrubber-times {
+    display: flex;
+    justify-content: space-between;
+    font-size: 15px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-muted);
+  }
+
+  .scroll-text {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .scroll-text-line {
+    display: inline-block;
+  }
+
+  .scroll-text-moving .scroll-text-line {
+    animation: scroll-text-pan var(--scroll-duration) ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-text-moving .scroll-text-line {
+      animation: none;
+    }
   }
 
   /* Error boundary — fallback screen rendered when an unrecoverable rendering error occurs */

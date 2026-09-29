@@ -6,6 +6,7 @@ import {
   setMockFetchFault,
   clearMockFetchFault,
   clearAllMockFetchFaults,
+  setMockNowPlaying,
   type AppBridgeClient,
 } from './mockClient';
 
@@ -21,6 +22,7 @@ if (isMock) {
     setFetchFault: setMockFetchFault,
     clearFetchFault: clearMockFetchFault,
     clearAllFetchFaults: clearAllMockFetchFaults,
+    setNowPlaying: setMockNowPlaying,
   };
 }
 

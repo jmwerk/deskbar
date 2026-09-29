@@ -31,8 +31,16 @@ instead:
   reachable.
 - **Log time now:** Log time to an issue directly, no timer required,
   from Home's fourth preset.
+- **Clock and now playing:** A dock along the bottom of Home shows the
+  time, whatever your phone's Spotify is playing, and today's logged
+  total. Tap the track for a full-screen player: presets 1-4 are
+  previous, play/pause, next and like (saves the track to your Spotify
+  library), the dial seeks, pressing the dial
+  plays/pauses, Back closes it. With no phone connected it just
+  says "Nothing playing". It sits at the bottom because the top-right
+  corner is under the dial and bridgething's notification toasts.
 - **Today:** A running total of what you've logged today, tappable from
-  Home, with each session listed out. You can delete any entry, which
+  Home's dock, with each session listed out. You can delete any entry, which
   removes its worklog from Jira too (entries logged before this feature
   existed don't have a worklog id to delete by, so those only get removed
   from Deskbar).
@@ -95,6 +103,9 @@ __deskbarMock.clearAllFetchFaults();
 
 // Push a config change, as if the phone app had just saved new settings.
 __deskbarMock.setConfig({ focusWebhookUrl: 'https://example.com/webhook' });
+
+// Phone stops reporting playback, so Home's dock shows "Nothing playing"; pass true to resume.
+__deskbarMock.setNowPlaying(false);
 ```
 
 To exercise the pending-worklog retry queue: fail `/worklog` (above), end
@@ -186,6 +197,10 @@ via the shared `useKeydown`/`useRotaryStep` hooks in
   Today (or dismisses its delete-confirm step first). On Focus Running it
   **toggles pause/resume** instead of ending the session. Ending it is a
   separate touch button, available from either state.
+- **Now playing** (opened from Home's dock): **presets 1-4** are
+  previous, play/pause, next and like; the **dial** seeks 10s per
+  detent; the **dial push-button** plays/pauses; **Back** closes it.
+  Home's status presets are inactive while it's open.
 - **Dial push-button** starts a focus session on Focus Setup (both
   `Enter` and `Space` are bound; see [HARDWARE.md](HARDWARE.md) for
   why).
@@ -223,6 +238,10 @@ index.html, src/          the webapp itself (React + TypeScript + Vite + Tailwin
   src/webhook.ts           optional focus-start/stop webhook POST
   src/mockClient.ts        dev:mock's fake client, incl. fault injection
   src/ErrorBoundary.tsx    top-level render-error fallback
+  src/usePlayer.ts         now-playing state, transport, likes and artwork via client.player/library/asset
+  src/NowPlaying.tsx       the dock's now-playing chip and the full-screen player
+  src/artTint.ts           picks the player background color from the artwork
+  src/ScrollText.tsx       single-line text that pans when it overflows
   src/Toast.tsx, icons.tsx, DurationPicker.tsx, IssuePicker.tsx   shared UI
   src/screens/             Home, FocusSetup, LogTimeNow, History, FocusRunning
   src/*.test.ts(x)         Vitest unit tests, one per source file
@@ -266,6 +285,14 @@ other end. If you use Linear, GitHub Issues, Asana, or something similar
 and want to add support for it, that's a genuinely approachable first
 contribution, and I'm happy to help scope it out in an issue before you
 write any code.
+
+## Credits
+
+The clock-and-now-playing dock and the full-screen player were inspired
+by [gyeonggi](https://github.com/espeon/gyeonggi) by Natalie Bridgers,
+whose FlowState launcher pairs a compact now-playing bar with a
+full-screen player for the Car Thing. Deskbar's version is its own
+implementation, styled to match the rest of the app.
 
 ## License
 

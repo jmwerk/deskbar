@@ -93,7 +93,7 @@ async function main() {
         const context = await browser.newContext({ viewport });
         const page = await context.newPage();
         await page.goto(url);
-        await page.locator('.tile-focus').waitFor();
+        await page.locator('img.now-playing-chip-art').waitFor();
         await shoot(page, '01-home.png');
         await context.close();
       }
@@ -139,6 +139,19 @@ async function main() {
         await page.locator('.today-bar').click();
         await page.locator('.history-row').first().waitFor();
         await shoot(page, '05-today.png');
+        await context.close();
+      }
+
+      console.log('06-now-playing.png');
+      {
+        const context = await browser.newContext({ viewport });
+        const page = await context.newPage();
+        await page.goto(url);
+        await page.locator('img.now-playing-chip-art').click();
+        await page.locator('img.now-playing-art').waitFor();
+        // Let the fade-in and the artwork color wash settle.
+        await page.waitForTimeout(900);
+        await shoot(page, '06-now-playing.png');
         await context.close();
       }
     } finally {
