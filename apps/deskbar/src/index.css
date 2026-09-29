@@ -841,67 +841,13 @@
     border: 1px solid color-mix(in srgb, var(--color-available) 45%, var(--color-edge));
   }
 
-  /* Now playing sheet: full-screen player over Home, modeled on FlowState's */
+  /* Now playing: full-screen player over Home, laid out like Focus Running */
 
-  .now-playing-sheet {
+  .now-playing-screen {
     position: fixed;
     inset: 0;
     z-index: 30;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 24px 36px 18px;
-    overflow: hidden;
-    background: #000;
-    animation: fade-in 220ms ease;
-  }
-
-  .now-playing-backdrop {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    overflow: hidden;
-  }
-
-  /* Three rotated, heavily blurred copies of the artwork make a soft wash in its own colors. */
-  .now-playing-glow {
-    position: absolute;
-    object-fit: cover;
-    filter: blur(100px) saturate(1.8) contrast(1.25) brightness(1.1);
-  }
-
-  .now-playing-glow-1 {
-    left: -30%;
-    top: -30%;
-    width: 130%;
-    height: 130%;
-    transform: rotate(25deg);
-    opacity: 0.5;
-  }
-
-  .now-playing-glow-2 {
-    right: -35%;
-    top: 10%;
-    width: 120%;
-    height: 120%;
-    transform: rotate(-35deg);
-    opacity: 0.4;
-  }
-
-  .now-playing-glow-3 {
-    bottom: -40%;
-    left: 5%;
-    width: 130%;
-    height: 130%;
-    transform: rotate(160deg);
-    opacity: 0.45;
-  }
-
-  .now-playing-backdrop::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to bottom, rgb(0 0 0 / 0.2), rgb(0 0 0 / 0.3) 50%, rgb(0 0 0 / 0.75));
+    background: var(--color-bg);
   }
 
   .now-playing-body {
@@ -909,148 +855,70 @@
     min-height: 0;
     display: flex;
     align-items: center;
-    gap: 32px;
+    gap: 28px;
   }
 
   .now-playing-art {
     flex-shrink: 0;
-    height: 100%;
-    aspect-ratio: 1;
-    max-height: 248px;
-    border-radius: 24px;
-    border: 1px solid rgb(255 255 255 / 0.1);
-    overflow: hidden;
-    box-shadow: 0 12px 32px rgb(0 0 0 / 0.45);
+    width: 200px;
+    height: 200px;
+    border-radius: 18px;
+    border: 1px solid var(--color-edge);
+    object-fit: cover;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
   }
 
-  .now-playing-art img,
-  .now-playing-art .now-playing-art-placeholder {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  .now-playing-art.now-playing-art-placeholder {
+    background: var(--color-panel);
   }
 
   .now-playing-meta {
     flex: 1;
     min-width: 0;
-  }
-
-  .now-playing-lines {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
   }
 
   .now-playing-title {
-    font-size: 40px;
+    font-size: 34px;
     font-weight: 800;
-    letter-spacing: -0.02em;
+    line-height: 1.15;
   }
 
-  .now-playing-sub {
-    font-size: 22px;
-    color: rgb(245 246 247 / 0.6);
+  .now-playing-album {
+    font-size: 17px;
+    color: var(--color-muted);
   }
 
+  /* Taller than the bar itself so the drag target is finger-sized. */
   .scrubber {
-    position: relative;
+    display: flex;
+    align-items: center;
     height: 28px;
     touch-action: none;
   }
 
-  .scrubber-rail,
-  .scrubber-fill {
-    position: absolute;
-    left: 0;
-    top: 50%;
-    height: 8px;
-    border-radius: 999px;
-    transform: translateY(-50%);
-    transition: height 200ms ease-out;
+  .scrubber .progress-track {
+    width: 100%;
+    transition: height 150ms ease;
   }
 
-  .scrubber-rail {
-    right: 0;
-    background: rgb(245 246 247 / 0.18);
+  .scrubber.held .progress-track {
+    height: 14px;
   }
 
-  .scrubber-fill {
-    background: var(--color-off-white);
-  }
-
-  .scrubber.held .scrubber-rail,
-  .scrubber.held .scrubber-fill {
-    height: 12px;
-  }
-
-  .scrubber-knob {
-    position: absolute;
-    top: 50%;
-    width: 22px;
-    height: 22px;
-    border-radius: 999px;
-    background: var(--color-off-white);
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.6);
-    transition:
-      opacity 200ms ease-out,
-      transform 200ms ease-out;
-  }
-
-  .scrubber.held .scrubber-knob {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+  .scrubber.held .progress-fill {
+    transition: none;
   }
 
   .scrubber-times {
     display: flex;
     justify-content: space-between;
-    font-family: var(--font-mono);
-    font-size: 14px;
+    font-size: 15px;
+    font-weight: 600;
     font-variant-numeric: tabular-nums;
-    color: rgb(245 246 247 / 0.6);
-  }
-
-  /* 1fr / auto / 1fr keeps the transport centered on the screen with Close parked at the left. */
-  .transport {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-  }
-
-  .transport-main {
-    display: flex;
-    align-items: center;
-    gap: 48px;
-  }
-
-  .transport-btn,
-  .transport-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    background: none;
-    color: var(--color-off-white);
-  }
-
-  .transport-btn {
-    width: 64px;
-    height: 64px;
-  }
-
-  .transport-close {
-    justify-self: start;
-    width: 52px;
-    height: 52px;
-    border-radius: 999px;
-    background: rgb(255 255 255 / 0.08);
-    color: rgb(245 246 247 / 0.7);
-  }
-
-  /* Staggered entrance; backwards fill holds each part hidden through its delay. */
-  .rise {
-    animation: fade-in 320ms ease-out backwards;
+    color: var(--color-muted);
   }
 
   .marquee {
@@ -1066,29 +934,6 @@
 
   .marquee-copy {
     flex-shrink: 0;
-  }
-
-  /* Both halves share one grid cell; isolation keeps the outgoing half's z-index local. */
-  .cross-fade {
-    display: grid;
-    height: 100%;
-    grid-template-rows: 100%;
-    grid-template-columns: 100%;
-    isolation: isolate;
-  }
-
-  .cross-fade-layer {
-    grid-area: 1 / 1;
-    min-width: 0;
-  }
-
-  .cross-fade-out {
-    opacity: 0;
-    z-index: -1;
-  }
-
-  .cross-fade-in {
-    opacity: 1;
   }
 
   /* Error boundary — fallback screen rendered when an unrecoverable rendering error occurs */

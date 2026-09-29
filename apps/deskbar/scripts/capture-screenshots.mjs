@@ -148,9 +148,9 @@ async function main() {
         const page = await context.newPage();
         await page.goto(url);
         await page.locator('img.now-playing-chip-art').click();
-        await page.locator('.now-playing-art img').waitFor();
-        // Let the staggered entrance and the artwork crossfade settle.
-        await page.waitForTimeout(800);
+        await page.locator('img.now-playing-art').waitFor();
+        // Let the screen's fade-in settle.
+        await page.waitForTimeout(400);
         await shoot(page, '06-now-playing.png');
         await context.close();
       }

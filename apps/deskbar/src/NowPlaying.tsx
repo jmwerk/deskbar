@@ -1,18 +1,15 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
-import { CrossFade } from './CrossFade';
 import { formatClock } from './format';
-import { ChevronDownIcon, MusicIcon, PauseIcon, PlayIcon, SkipBackIcon, SkipForwardIcon } from './icons';
+import { MusicIcon } from './icons';
 import { Marquee } from './Marquee';
-import { useKeydown, useRotaryStep } from './physicalControls';
+import { useKeydown, useKeyFlash, useRotaryStep } from './physicalControls';
 import type { Player } from './usePlayer';
 
-// One dial detent scrubs this far while the sheet is open.
+// One dial detent scrubs this far while the player is open.
 const SEEK_STEP_MS = 10_000;
 
 // A released scrub keeps its position this long while the daemon catches up with the seek.
 const SCRUB_HOLD_MS = 500;
-
-const FADE_MS = 400;
 
 /** The dock's compact now-playing entry; a quiet placeholder when no phone or nothing is playing. */
 export function NowPlayingChip({ player, onOpen }: { player: Player; onOpen: () => void }) {
@@ -49,7 +46,7 @@ export function NowPlayingChip({ player, onOpen }: { player: Player; onOpen: () 
   );
 }
 
-// The bar tracks the finger 1:1; the knob only shows while held, at rest the fill's end is the playhead.
+// Deskbar's progress bar, made draggable: the fill tracks the finger 1:1 while held.
 function Scrubber({ player }: { player: Player }) {
   const bar = useRef<HTMLDivElement>(null);
   const hold = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -91,7 +88,7 @@ function Scrubber({ player }: { player: Player }) {
   };
 
   return (
-    <div>
+    <div className="scrubber-block">
       <div
         ref={bar}
         className={`scrubber ${held ? 'held' : ''}`}
@@ -100,9 +97,9 @@ function Scrubber({ player }: { player: Player }) {
         onPointerUp={release}
         onPointerCancel={release}
       >
-        <div className="scrubber-rail" />
-        <div className="scrubber-fill" style={{ width: `${pct * 100}%` }} />
-        <div className="scrubber-knob" style={{ left: `${pct * 100}%` }} />
+        <div className="progress-track">
+          <div className="progress-fill" style={{ width: `${pct * 100}%` }} />
+        </div>
       </div>
       <div className="scrubber-times">
         <span>{formatClock(elapsedMs / 1000)}</span>
@@ -113,8 +110,8 @@ function Scrubber({ player }: { player: Player }) {
 }
 
 /**
- * Full-screen player over Home. Owns the physical controls while open: dial seeks, dial push
- * toggles playback, Back closes. Presets stay inert so a status change can't fire unseen.
+ * Full-screen player over Home, laid out like Focus Running. Presets 1-3 are previous,
+ * play/pause and next (labelled in the flush tabs); the dial seeks, dial push toggles, Back closes.
  */
 export function NowPlayingSheet({
   player,
@@ -126,16 +123,19 @@ export function NowPlayingSheet({
   onDismiss: () => void;
 }) {
   const { track, playing, toggle, skip, seekBy } = player;
+  const pressedIndex = useKeyFlash(enabled);
 
   useKeydown(
     useCallback(
       e => {
-        if (e.key === 'Escape') onDismiss();
-        else if (e.key === 'Enter' || e.key === ' ') toggle();
+        if (e.key === '1') skip(-1);
+        else if (e.key === '2' || e.key === 'Enter' || e.key === ' ') toggle();
+        else if (e.key === '3') skip(1);
+        else if (e.key === 'Escape') onDismiss();
         else return;
         e.preventDefault();
       },
-      [onDismiss, toggle],
+      [skip, toggle, onDismiss],
     ),
     enabled,
   );
@@ -149,64 +149,46 @@ export function NowPlayingSheet({
     if (!track) onDismiss();
   }, [track, onDismiss]);
 
-  const artUrl = track?.artUrl ?? null;
+  const tabs = [
+    { label: 'Previous', onClick: () => skip(-1) },
+    { label: playing ? 'Pause' : 'Play', onClick: toggle },
+    { label: 'Next', onClick: () => skip(1) },
+  ];
 
   return (
-    <div className="now-playing-sheet" role="dialog" aria-label="Now playing">
-      <div className="now-playing-backdrop" aria-hidden>
-        <CrossFade contentKey={artUrl ?? ''} timeout={FADE_MS}>
-          {artUrl && (
-            <>
-              <img src={artUrl} alt="" className="now-playing-glow now-playing-glow-1" />
-              <img src={artUrl} alt="" className="now-playing-glow now-playing-glow-2" />
-              <img src={artUrl} alt="" className="now-playing-glow now-playing-glow-3" />
-            </>
-          )}
-        </CrossFade>
+    <div className="screen now-playing-screen" role="dialog" aria-label="Now playing">
+      {/* Same flush tabs as Home and Focus; the fourth stays blank, like Home without Jira. */}
+      <div className="preset-hint">
+        {tabs.map((tab, i) => (
+          <button key={i} className={`preset-hint-item ${pressedIndex === i ? 'pressed' : ''}`} onClick={tab.onClick}>
+            <span className="preset-hint-label">{tab.label}</span>
+          </button>
+        ))}
+        <div className={`preset-hint-item ${pressedIndex === 3 ? 'pressed' : ''}`} />
       </div>
 
       <div className="now-playing-body">
-        <div className="now-playing-art rise">
-          <CrossFade contentKey={artUrl ?? ''} timeout={FADE_MS}>
-            {artUrl ? (
-              <img src={artUrl} alt="" draggable={false} />
-            ) : (
-              <span className="now-playing-art-placeholder">
-                <MusicIcon size={72} />
-              </span>
-            )}
-          </CrossFade>
-        </div>
-        <div className="now-playing-meta rise" style={{ animationDelay: '80ms' }}>
-          <CrossFade contentKey={`${track?.title}|${track?.album}|${track?.artist}`} timeout={FADE_MS}>
-            <div className="now-playing-lines">
-              <Marquee text={track?.title ?? 'Nothing playing'} className="now-playing-title" />
-              {track?.album && <Marquee text={track.album} className="now-playing-sub" />}
-              {track?.artist && <Marquee text={track.artist} className="now-playing-sub" />}
-            </div>
-          </CrossFade>
+        {track?.artUrl ? (
+          <img className="now-playing-art" src={track.artUrl} alt="" draggable={false} />
+        ) : (
+          <div className="now-playing-art now-playing-art-placeholder">
+            <MusicIcon size={64} />
+          </div>
+        )}
+        <div className="now-playing-meta">
+          <div className="focus-eyebrow">{playing ? 'Now playing' : 'Paused'}</div>
+          <Marquee text={track?.title ?? 'Nothing playing'} className="now-playing-title" />
+          {track?.artist && <Marquee text={track.artist} className="issue-tag" />}
+          {track?.album && <Marquee text={track.album} className="now-playing-album" />}
         </div>
       </div>
 
-      <div className="rise" style={{ animationDelay: '140ms' }}>
-        <Scrubber player={player} />
-        {/* Close sits bottom-left: the dial occludes the top-right, where a sheet would usually put it. */}
-        <div className="transport">
-          <button className="transport-close" onClick={onDismiss} aria-label="Close player">
-            <ChevronDownIcon size={26} />
-          </button>
-          <div className="transport-main">
-            <button className="transport-btn" onClick={() => skip(-1)} aria-label="Previous track">
-              <SkipBackIcon size={38} />
-            </button>
-            <button className="transport-btn transport-toggle" onClick={toggle} aria-label={playing ? 'Pause' : 'Play'}>
-              {playing ? <PauseIcon size={46} /> : <PlayIcon size={46} />}
-            </button>
-            <button className="transport-btn" onClick={() => skip(1)} aria-label="Next track">
-              <SkipForwardIcon size={38} />
-            </button>
-          </div>
-        </div>
+      <Scrubber player={player} />
+
+      <div className="actions">
+        <button className="btn-secondary" onClick={onDismiss}>
+          Back
+        </button>
       </div>
     </div>
   );
