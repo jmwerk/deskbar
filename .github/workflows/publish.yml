@@ -32,5 +32,23 @@ jobs:
       - name: build every unpublished version and push the catalog
         run: bun run publish
 
+      # after publish, so a failed release never gets a tag; an existing tag or release is left alone
+      - name: tag and release the published version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="$(jq -r .version apps/deskbar/package.json)"
+          tag="v$version"
+          if ! git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
+            git tag "$tag"
+            git push origin "refs/tags/$tag"
+          fi
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "$tag already released"
+            exit 0
+          fi
+          awk -v h="## $version" '$0==h{f=1;next} /^## /{f=0} f' apps/deskbar/CHANGELOG.md > "$RUNNER_TEMP/notes.md"
+          gh release create "$tag" --verify-tag --title "$tag" --notes-file "$RUNNER_TEMP/notes.md"
+
       - name: refresh the browser demo
         run: bun run demo --publish
