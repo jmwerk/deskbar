@@ -3,6 +3,7 @@ import { DurationHintBar } from '../DurationPicker';
 import { formatClock } from '../format';
 import { NowPlayingChip, NowPlayingSheet } from '../NowPlaying';
 import { DURATION_STEPS, useKeydown } from '../physicalControls';
+import { ScrollText } from '../ScrollText';
 import type { Player } from '../usePlayer';
 
 export function FocusRunning({
@@ -66,10 +67,10 @@ export function FocusRunning({
         <div className="focus-eyebrow">{eyebrow}</div>
         <div className={`clock ${paused ? 'clock-paused' : ''}`}>{formatClock(displayS)}</div>
         {issueKey && (
-          <div className="issue-tag">
-            {issueKey}
-            {issueSummary ? ` — ${issueSummary}` : ''}
-          </div>
+          <ScrollText
+            text={issueSummary ? `${issueKey} — ${issueSummary}` : issueKey}
+            className="issue-tag focus-issue"
+          />
         )}
         {totalS != null && (
           <div className="progress-track">
