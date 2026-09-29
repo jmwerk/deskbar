@@ -61,7 +61,7 @@ describe('usePlayer', () => {
   it('reuses cached artwork when skipping back to a recent track', async () => {
     const get = vi.spyOn(mockClient.asset, 'get');
     const { result } = renderHook(() => usePlayer(mockClient));
-    await waitFor(() => expect(result.current.track?.artUrl).not.toBeNull());
+    await waitFor(() => expect(result.current.track?.artUrl).toBe('blob:mock-art'));
 
     await act(async () => result.current.skip(1));
     await waitFor(() => expect(get).toHaveBeenCalledTimes(2));
@@ -70,6 +70,20 @@ describe('usePlayer', () => {
     await waitFor(() => expect(result.current.track?.title).toBe('Heads Down'));
     expect(result.current.track?.artUrl).not.toBeNull();
     expect(get).toHaveBeenCalledTimes(2);
+    get.mockRestore();
+  });
+
+  it('caches a cover that finishes loading after the track changed', async () => {
+    const get = vi.spyOn(mockClient.asset, 'get');
+    const { result } = renderHook(() => usePlayer(mockClient));
+    await waitFor(() => expect(get).toHaveBeenCalledTimes(1));
+
+    // Skip before the first cover resolves, then come straight back to it.
+    await act(async () => result.current.skip(1));
+    await act(async () => result.current.skip(-1));
+
+    await waitFor(() => expect(result.current.track?.artUrl).toBe('blob:mock-art'));
+    expect(get.mock.calls.map(([req]) => req.id)).toEqual(['mock-art-0', 'mock-art-1']);
     get.mockRestore();
   });
 

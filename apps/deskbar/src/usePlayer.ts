@@ -48,6 +48,7 @@ function toReport({ state }: NowPlayingReply): Report | null {
 // Artwork arrives as bytes over the daemon; turn it into object URLs and revoke the oldest past the cap.
 function useArtwork(client: AppBridgeClient, artId: string | null): string | null {
   const cache = useRef(new Map<string, string>());
+  const shownId = useRef<string | null>(null);
   const [url, setUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -56,6 +57,7 @@ function useArtwork(client: AppBridgeClient, artId: string | null): string | nul
   }, []);
 
   useEffect(() => {
+    shownId.current = artId;
     if (!artId) {
       setUrl(null);
       return;
@@ -69,23 +71,21 @@ function useArtwork(client: AppBridgeClient, artId: string | null): string | nul
       setUrl(hit);
       return;
     }
-    let stale = false;
     void client.asset.get({ id: artId, requestId: crypto.randomUUID() }).then(res => {
-      if (stale || !res.ok) return;
+      if (!res.ok || urls.has(artId)) return;
       // Bytes can arrive as a plain number array depending on the transport's decoding.
       const bytes = Uint8Array.from(res.response.bytes as unknown as number[]);
       const created = URL.createObjectURL(new Blob([bytes], { type: res.response.mime ?? 'image/jpeg' }));
+      // Cached even if the track moved on meanwhile, so skipping straight back doesn't refetch it.
       urls.set(artId, created);
-      while (urls.size > ART_CACHE_SIZE) {
-        const [oldestId, oldestUrl] = urls.entries().next().value!;
-        urls.delete(oldestId);
-        URL.revokeObjectURL(oldestUrl);
+      for (const [id, oldUrl] of urls) {
+        if (urls.size <= ART_CACHE_SIZE) break;
+        if (id === shownId.current) continue;
+        urls.delete(id);
+        URL.revokeObjectURL(oldUrl);
       }
-      setUrl(created);
+      if (shownId.current === artId) setUrl(created);
     });
-    return () => {
-      stale = true;
-    };
   }, [client, artId]);
 
   return url;
