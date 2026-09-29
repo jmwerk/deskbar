@@ -149,8 +149,8 @@ async function main() {
         await page.goto(url);
         await page.locator('img.now-playing-chip-art').click();
         await page.locator('img.now-playing-art').waitFor();
-        // Let the screen's fade-in settle.
-        await page.waitForTimeout(400);
+        // Let the fade-in and the artwork color wash settle.
+        await page.waitForTimeout(900);
         await shoot(page, '06-now-playing.png');
         await context.close();
       }

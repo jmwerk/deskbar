@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
+} from 'react';
+import { useArtTint } from './artTint';
 import { formatClock } from './format';
 import { HeartIcon, MusicIcon, PauseIcon, PlayIcon, SkipBackIcon, SkipForwardIcon } from './icons';
 import { Marquee } from './Marquee';
@@ -127,6 +135,7 @@ export function NowPlayingSheet({
 }) {
   const { track, playing, liked, toggle, toggleLike, skip, seekBy } = player;
   const pressedIndex = useKeyFlash(enabled);
+  const tint = useArtTint(track?.artUrl ?? null);
 
   useKeydown(
     useCallback(
@@ -164,7 +173,12 @@ export function NowPlayingSheet({
   ];
 
   return (
-    <div className="screen now-playing-screen" role="dialog" aria-label="Now playing">
+    <div
+      className="screen now-playing-screen"
+      role="dialog"
+      aria-label="Now playing"
+      style={tint ? ({ '--art-tint': tint } as CSSProperties) : undefined}
+    >
       {/* Same flush tabs as Home and Focus; Like takes Home's green tint while the track is saved. */}
       <div className="preset-hint">
         {tabs.map((tab, i) => (

@@ -38,6 +38,13 @@
  * history delete hint, the toast) deliberately keeps it on the top-left or full-width instead.
  */
 
+/* Registered so the now-playing wash animates between tracks instead of snapping. */
+@property --art-tint {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #3b82f6;
+}
+
 @layer base {
   :root {
     color-scheme: dark;
@@ -852,11 +859,36 @@
 
   /* Now playing: full-screen player over Home, laid out like Focus Running */
 
+  /* Washed in the artwork's own color (useArtTint), falling back to the accent. Panels go
+     translucent here so the wash shows through the tabs, progress track and Back button. */
   .now-playing-screen {
     position: fixed;
     inset: 0;
     z-index: 30;
-    background: var(--color-bg);
+    --art-tint: var(--color-accent);
+    --color-panel: rgb(0 0 0 / 0.28);
+    --color-edge: rgb(255 255 255 / 0.12);
+    background:
+      radial-gradient(80% 100% at 15% 30%, color-mix(in srgb, var(--art-tint) 90%, #fff 10%), transparent 75%),
+      radial-gradient(70% 90% at 95% 100%, color-mix(in srgb, var(--art-tint) 70%, transparent), transparent 70%),
+      linear-gradient(
+        160deg,
+        color-mix(in srgb, var(--art-tint) 70%, var(--color-bg)),
+        color-mix(in srgb, var(--art-tint) 30%, var(--color-bg))
+      );
+    transition: --art-tint 600ms ease;
+  }
+
+  /* The accent blue fights most artwork colors; white reads on all of them. */
+  .now-playing-screen .progress-fill {
+    background: var(--color-off-white);
+  }
+
+  .now-playing-screen .focus-eyebrow,
+  .now-playing-screen .issue-tag,
+  .now-playing-screen .now-playing-album,
+  .now-playing-screen .scrubber-times {
+    color: rgb(245 246 247 / 0.78);
   }
 
   .now-playing-body {
