@@ -1,0 +1,343 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-01T18:00:14.801Z",
+  "title": "Design System: Deskbar",
+  "extensions": {
+    "colorMeta": {
+      "focus-blue": {
+        "role": "primary",
+        "displayName": "Focus Blue",
+        "canonical": "oklch(62.3% 0.188 259.8)",
+        "tonalRamp": [
+          "oklch(15% 0.094 259.8)",
+          "oklch(25% 0.188 259.8)",
+          "oklch(35% 0.188 259.8)",
+          "oklch(45% 0.188 259.8)",
+          "oklch(55% 0.188 259.8)",
+          "oklch(65% 0.188 259.8)",
+          "oklch(80% 0.188 259.8)",
+          "oklch(95% 0.094 259.8)"
+        ]
+      },
+      "go-green": {
+        "role": "secondary",
+        "displayName": "Go Green",
+        "canonical": "oklch(75.4% 0.18 151)",
+        "tonalRamp": [
+          "oklch(15% 0.090 151)",
+          "oklch(25% 0.180 151)",
+          "oklch(35% 0.180 151)",
+          "oklch(45% 0.180 151)",
+          "oklch(55% 0.180 151)",
+          "oklch(65% 0.180 151)",
+          "oklch(80% 0.180 151)",
+          "oklch(95% 0.090 151)"
+        ]
+      },
+      "stop-red": {
+        "role": "tertiary",
+        "displayName": "Stop Red",
+        "canonical": "oklch(63.6% 0.19 29)",
+        "tonalRamp": [
+          "oklch(15% 0.095 29)",
+          "oklch(25% 0.190 29)",
+          "oklch(35% 0.190 29)",
+          "oklch(45% 0.190 29)",
+          "oklch(55% 0.190 29)",
+          "oklch(65% 0.190 29)",
+          "oklch(80% 0.190 29)",
+          "oklch(95% 0.095 29)"
+        ]
+      },
+      "control-black": {
+        "role": "neutral",
+        "displayName": "Control Black",
+        "canonical": "oklch(16% 0.006 255)",
+        "tonalRamp": [
+          "oklch(15% 0.003 255)",
+          "oklch(25% 0.006 255)",
+          "oklch(35% 0.006 255)",
+          "oklch(45% 0.006 255)",
+          "oklch(55% 0.006 255)",
+          "oklch(65% 0.006 255)",
+          "oklch(80% 0.006 255)",
+          "oklch(95% 0.003 255)"
+        ]
+      },
+      "panel-graphite": {
+        "role": "neutral",
+        "displayName": "Panel Graphite",
+        "canonical": "oklch(21% 0.008 250)",
+        "tonalRamp": [
+          "oklch(15% 0.004 250)",
+          "oklch(25% 0.008 250)",
+          "oklch(35% 0.008 250)",
+          "oklch(45% 0.008 250)",
+          "oklch(55% 0.008 250)",
+          "oklch(65% 0.008 250)",
+          "oklch(80% 0.008 250)",
+          "oklch(95% 0.004 250)"
+        ]
+      },
+      "edge-steel": {
+        "role": "neutral",
+        "displayName": "Edge Steel",
+        "canonical": "oklch(28% 0.012 250)",
+        "tonalRamp": [
+          "oklch(15% 0.006 250)",
+          "oklch(25% 0.012 250)",
+          "oklch(35% 0.012 250)",
+          "oklch(45% 0.012 250)",
+          "oklch(55% 0.012 250)",
+          "oklch(65% 0.012 250)",
+          "oklch(80% 0.012 250)",
+          "oklch(95% 0.006 250)"
+        ]
+      },
+      "off-white": {
+        "role": "neutral",
+        "displayName": "Off-White",
+        "canonical": "oklch(97% 0.002 250)",
+        "tonalRamp": [
+          "oklch(15% 0.001 250)",
+          "oklch(25% 0.002 250)",
+          "oklch(35% 0.002 250)",
+          "oklch(45% 0.002 250)",
+          "oklch(55% 0.002 250)",
+          "oklch(65% 0.002 250)",
+          "oklch(80% 0.002 250)",
+          "oklch(95% 0.001 250)"
+        ]
+      },
+      "muted-slate": {
+        "role": "neutral",
+        "displayName": "Muted Slate",
+        "canonical": "oklch(65% 0.015 255)",
+        "tonalRamp": [
+          "oklch(15% 0.007 255)",
+          "oklch(25% 0.015 255)",
+          "oklch(35% 0.015 255)",
+          "oklch(45% 0.015 255)",
+          "oklch(55% 0.015 255)",
+          "oklch(65% 0.015 255)",
+          "oklch(80% 0.015 255)",
+          "oklch(95% 0.007 255)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The focus countdown; tabular numerals."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Now-playing track title."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Status tiles, status banner, screen headings, dock clock."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Rows, hints and action buttons (17 to 20px)."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Preset tab labels."
+      },
+      "eyebrow": {
+        "displayName": "Eyebrow",
+        "purpose": "Uppercase section kickers like FOCUS SESSION and NOW PLAYING."
+      }
+    },
+    "shadows": [
+      {
+        "name": "tile-lift",
+        "value": "0 4px 14px rgba(0, 0, 0, 0.35)",
+        "purpose": "Status tiles and large album art."
+      },
+      {
+        "name": "row-rest",
+        "value": "0 2px 6px rgba(0, 0, 0, 0.2)",
+        "purpose": "Issue and history rows."
+      },
+      {
+        "name": "primary-glow",
+        "value": "0 4px 12px color-mix(in srgb, var(--color-accent) 45%, transparent)",
+        "purpose": "The primary button."
+      },
+      {
+        "name": "toast-float",
+        "value": "0 6px 18px rgba(0, 0, 0, 0.4)",
+        "purpose": "In-app toasts."
+      },
+      {
+        "name": "selected-inset",
+        "value": "0 0 0 4px rgba(255, 255, 255, 0.55) inset, 0 6px 18px rgba(0, 0, 0, 0.35)",
+        "purpose": "The active status tile."
+      }
+    ],
+    "motion": [
+      {
+        "name": "press",
+        "value": "transform 100ms ease, filter 100ms ease",
+        "purpose": "Button press: scale(0.96) brightness(0.9)."
+      },
+      {
+        "name": "preset-flash",
+        "value": "scale(0.93) brightness(1.3), 100ms",
+        "purpose": "On-screen tab feedback for a physical preset press."
+      },
+      {
+        "name": "screen-enter",
+        "value": "fade-in 200ms ease (opacity 0, translateY 6px)",
+        "purpose": "Every screen and toast on mount; screensaver uses 400ms."
+      },
+      {
+        "name": "art-tint",
+        "value": "--art-tint 600ms ease",
+        "purpose": "Now-playing wash crossfades between tracks."
+      },
+      {
+        "name": "eq-bounce",
+        "value": "900ms ease-in-out infinite, staggered -300ms",
+        "purpose": "Equalizer bars while playing."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "device",
+        "value": "800x480 fixed"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main action: Start, Log, Reload.",
+      "html": "<button class=\"ds-btn-primary\">Start Focus</button>",
+      "css": ".ds-btn-primary{background:var(--color-accent,#3b82f6);color:#fff;border:none;border-radius:14px;padding:16px 48px;font-family:-apple-system, 'Segoe UI', Roboto, sans-serif;font-size:20px;font-weight:700;box-shadow:0 4px 12px color-mix(in srgb,#3b82f6 45%,transparent);cursor:pointer;transition:transform 100ms ease,filter 100ms ease}.ds-btn-primary:hover{filter:brightness(1.08)}.ds-btn-primary:focus-visible{outline:3px solid #f5f6f7;outline-offset:2px}.ds-btn-primary:active{transform:scale(0.96);filter:brightness(0.9)}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Cancel, Pause, Back.",
+      "html": "<button class=\"ds-btn-secondary\">Pause</button>",
+      "css": ".ds-btn-secondary{background:var(--color-panel,#16191d);color:var(--color-off-white,#f5f6f7);border:1px solid var(--color-edge,#262b31);border-radius:14px;padding:16px 48px;font-family:-apple-system, 'Segoe UI', Roboto, sans-serif;font-size:20px;font-weight:700;cursor:pointer;transition:transform 100ms ease,filter 100ms ease}.ds-btn-secondary:hover{filter:brightness(1.15)}.ds-btn-secondary:focus-visible{outline:3px solid #3b82f6;outline-offset:2px}.ds-btn-secondary:active{transform:scale(0.96);filter:brightness(0.9)}"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "End Focus and other destructive actions.",
+      "html": "<button class=\"ds-btn-danger\">End Focus</button>",
+      "css": ".ds-btn-danger{background:color-mix(in srgb,#e74c3c 14%,#16191d);color:var(--color-busy,#e74c3c);border:1px solid color-mix(in srgb,#e74c3c 45%,#262b31);border-radius:14px;padding:16px 48px;font-family:-apple-system, 'Segoe UI', Roboto, sans-serif;font-size:20px;font-weight:700;cursor:pointer;transition:transform 100ms ease,filter 100ms ease}.ds-btn-danger:hover{filter:brightness(1.15)}.ds-btn-danger:focus-visible{outline:3px solid #e74c3c;outline-offset:2px}.ds-btn-danger:active{transform:scale(0.96);filter:brightness(0.9)}"
+    },
+    {
+      "name": "Status Tile",
+      "kind": "custom",
+      "refersTo": "tile-available",
+      "description": "Home status picker; selected tile gets an inset ring and top-left check badge.",
+      "html": "<div class=\"ds-tiles\"><button class=\"ds-tile ds-tile-available ds-selected\"><span class=\"ds-badge\">&#10003;</span>Available</button><button class=\"ds-tile ds-tile-busy\">Busy</button><button class=\"ds-tile ds-tile-focus\">Focus</button></div>",
+      "css": ".ds-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;background:#0b0d10;padding:16px}.ds-tile{position:relative;height:160px;border:none;border-radius:18px;color:#fff;font-family:-apple-system, 'Segoe UI', Roboto, sans-serif;font-size:28px;font-weight:800;box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer;transition:transform 100ms ease,filter 100ms ease}.ds-tile-available{background:#2ecc71}.ds-tile-busy{background:#e74c3c}.ds-tile-focus{background:#3b82f6}.ds-tile.ds-selected{box-shadow:0 0 0 4px rgba(255,255,255,.55) inset,0 6px 18px rgba(0,0,0,.35)}.ds-badge{position:absolute;top:10px;left:10px;width:28px;height:28px;border-radius:999px;background:#fff;color:#0b0d10;font-size:16px;display:flex;align-items:center;justify-content:center}.ds-tile:hover{filter:brightness(1.05)}.ds-tile:focus-visible{outline:3px solid #f5f6f7;outline-offset:2px}.ds-tile:active{transform:scale(0.96);filter:brightness(0.9)}"
+    },
+    {
+      "name": "Preset Tabs",
+      "kind": "nav",
+      "refersTo": "preset-tab",
+      "description": "On-screen twins of the four physical presets, flush to the top edge.",
+      "html": "<div class=\"ds-presets\"><div class=\"ds-preset\">-15m</div><div class=\"ds-preset ds-pressed\">-5m</div><div class=\"ds-preset\">+5m</div><div class=\"ds-preset\">+15m</div></div>",
+      "css": ".ds-presets{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;background:#0b0d10;padding-bottom:16px}.ds-preset{display:flex;align-items:center;justify-content:center;padding:9px 4px;background:var(--color-panel,#16191d);border-radius:0 0 8px 8px;color:#f5f6f7;font-family:-apple-system, 'Segoe UI', Roboto, sans-serif;font-size:16px;font-weight:800;transition:transform 100ms ease,filter 100ms ease}.ds-preset:hover{filter:brightness(1.15)}.ds-preset.ds-pressed{transform:scale(0.93);filter:brightness(1.3)}"
+    },
+    {
+      "name": "Issue Row",
+      "kind": "card",
+      "refersTo": "issue-row",
+      "description": "Jira issue in the picker; selected = dial target.",
+      "html": "<div class=\"ds-list\"><button class=\"ds-row ds-row-selected\"><span class=\"ds-key\">DESK-2</span><span class=\"ds-sum\">Test the focus timer end to end</span></button><button class=\"ds-row\"><span class=\"ds-key\">DESK-7</span><span class=\"ds-sum\">Retry queue for failed worklogs</span></button></div>",
+      "css": ".ds-list{display:flex;flex-direction:column;gap:8px;background:#0b0d10;padding:16px}.ds-row{display:flex;align-items:center;gap:10px;min-height:52px;padding:12px 14px;text-align:left;border:1px solid #262b31;background:#16191d;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,.2);font-family:-apple-system, 'Segoe UI', Roboto, sans-serif;font-size:19px;cursor:pointer;transition:transform 100ms ease,border-color 150ms ease}.ds-row-selected{border-color:#3b82f6;background:color-mix(in srgb,#3b82f6 15%,#16191d)}.ds-key{font-weight:700;color:#3b82f6;flex-shrink:0}.ds-sum{color:#8a9099;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ds-row:hover{border-color:#3b82f6}.ds-row:focus-visible{outline:3px solid #3b82f6;outline-offset:2px}.ds-row:active{transform:scale(0.96)}"
+    },
+    {
+      "name": "Filter Chip",
+      "kind": "chip",
+      "refersTo": "filter-chip",
+      "description": "Jira project-key filter above the issue list.",
+      "html": "<div class=\"ds-chips\"><button class=\"ds-chip ds-chip-on\">DESK</button><button class=\"ds-chip\">OPS</button></div>",
+      "css": ".ds-chips{display:flex;gap:6px;background:#0b0d10;padding:12px}.ds-chip{border:1px solid #262b31;background:#16191d;border-radius:999px;padding:6px 14px;font-family:-apple-system, 'Segoe UI', Roboto, sans-serif;font-size:14px;font-weight:600;color:#8a9099;cursor:pointer;transition:transform 100ms ease,border-color 150ms ease}.ds-chip-on{border-color:#3b82f6;background:color-mix(in srgb,#3b82f6 20%,#16191d);color:#f5f6f7}.ds-chip:hover{border-color:#3b82f6}.ds-chip:focus-visible{outline:3px solid #3b82f6;outline-offset:2px}.ds-chip:active{transform:scale(0.96)}"
+    },
+    {
+      "name": "Now-Playing Chip",
+      "kind": "custom",
+      "refersTo": "now-playing-chip",
+      "description": "Dock widget for the phone Spotify track, with equalizer bars.",
+      "html": "<button class=\"ds-np\"><span class=\"ds-np-art\"></span><span class=\"ds-np-text\"><b>Heads Down</b><small>The Standups</small></span><span class=\"ds-eq\"><i></i><i></i><i></i></span></button>",
+      "css": ".ds-np{display:flex;align-items:center;gap:12px;width:420px;height:56px;padding:7px 16px 7px 7px;border:1px solid #262b31;background:#16191d;border-radius:14px;color:#f5f6f7;text-align:left;font-family:-apple-system, 'Segoe UI', Roboto, sans-serif;cursor:pointer;transition:transform 100ms ease}.ds-np-art{width:40px;height:40px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#0b0d10);border:1px solid rgba(255,255,255,.1)}.ds-np-text{flex:1;display:flex;flex-direction:column;line-height:1.2}.ds-np-text b{font-size:16px}.ds-np-text small{font-size:13px;font-weight:600;color:#8a9099}.ds-eq{display:flex;align-items:flex-end;gap:3px;height:16px}.ds-eq i{width:3px;height:4px;border-radius:2px;background:#2ecc71;animation:ds-eq 900ms ease-in-out infinite}.ds-eq i:nth-child(2){animation-delay:-300ms}.ds-eq i:nth-child(3){animation-delay:-600ms}@keyframes ds-eq{0%,100%{height:4px}50%{height:16px}}.ds-np:hover{border-color:#3b82f6}.ds-np:focus-visible{outline:3px solid #3b82f6;outline-offset:2px}.ds-np:active{transform:scale(0.96)}@media (prefers-reduced-motion:reduce){.ds-eq i{animation:none}}"
+    },
+    {
+      "name": "Toast",
+      "kind": "custom",
+      "refersTo": "toast",
+      "description": "Top-left in-app success/error notice, width-capped clear of the dial corner.",
+      "html": "<div class=\"ds-toast ds-toast-ok\">Logged 25m to DESK-2</div><div class=\"ds-toast ds-toast-err\">Could not reach Jira. Queued to retry.</div>",
+      "css": ".ds-toast{max-width:420px;margin:8px;padding:12px 18px;border-radius:12px;color:#f5f6f7;font-family:-apple-system, 'Segoe UI', Roboto, sans-serif;font-size:16px;font-weight:600;line-height:1.35;box-shadow:0 6px 18px rgba(0,0,0,.4)}.ds-toast-ok{background:color-mix(in srgb,#2ecc71 22%,#16191d);border:1px solid color-mix(in srgb,#2ecc71 45%,#262b31)}.ds-toast-err{background:color-mix(in srgb,#e74c3c 22%,#16191d);border:1px solid color-mix(in srgb,#e74c3c 45%,#262b31)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Desk Instrument",
+    "overview": "Deskbar is a purpose-built gadget, not a web page that happens to be small. The screen is a fixed 800x480 landscape pane read at arm’s length, framed by physical hardware: four preset buttons above it, a rotary dial over its top-right corner, a Back button. The design treats that hardware as part of the interface. The preset tabs hang from the top edge as if the buttons’ own material continued into the glass, presses on hardware flash their on-screen twins, and the dial’s current target is always lit in Focus Blue.\n\nThe surface is near-black and dense, with large, chunky, rounded controls that shrink under a finger. Color is signal: the three status hues mean Available, Busy and Focus, and appear at full strength only where that meaning is the point. Everything else is graphite panels, steel edges and slate text. The one place the instrument loosens up is the now-playing player, which washes the whole screen in the album art’s own color.",
+    "keyCharacteristics": [
+      "Dark-only, fixed 800x480, no responsive behavior.",
+      "Chunky, finger-sized, rounded controls with a press-shrink response.",
+      "Preset tabs flush to the top edge, mirroring the physical buttons above the screen.",
+      "Status color carries meaning; the chrome is neutral.",
+      "Bottom-anchored persistent UI; the top-right corner stays empty of interactive controls.",
+      "System sans at heavy weights, tabular numerals for every time value."
+    ],
+    "rules": [
+      {
+        "name": "The Signal Lamp Rule",
+        "body": "Green, red and blue mean Available, Busy and Focus. Never use them decoratively; red also means destructive or error, green also means success.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tint, Don’t Fill Rule",
+        "body": "Outside the status tiles and the primary button, a signal color appears as a tint mixed into graphite (14 to 30%) with a 45% border, not as a solid fill.",
+        "section": "colors"
+      },
+      {
+        "name": "The Dial Points Blue Rule",
+        "body": "Whatever the dial will act on is marked in Focus Blue: border plus a 15 to 20% tint.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Time Rule",
+        "body": "Every clock, countdown, duration and scrubber time uses font-variant-numeric: tabular-nums so digits never jitter.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Line Rule",
+        "body": "Titles and summaries that may run long stay on one line: ellipsis in lists, a slow pan (ScrollText) where the full text matters.",
+        "section": "typography"
+      }
+    ],
+    "dos": [
+      "Do mirror every physical preset with a flush top tab and flash it on press.",
+      "Do mark the dial’s current target in Focus Blue (border plus tint).",
+      "Do keep persistent and interactive UI in the bottom band or the left side.",
+      "Do use tabular numerals for every time value.",
+      "Do give every button the 0.96 press-shrink.",
+      "Do honor prefers-reduced-motion for continuous motion such as the text pan."
+    ],
+    "donts": [
+      "Don’t place interactive controls in the top-right corner; the dial and bridgething’s toasts own it.",
+      "Don’t use Go Green, Stop Red or Focus Blue for anything that doesn’t carry their meaning.",
+      "Don’t wrap titles or issue summaries; a wrap pushes actions into the dock.",
+      "Don’t add a light theme or responsive breakpoints; the screen is fixed dark 800x480.",
+      "Don’t use translucent edge colors outside the now-playing player."
+    ]
+  }
+}
