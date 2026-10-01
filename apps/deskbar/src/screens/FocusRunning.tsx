@@ -72,7 +72,10 @@ export function FocusRunning({
         {issueKey && <ScrollText issueKey={issueKey} text={issueSummary ?? ''} className="issue-tag focus-issue" />}
         {totalS != null && (
           <div className="progress-track">
-            <div className="progress-fill" style={{ width: `${Math.min(1, Math.max(0, elapsedS / totalS)) * 100}%` }} />
+            <div
+              className="progress-fill"
+              style={{ transform: `scaleX(${Math.min(1, Math.max(0, elapsedS / totalS))})` }}
+            />
           </div>
         )}
         <div className="actions">

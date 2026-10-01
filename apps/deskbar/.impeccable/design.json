@@ -203,7 +203,7 @@
         "purpose": "Now-playing wash crossfades between tracks."
       },
       {
-        "name": "eq-bounce",
+        "name": "eq-pulse",
         "value": "900ms ease-in-out infinite, staggered -300ms",
         "purpose": "Equalizer bars while playing."
       },

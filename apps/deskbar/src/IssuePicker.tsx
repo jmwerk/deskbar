@@ -41,7 +41,9 @@ export function IssuePicker({
         setIssues(loaded);
         onSelect(defaultIssue(loaded, preferredKey));
       })
-      .catch(err => setError(err instanceof JiraError ? err.message : 'Could not load Jira issues'));
+      .catch(err =>
+        setError(`Couldn't load your Jira issues: ${err instanceof JiraError ? err.message : 'unknown error'}`),
+      );
   }, [config, preferredKey, onSelect]);
 
   useEffect(() => {

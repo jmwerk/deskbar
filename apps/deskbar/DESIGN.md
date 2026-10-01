@@ -206,8 +206,9 @@ into graphite (14 to 30%) with a 45% border, not as a solid fill.
 **The Dial Points Blue Rule.** Whatever the dial will act on is marked in Focus Blue: a blue border plus a 15 to 20%
 tint, the same box on issue rows, ledger rows and the duration.
 
-**The Dark-On-Lamp Rule.** Text on a solid signal fill is Control Black. White on Go Green is about 2:1, and white on the
-red and blue fills sits under 4:1.
+**The Dark-On-Lamp Rule.** Text on a solid signal fill is Control Black: lit status tabs, the confirm Delete button,
+badges. White on Go Green is about 2:1, and white on the red and blue fills sits under 4:1. The one exception is the
+primary button's 20px/700 Off-White label on Focus Blue, which clears the 3:1 bar for large text.
 
 ## Typography
 

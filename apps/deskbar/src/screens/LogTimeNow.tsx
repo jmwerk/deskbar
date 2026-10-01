@@ -44,7 +44,7 @@ export function LogTimeNow({
         onQueued({ ...entry, loggedAt: Date.now() });
         return;
       }
-      setError(err instanceof JiraError ? err.message : 'Could not log time to Jira');
+      setError(`Couldn't log time to ${entry.issueKey}: ${err instanceof JiraError ? err.message : 'unknown error'}`);
       submittingRef.current = false;
       setBusy(false);
     }

@@ -36,7 +36,7 @@ export function TodayLedger({
         await onDelete(entry);
         onConfirmingChange(null);
       } catch (err) {
-        setError(err instanceof JiraError ? err.message : "Couldn't delete this from Jira");
+        setError(`Couldn't delete it from Jira: ${err instanceof JiraError ? err.message : 'unknown error'}`);
       } finally {
         setPendingId(null);
       }

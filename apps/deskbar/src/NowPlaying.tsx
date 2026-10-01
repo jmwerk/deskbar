@@ -65,7 +65,7 @@ function Scrubber({ player }: { player: Player }) {
     <div className="scrubber-block">
       <div className={`scrubber ${dragMs != null ? 'held' : ''}`}>
         <div className="progress-track">
-          <div className="progress-fill" style={{ width: `${pct}%` }} />
+          <div className="progress-fill" style={{ transform: `scaleX(${pct / 100})` }} />
         </div>
         <input
           type="range"
