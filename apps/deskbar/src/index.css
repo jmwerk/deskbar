@@ -156,6 +156,16 @@
   }
 }
 
+@keyframes mode-tap-fill {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -562,18 +572,31 @@
     color: var(--color-off-white);
   }
 
+  /* Same box at rest and dial-focused, so moving the dial here never shifts the row. */
   .duration-value {
+    padding: 4px 12px;
+    border-radius: 12px;
+    border: 1px solid transparent;
     font-size: 22px;
     font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    transition:
+      background 150ms ease,
+      border-color 150ms ease,
+      color 150ms ease;
   }
 
-  /* A subtle echo of .issue-row.selected's accent color, so both halves of
-     the screen use the same color to say "the dial is currently pointed at me". */
+  /* Matches .issue-row.selected: the dial's target always wears the same blue. */
   .duration-value.dial-focused {
-    color: var(--color-accent);
-    text-decoration: underline;
-    text-decoration-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
-    text-underline-offset: 4px;
+    border-color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 15%, var(--color-panel));
+    color: var(--color-off-white);
+  }
+
+  .dial-hint {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-muted);
   }
 
   .btn-toggle {
@@ -639,7 +662,8 @@
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   }
 
-  .issue-row.selected {
+  .issue-row.selected,
+  .history-row.selected {
     border-color: var(--color-accent);
     background: color-mix(in srgb, var(--color-accent) 15%, var(--color-panel));
   }
@@ -698,6 +722,47 @@
     background: color-mix(in srgb, var(--color-busy) 14%, var(--color-panel));
     border: 1px solid color-mix(in srgb, var(--color-busy) 45%, var(--color-edge));
     color: var(--color-busy);
+  }
+
+  /* Names the physical button that does the same thing, styled like a keycap; inherits its color. */
+  .key-cap {
+    padding: 2px 7px;
+    border-radius: 6px;
+    border: 1px solid color-mix(in srgb, currentColor 40%, transparent);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    opacity: 0.8;
+  }
+
+  .btn-with-key {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  /* The m tap was heard: the button fills over the daemon's go-home window, then the session ends. */
+  .btn-ending {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .btn-ending::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: color-mix(in srgb, var(--color-busy) 28%, transparent);
+    z-index: -1;
+    transform-origin: left;
+    animation: mode-tap-fill 1500ms linear forwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn-ending::before {
+      animation: none;
+    }
   }
 
   /* Focus running — active countdown screen shown while a focus session is currently in progress */
@@ -1011,17 +1076,6 @@
 
   .receipt-undo:disabled {
     opacity: 0.6;
-  }
-
-  /* Names the physical button that also undoes, styled like a keycap. */
-  .receipt-key {
-    padding: 2px 7px;
-    border-radius: 6px;
-    border: 1px solid rgb(255 255 255 / 0.28);
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: 0.04em;
-    color: rgb(245 246 247 / 0.72);
   }
 
   /* The undo window running out, truthfully: it lasts exactly as long as the receipt does. */

@@ -1,6 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
-import { adjustedRunningMinutes, useIdle, useKeydown, useRotaryStep } from './physicalControls';
+import {
+  adjustedRunningMinutes,
+  MODE_TAP_SETTLE_MS,
+  useIdle,
+  useKeydown,
+  useModeTap,
+  useRotaryStep,
+} from './physicalControls';
 
 function wheel(deltaX: number, deltaY = 0) {
   window.dispatchEvent(new WheelEvent('wheel', { deltaX, deltaY, cancelable: true }));
@@ -178,5 +185,65 @@ describe('adjustedRunningMinutes', () => {
     // 20 minutes in, a 25 minute session shortened by 15 would otherwise end immediately.
     expect(adjustedRunningMinutes(25, -15, 20 * 60)).toBe(21);
     expect(adjustedRunningMinutes(25, -15, 20 * 60 + 10)).toBe(22);
+  });
+});
+
+describe('useModeTap', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  // Timestamps mirror the device log: a tap is ~220ms down to up; a hold repeats every ~26ms.
+  function key(type: 'keydown' | 'keyup', at: number, repeat = false) {
+    const e = new KeyboardEvent(type, { key: 'm', repeat });
+    Object.defineProperty(e, 'timeStamp', { value: at });
+    act(() => {
+      window.dispatchEvent(e);
+    });
+  }
+
+  it('fires once for a lone tap, after the go-home window passes', () => {
+    const onTap = vi.fn();
+    const { result } = renderHook(() => useModeTap(onTap));
+    key('keydown', 1000);
+    key('keyup', 1220);
+    expect(result.current).toBe(true);
+    expect(onTap).not.toHaveBeenCalled();
+    act(() => vi.advanceTimersByTime(MODE_TAP_SETTLE_MS));
+    expect(onTap).toHaveBeenCalledOnce();
+    expect(result.current).toBe(false);
+  });
+
+  it('never fires for the five-press go-home gesture', () => {
+    const onTap = vi.fn();
+    renderHook(() => useModeTap(onTap));
+    for (let i = 0; i < 5; i++) {
+      key('keydown', 1000 + i * 250);
+      key('keyup', 1100 + i * 250);
+      act(() => vi.advanceTimersByTime(250));
+    }
+    act(() => vi.advanceTimersByTime(MODE_TAP_SETTLE_MS * 2));
+    expect(onTap).not.toHaveBeenCalled();
+  });
+
+  it('never fires for a hold, which autorepeats', () => {
+    const onTap = vi.fn();
+    renderHook(() => useModeTap(onTap));
+    key('keydown', 1000);
+    for (let t = 1400; t < 2300; t += 26) key('keydown', t, true);
+    key('keyup', 2300);
+    act(() => vi.advanceTimersByTime(MODE_TAP_SETTLE_MS * 2));
+    expect(onTap).not.toHaveBeenCalled();
+  });
+
+  it('cancels a pending tap when m is pressed again', () => {
+    const onTap = vi.fn();
+    renderHook(() => useModeTap(onTap));
+    key('keydown', 1000);
+    key('keyup', 1200);
+    act(() => vi.advanceTimersByTime(900));
+    key('keydown', 2100);
+    key('keyup', 2300);
+    act(() => vi.advanceTimersByTime(MODE_TAP_SETTLE_MS * 2));
+    expect(onTap).not.toHaveBeenCalled();
   });
 });

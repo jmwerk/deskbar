@@ -189,25 +189,30 @@ via the shared `useKeydown`/`useRotaryStep` hooks in
 `src/physicalControls.ts`:
 
 - **Presets 1-3** pick a status on Home; **preset 4** opens Log Time Now
-  (once Jira is configured). **Presets 1-4** pick a duration preset on
-  Focus Setup and Log Time Now.
+  (once Jira is configured). **Presets 1-4** nudge the duration on
+  Focus Setup, Log Time Now and Focus Running.
 - **Dial** scrolls the issue list on Focus Setup/Log Time Now
-  (auto-scrolling to keep the selection visible).
+  (auto-scrolling to keep the selection visible). Turning up past the
+  first issue moves the dial to the duration (±1 min per detent);
+  pressing the dial there hands it back to the list.
+- **Dial push-button** opens Today from Home. On Today the **dial**
+  walks the entries, a **press** asks to delete the highlighted one, a
+  second press deletes it, and **Back** cancels.
 - **Back / Escape** cancels on Focus Setup/Log Time Now, and backs out of
   Today (or dismisses its delete-confirm step first). On Focus Running it
-  **toggles pause/resume** instead of ending the session. Ending it is a
-  separate touch button, available from either state.
+  **toggles pause/resume** instead of ending the session. Right after
+  time is logged, Back undoes it from the receipt.
+- **Mode ("m")**, one tap, ends a running focus session. The End Focus
+  button fills while Deskbar waits out the daemon's go-home window
+  (~1.5s), so pressing M again or holding it to go home never ends the
+  session. M does nothing on any other screen.
 - **Now playing** (opened from Home's dock): **presets 1-4** are
   previous, play/pause, next and like; the **dial** seeks 10s per
   detent; the **dial push-button** plays/pauses; **Back** closes it.
   Home's status presets are inactive while it's open.
-- **Dial push-button** starts a focus session on Focus Setup (both
-  `Enter` and `Space` are bound; see [HARDWARE.md](HARDWARE.md) for
-  why).
-- The **Today** summary and history rows are touch-only; no physical
-  binding, since Home's presets and dial are already spoken for.
-- **Mode ("m") is intentionally left unbound.** See
-  [HARDWARE.md](HARDWARE.md), and don't rebind it.
+- **Dial push-button** starts a focus session on Focus Setup and logs
+  on Log Time Now (both `Enter` and `Space` are bound; see
+  [HARDWARE.md](HARDWARE.md) for why).
 
 [HARDWARE.md](HARDWARE.md) is the canonical place for what's confirmed
 about the hardware itself versus guessed (the dial push-button's keycode,

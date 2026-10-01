@@ -63,7 +63,7 @@ export function Receipt({
         <span className="receipt-today">Today {formatDuration(todaySeconds)}</span>
         <button className="receipt-undo" disabled={undoing} onClick={undo}>
           {undoing ? 'Removing…' : 'Undo'}
-          {!undoing && backUndoes && <span className="receipt-key">Back</span>}
+          {!undoing && backUndoes && <span className="key-cap">Back</span>}
         </button>
       </div>
       <div className={`receipt-drain ${undoing ? 'receipt-drain-held' : ''}`} aria-hidden="true" />

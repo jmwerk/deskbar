@@ -62,14 +62,16 @@ export function Home({
     useCallback(
       e => {
         // Presets 1-3 mirror the three tiles below; preset 4 opens Log Time Now (needs Jira).
+        // The dial press opens Today, the same place the dock's Today pill goes.
         if (e.key === '1') onSelect('available');
         else if (e.key === '2') onSelect('busy');
         else if (e.key === '3') onSelect('focus');
         else if (e.key === '4' && jiraConfigured) onLogNow();
+        else if ((e.key === 'Enter' || e.key === ' ') && jiraConfigured) onOpenHistory();
         else return;
         e.preventDefault();
       },
-      [onSelect, onLogNow, jiraConfigured],
+      [onSelect, onLogNow, onOpenHistory, jiraConfigured],
     ),
     presetsLive,
   );

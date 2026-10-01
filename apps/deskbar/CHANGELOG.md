@@ -4,6 +4,8 @@
 
 Logging time, from a focus session or Log Time Now, now shows a receipt with what was logged, where, and today's new total, plus 8 seconds to undo it by touch or with Back. The Today total in the dock counts up as the time lands. Today always matches what Jira received: sessions under a minute log nothing instead of a phantom 1m. The issue list preselects the issue you last logged to and puts "No issue" last, so the dial no longer skips the first row. Log Time Now queues the worklog to retry when Jira is unreachable, and the -15m preset can no longer end a running session.
 
+The main paths no longer need the touchscreen. A single tap of M ends a focus session; holding M or pressing it five times still goes home without ending it. On Focus Setup and Log Time Now, turning the dial up past the first issue moves it to the duration, and pressing it hands it back. The dial press on Home opens Today, where the dial picks an entry and pressing twice deletes it.
+
 ## 0.7.1
 
 A long Jira issue summary no longer pushes the focus timer's buttons into the now-playing bar. The issue now stays on one line and scrolls when it's too long to fit.

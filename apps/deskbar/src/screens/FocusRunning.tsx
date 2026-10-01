@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { DurationHintBar } from '../DurationPicker';
 import { formatClock } from '../format';
 import { NowPlayingChip, NowPlayingSheet } from '../NowPlaying';
-import { DURATION_STEPS, useKeydown } from '../physicalControls';
+import { DURATION_STEPS, useKeydown, useModeTap } from '../physicalControls';
 import { ScrollText } from '../ScrollText';
 import type { Player } from '../usePlayer';
 
@@ -33,6 +33,9 @@ export function FocusRunning({
   const [playerOpen, setPlayerOpen] = useState(false);
   const closePlayer = useCallback(() => setPlayerOpen(false), []);
   const { track, toggle: togglePlayback } = player;
+
+  // A lone m tap ends the session; the daemon's own go-home gestures on m never do.
+  const ending = useModeTap(onEnd);
 
   // Back pauses/resumes, not ends; End Focus still exits. Duration buttons extend/shorten while running.
   useKeydown(
@@ -81,8 +84,9 @@ export function FocusRunning({
           <button className="btn-secondary" onClick={onTogglePause}>
             {paused ? 'Resume' : 'Pause'}
           </button>
-          <button className="btn-danger" onClick={onEnd}>
-            End Focus
+          <button className={`btn-danger btn-with-key ${ending ? 'btn-ending' : ''}`} onClick={onEnd}>
+            {ending ? 'Ending…' : 'End Focus'}
+            <span className="key-cap">M</span>
           </button>
         </div>
       </div>

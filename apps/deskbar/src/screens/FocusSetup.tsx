@@ -22,6 +22,10 @@ export function FocusSetup({
   // Dial is one shared input: route by last-touched section, not both; issue list is default
   // when it exists, otherwise duration is the only thing left for the dial to control.
   const [dialTarget, setDialTarget] = useState<'duration' | 'issue'>(config.jira ? 'issue' : 'duration');
+  const listOwnsDial = !!config.jira;
+  const dialToDuration = useCallback(() => {
+    if (!unlimited) setDialTarget('duration');
+  }, [unlimited]);
 
   useKeydown(
     useCallback(
@@ -33,14 +37,15 @@ export function FocusSetup({
         } else if (e.key === 'Escape') {
           onCancel();
         } else if (e.key === 'Enter' || e.key === ' ') {
-          // Dial-press key is undocumented (bind both); preventDefault avoids re-triggering focus.
-          onStart(unlimited ? null : minutes * 60, selected);
+          // Pressing while the dial is on the duration settles it and hands the dial back to the list.
+          if (dialTarget === 'duration' && listOwnsDial) setDialTarget('issue');
+          else onStart(unlimited ? null : minutes * 60, selected);
         } else {
           return;
         }
         e.preventDefault();
       },
-      [unlimited, minutes, selected, onCancel, onStart],
+      [unlimited, minutes, selected, onCancel, onStart, dialTarget, listOwnsDial],
     ),
   );
 
@@ -66,6 +71,7 @@ export function FocusSetup({
         allowUnlimited
         onToggleUnlimited={() => setUnlimited(u => !u)}
         dialFocused={dialTarget === 'duration'}
+        dialHint={listOwnsDial ? 'Press to pick the issue' : undefined}
       />
 
       {config.jira && (
@@ -78,6 +84,7 @@ export function FocusSetup({
             allowNone
             dialEnabled={dialTarget === 'issue'}
             preferredKey={lastIssueKey}
+            onDialPastTop={dialToDuration}
           />
         </div>
       )}

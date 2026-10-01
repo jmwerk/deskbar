@@ -25,6 +25,7 @@ export function DurationRow({
   allowUnlimited,
   onToggleUnlimited,
   dialFocused,
+  dialHint,
 }: {
   minutes: number;
   unlimited: boolean;
@@ -32,6 +33,8 @@ export function DurationRow({
   onToggleUnlimited?: () => void;
   /** True while the physical dial is currently routed to this value, not the issue list. */
   dialFocused?: boolean;
+  /** How to hand the dial back, shown only while the dial is on this value. */
+  dialHint?: string;
 }) {
   return (
     <div className="row">
@@ -39,6 +42,7 @@ export function DurationRow({
       <span className={`duration-value ${dialFocused ? 'dial-focused' : ''}`}>
         {unlimited ? 'Unlimited' : `${minutes} min`}
       </span>
+      {dialFocused && dialHint && <span className="dial-hint">{dialHint}</span>}
       {allowUnlimited && (
         <button className="btn-toggle" onClick={onToggleUnlimited}>
           {unlimited ? 'Set duration' : 'Unlimited'}

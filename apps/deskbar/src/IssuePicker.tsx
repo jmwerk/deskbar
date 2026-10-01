@@ -12,6 +12,7 @@ export function IssuePicker({
   allowNone = true,
   dialEnabled = true,
   preferredKey,
+  onDialPastTop,
 }: {
   config: Config;
   selected: JiraIssue | undefined;
@@ -21,6 +22,8 @@ export function IssuePicker({
   dialEnabled?: boolean;
   /** Preselected once issues load, when it's in the list; otherwise the first issue is. */
   preferredKey?: string;
+  /** Turning up past the first row hands the dial to whatever sits above the list. */
+  onDialPastTop?: () => void;
 }) {
   const [issues, setIssues] = useState<JiraIssue[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -80,11 +83,15 @@ export function IssuePicker({
   const onDialStep = useCallback(
     (direction: 1 | -1) => {
       const currentKey = pendingKeyRef.current ? pendingKeyRef.current.key : selected?.key;
+      if (direction === -1 && onDialPastTop && pickList.findIndex(i => i?.key === currentKey) <= 0) {
+        onDialPastTop();
+        return;
+      }
       const next = pickList[nextDialIndex(pickList, currentKey, direction)];
       pendingKeyRef.current = { key: next?.key };
       onSelect(next);
     },
-    [pickList, selected, onSelect],
+    [pickList, selected, onSelect, onDialPastTop],
   );
 
   // A chip that hides the selected issue moves the selection into what's still visible.

@@ -28,6 +28,7 @@ export function LogTimeNow({
   const submittingRef = useRef(false);
   // Shared dial routes to whichever section was last touched; defaults to issue list.
   const [dialTarget, setDialTarget] = useState<'duration' | 'issue'>('issue');
+  const dialToDuration = useCallback(() => setDialTarget('duration'), []);
 
   const submit = useCallback(async () => {
     if (!config.jira || !selected || submittingRef.current) return;
@@ -58,13 +59,15 @@ export function LogTimeNow({
         } else if (e.key === 'Escape') {
           onCancel();
         } else if (e.key === 'Enter' || e.key === ' ') {
-          void submit();
+          // Pressing while the dial is on the duration settles it and hands the dial back to the list.
+          if (dialTarget === 'duration') setDialTarget('issue');
+          else void submit();
         } else {
           return;
         }
         e.preventDefault();
       },
-      [onCancel, submit],
+      [onCancel, submit, dialTarget],
     ),
   );
 
@@ -84,7 +87,12 @@ export function LogTimeNow({
       <DurationHintBar unlimited={false} onStep={delta => setMinutes(m => clampMinutes(m + delta))} />
       <h1>Log Time</h1>
 
-      <DurationRow minutes={minutes} unlimited={false} dialFocused={dialTarget === 'duration'} />
+      <DurationRow
+        minutes={minutes}
+        unlimited={false}
+        dialFocused={dialTarget === 'duration'}
+        dialHint="Press to pick the issue"
+      />
 
       <div className="issue-picker" onPointerDown={() => setDialTarget('issue')}>
         <label>Log time to</label>
@@ -95,6 +103,7 @@ export function LogTimeNow({
           allowNone={false}
           dialEnabled={dialTarget === 'issue'}
           preferredKey={lastIssueKey}
+          onDialPastTop={dialToDuration}
         />
         {error && <div className="hint error">{error}</div>}
       </div>

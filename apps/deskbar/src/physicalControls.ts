@@ -61,9 +61,71 @@ export function useIdle(timeoutMs: number): [idle: boolean, sleepNow: () => void
   return [idle, sleepNow];
 }
 
+// The daemon goes home on 5 m presses within 1.5s or on a hold; a hold autorepeats ~400ms in.
+const MODE_TAP_MAX_MS = 350;
+export const MODE_TAP_SETTLE_MS = 1500;
+
+/**
+ * Fires onTap for one deliberate m tap, never for the daemon's go-home gestures: it waits out the
+ * daemon's window, and any repeat, long press, or further m press inside it cancels. True while
+ * waiting, so the screen can show the tap was heard.
+ */
+export function useModeTap(onTap: () => void, enabled = true): boolean {
+  const [pending, setPending] = useState(false);
+  const onTapRef = useRef(onTap);
+  useEffect(() => {
+    onTapRef.current = onTap;
+  }, [onTap]);
+
+  useEffect(() => {
+    if (!enabled) return;
+    let downAt: number | null = null;
+    let prevDownAt = -Infinity;
+    let repeated = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const cancel = () => {
+      clearTimeout(timer);
+      timer = undefined;
+      setPending(false);
+    };
+    const onDown = (e: KeyboardEvent) => {
+      if (e.key !== 'm') return;
+      if (e.repeat) {
+        repeated = true;
+        return;
+      }
+      cancel();
+      prevDownAt = downAt ?? prevDownAt;
+      downAt = e.timeStamp;
+      repeated = false;
+    };
+    const onUp = (e: KeyboardEvent) => {
+      if (e.key !== 'm' || downAt === null) return;
+      const short = e.timeStamp - downAt <= MODE_TAP_MAX_MS;
+      const alone = downAt - prevDownAt > MODE_TAP_SETTLE_MS;
+      if (repeated || !short || !alone) return;
+      setPending(true);
+      timer = setTimeout(() => {
+        timer = undefined;
+        setPending(false);
+        onTapRef.current();
+      }, MODE_TAP_SETTLE_MS);
+    };
+    window.addEventListener('keydown', onDown);
+    window.addEventListener('keyup', onUp);
+    return () => {
+      cancel();
+      window.removeEventListener('keydown', onDown);
+      window.removeEventListener('keyup', onUp);
+    };
+  }, [enabled]);
+
+  return pending;
+}
+
 const HINT_KEYS = ['1', '2', '3', '4'];
 
-// Index of the pressed hint key, held flashMs to flash the hint; auto-clears (no keyup confirmed).
+// Index of the pressed hint key, held flashMs to flash the hint, so a quick tap still shows.
 export function useKeyFlash(enabled = true, flashMs = 180): number | null {
   const [pressed, setPressed] = useState<number | null>(null);
   useEffect(() => {

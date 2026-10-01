@@ -11,9 +11,9 @@ touching `src/physicalControls.ts` or any screen's key bindings.
 
 Two facts worth repeating here since getting them wrong breaks the app on real hardware:
 
-- **`m` is never bound.** The daemon's own go-home gesture owns it exclusively; Deskbar tried
-  binding it once and a single keydown reached the app before the daemon's 5-press threshold,
-  causing an unwanted focus session. Leave it unbound.
+- **`m` is never bound directly.** The daemon goes home on 5 presses or a hold, and every keydown
+  reaches the app first; binding it once started unwanted focus sessions. The only sanctioned use
+  is `useModeTap`, which acts on a lone tap after the daemon's window. See HARDWARE.md.
 - **Both `Enter` and `' '` fire the dial push-button.** Bind both, not just one — confirmed on
   real hardware, not documented by bridgething itself.
 
