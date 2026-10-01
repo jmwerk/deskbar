@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import type { Config } from '../config';
-import { DurationHintBar, DurationRow } from '../DurationPicker';
+import { DurationHintBar, DurationSentence } from '../DurationPicker';
 import type { NewHistoryEntry } from '../history';
 import { IssuePicker } from '../IssuePicker';
 import { isTransientJiraError, JiraError, logWork, type JiraIssue } from '../jira';
@@ -85,17 +85,16 @@ export function LogTimeNow({
       }}
     >
       <DurationHintBar unlimited={false} onStep={delta => setMinutes(m => clampMinutes(m + delta))} />
-      <h1>Log Time</h1>
-
-      <DurationRow
+      <DurationSentence
+        lead="Log"
+        tail="to"
         minutes={minutes}
         unlimited={false}
         dialFocused={dialTarget === 'duration'}
-        dialHint="Press to pick the issue"
+        dialHint="Press when done"
       />
 
       <div className="issue-picker" onPointerDown={() => setDialTarget('issue')}>
-        <label>Log time to</label>
         <IssuePicker
           config={config}
           selected={selected}
@@ -108,9 +107,10 @@ export function LogTimeNow({
         {error && <div className="hint error">{error}</div>}
       </div>
 
-      <div className="actions">
-        <button className="btn-secondary" onClick={onCancel}>
+      <div className="actions actions-weighted">
+        <button className="btn-secondary btn-with-key" onClick={onCancel}>
           Cancel
+          <span className="key-cap">Back</span>
         </button>
         <button className="btn-primary" disabled={!selected || busy} onClick={() => void submit()}>
           {busy ? 'Logging…' : 'Log Time'}

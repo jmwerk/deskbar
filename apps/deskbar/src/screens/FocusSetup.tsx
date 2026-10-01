@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import type { Config } from '../config';
-import { DurationHintBar, DurationRow } from '../DurationPicker';
+import { DurationHintBar, DurationSentence } from '../DurationPicker';
 import { IssuePicker } from '../IssuePicker';
 import type { JiraIssue } from '../jira';
 import { clampMinutes, DURATION_STEPS, useKeydown, useRotaryStep } from '../physicalControls';
@@ -63,20 +63,19 @@ export function FocusSetup({
       }}
     >
       <DurationHintBar unlimited={unlimited} onStep={delta => setMinutes(m => clampMinutes(m + delta))} />
-      <h1>Start Focus</h1>
-
-      <DurationRow
+      <DurationSentence
+        lead="Focus for"
+        tail={config.jira ? 'on' : undefined}
         minutes={minutes}
         unlimited={unlimited}
         allowUnlimited
         onToggleUnlimited={() => setUnlimited(u => !u)}
         dialFocused={dialTarget === 'duration'}
-        dialHint={listOwnsDial ? 'Press to pick the issue' : undefined}
+        dialHint={listOwnsDial ? 'Press when done' : undefined}
       />
 
       {config.jira && (
         <div className="issue-picker" onPointerDown={() => setDialTarget('issue')}>
-          <label>Log time to</label>
           <IssuePicker
             config={config}
             selected={selected}
@@ -89,9 +88,10 @@ export function FocusSetup({
         </div>
       )}
 
-      <div className="actions">
-        <button className="btn-secondary" onClick={onCancel}>
+      <div className="actions actions-weighted">
+        <button className="btn-secondary btn-with-key" onClick={onCancel}>
           Cancel
+          <span className="key-cap">Back</span>
         </button>
         <button className="btn-primary" onClick={() => onStart(unlimited ? null : minutes * 60, selected)}>
           Start

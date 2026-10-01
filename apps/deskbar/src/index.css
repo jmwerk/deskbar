@@ -86,12 +86,6 @@
     transform: scale(0.96);
     filter: brightness(0.9);
   }
-
-  label {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--color-muted);
-  }
 }
 
 @keyframes fade-in {
@@ -536,9 +530,23 @@
 
   /* Focus setup — duration picker and Jira issue selection screen shown before starting a session */
 
-  .focus-setup h1 {
+  /* One line reads as a sentence into the list below it: "Focus for 25 min on". */
+  .setup-sentence {
+    margin-bottom: 12px;
+  }
+
+  .sentence {
+    margin: 0;
     font-size: 26px;
-    margin: 0 0 12px;
+    font-weight: 800;
+  }
+
+  /* Negative margin eats most of the padding, so at rest the value reads as plain words in the line. */
+  .sentence .duration-value {
+    padding: 2px 10px;
+    margin: 0 -3px;
+    font-size: inherit;
+    font-weight: inherit;
   }
 
   .row {
@@ -717,6 +725,11 @@
     /* Full width regardless of the parent's align-items (Focus Running centers its other children,
        which would shrink this to fit content instead of letting the flex:1 buttons split evenly). */
     align-self: stretch;
+  }
+
+  /* Setup screens: the primary action takes two thirds, so it's the obvious target. */
+  .actions-weighted .btn-primary {
+    flex: 2;
   }
 
   .btn-primary,

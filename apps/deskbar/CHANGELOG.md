@@ -6,6 +6,8 @@ Logging time, from a focus session or Log Time Now, now shows a receipt with wha
 
 Home now leads with the time you've logged today, when you last logged, and every worklog from today, each deletable in place, so the separate Today screen is gone. Status moved into the preset tabs along the top, where the current one lights up, and the dimmed clock shows your status and today's total.
 
+Focus Setup and Log Time Now open with one line, "Focus for 25 min on" or "Log 25 min to", in place of a heading and two labels, so twice as many issues fit. Start and Log Time take two thirds of the button row.
+
 The main paths no longer need the touchscreen. A single tap of M ends a focus session; holding M or pressing it five times still goes home without ending it. On Focus Setup and Log Time Now, turning the dial up past the first issue moves it to the duration, and pressing it hands it back. On Home the dial picks a worklog and pressing twice deletes it.
 
 ## 0.7.1

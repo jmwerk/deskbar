@@ -307,10 +307,13 @@ graphite box says what to press next.
 - **Content:** a bold Focus Blue issue key, then a Muted Slate one-line summary; ledger rows end with a tabular duration.
 - **Selected:** Focus Blue border, 15% blue tint.
 
-### Duration
+### Setup Sentence
 
-The duration value sits in a 12px box that is invisible at rest and becomes the dial-target box (blue border, 15% tint)
-when the dial is on it, so the row never shifts. A short Muted Slate hint beside it says how to hand the dial back.
+Focus Setup and Log Time open with one 26px/800 line that reads into the issue list below it: "Focus for 25 min on",
+"Log 25 min to". The minutes sit in a 12px box that is invisible at rest and becomes the dial-target box (blue border,
+15% tint) when the dial is on it, so the line never shifts. While the dial is on the minutes, a short Muted Slate "Press when done" follows the
+Unlimited toggle, short enough to keep the line clear of the dial's corner. Below the list, Cancel (with a
+Back keycap) takes a third of the action row and the primary action two thirds.
 
 ### Chips
 

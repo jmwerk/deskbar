@@ -19,7 +19,10 @@ export function DurationHintBar({ unlimited, onStep }: { unlimited: boolean; onS
   );
 }
 
-export function DurationRow({
+/** The screen's heading as one sentence, "Focus for 25 min on", leading into the issue list below. */
+export function DurationSentence({
+  lead,
+  tail,
   minutes,
   unlimited,
   allowUnlimited,
@@ -27,6 +30,9 @@ export function DurationRow({
   dialFocused,
   dialHint,
 }: {
+  lead: string;
+  /** Omitted when there's no issue list for the sentence to lead into. */
+  tail?: string;
   minutes: number;
   unlimited: boolean;
   allowUnlimited?: boolean;
@@ -37,17 +43,22 @@ export function DurationRow({
   dialHint?: string;
 }) {
   return (
-    <div className="row">
-      <label>Duration</label>
-      <span className={`duration-value ${dialFocused ? 'dial-focused' : ''}`}>
-        {unlimited ? 'Unlimited' : `${minutes} min`}
-      </span>
-      {dialFocused && dialHint && <span className="dial-hint">{dialHint}</span>}
+    <div className="row setup-sentence">
+      <h1 className="sentence">
+        {lead}{' '}
+        <span className={`duration-value ${dialFocused ? 'dial-focused' : ''}`}>
+          {unlimited ? 'no limit' : `${minutes} min`}
+        </span>
+        {tail && ` ${tail}`}
+      </h1>
       {allowUnlimited && (
-        <button className="btn-toggle" onClick={onToggleUnlimited}>
+        // Stays mounted and keeps the dial where it is: the screen's pointerdown routes the dial to the
+        // duration, and swapping this out mid-tap would swallow the click.
+        <button className="btn-toggle" onPointerDown={e => e.stopPropagation()} onClick={onToggleUnlimited}>
           {unlimited ? 'Set duration' : 'Unlimited'}
         </button>
       )}
+      {dialFocused && dialHint && <span className="dial-hint">{dialHint}</span>}
     </div>
   );
 }
