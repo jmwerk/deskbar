@@ -10,11 +10,11 @@ import {
   totalSeconds,
   type HistoryEntry,
 } from './history';
-import { deleteWorklog, logWork } from './jira';
-import { clampMinutes } from './physicalControls';
+import { deleteWorklog, logWork, MIN_WORKLOG_S } from './jira';
+import { adjustedRunningMinutes } from './physicalControls';
 import { loadPendingWorklogs, queuePendingWorklog, removePendingWorklog } from './retryQueue';
 import { activeElapsedS, loadSession, saveSession, type SessionState } from './session';
-import { Toast } from './Toast';
+import { Toast, type ToastKind } from './Toast';
 import { usePlayer } from './usePlayer';
 import { fireFocusWebhook } from './webhook';
 import { FocusRunning } from './screens/FocusRunning';
@@ -28,12 +28,13 @@ export default function App() {
   const [session, setSession] = useState<SessionState | null>(null);
   const [screen, setScreen] = useState<'home' | 'focusSetup' | 'logTime' | 'history'>('home');
   const [now, setNow] = useState(() => Date.now());
-  const [toast, setToast] = useState<{ message: string; kind: 'success' | 'error' } | null>(null);
+  const [toast, setToast] = useState<{ message: string; kind: ToastKind } | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const player = usePlayer(client);
 
   const showError = useCallback((message: string) => setToast({ message, kind: 'error' }), []);
   const showSuccess = useCallback((message: string) => setToast({ message, kind: 'success' }), []);
+  const showInfo = useCallback((message: string) => setToast({ message, kind: 'info' }), []);
 
   useEffect(() => {
     if (!toast) return;
@@ -55,6 +56,9 @@ export default function App() {
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
+
+  // History is newest first, so this is the issue most recently logged to.
+  const lastIssueKey = history[0]?.issueKey;
 
   const todaySeconds = useMemo(
     () => totalSeconds(todayEntries(history, now, config.timezone)),
@@ -86,21 +90,21 @@ export default function App() {
     }
   }, [session, update]);
 
-  // Clamp to elapsed time; going lower fires auto-end early, logging a short total.
   const extendFocus = useCallback(
     (deltaMinutes: number) => {
       if (!session?.focus || session.focus.durationS == null) return;
-      const currentMinutes = session.focus.durationS / 60;
-      const elapsedMinutes = elapsedS / 60;
-      const nextMinutes = Math.max(clampMinutes(currentMinutes + deltaMinutes), elapsedMinutes);
+      const nextMinutes = adjustedRunningMinutes(session.focus.durationS / 60, deltaMinutes, elapsedS);
       update({ status: 'focus', focus: { ...session.focus, durationS: Math.round(nextMinutes * 60) } });
     },
     [session, elapsedS, update],
   );
 
+  // Keyed by start time: a double tap, or a tap racing auto-end, must not log one session twice.
+  const endedStartRef = useRef<number | null>(null);
   const endFocus = useCallback(
     async (completed: boolean) => {
-      if (!session?.focus) return;
+      if (!session?.focus || endedStartRef.current === session.focus.startedAt) return;
+      endedStartRef.current = session.focus.startedAt;
       const { durationS, issueKey, issueSummary } = session.focus;
       const finalElapsedS = completed && durationS != null ? durationS : activeElapsedS(session.focus, now);
       update({ status: 'available' });
@@ -110,15 +114,16 @@ export default function App() {
       });
       if (!webhookOk) showError('Focus automation webhook failed to fire.');
       if (config.jira && issueKey) {
+        if (finalElapsedS < MIN_WORKLOG_S) {
+          showInfo(`Under a minute, so nothing was logged to ${issueKey}.`);
+          return;
+        }
         try {
-          const { worklogId } = await logWork(config.jira, issueKey, finalElapsedS, 'Logged via Deskbar');
-          void appendHistoryEntry({
-            issueKey,
-            issueSummary,
-            seconds: finalElapsedS,
-            loggedAt: Date.now(),
-            worklogId,
-          }).then(setHistory);
+          const { worklogId, seconds } = await logWork(config.jira, issueKey, finalElapsedS, 'Logged via Deskbar');
+          void appendHistoryEntry({ issueKey, issueSummary, seconds, loggedAt: Date.now(), worklogId }).then(
+            setHistory,
+          );
+          showSuccess(`Logged ${formatDuration(seconds)} to ${issueKey}.`);
         } catch (err) {
           console.warn('[deskbar] failed to log work to Jira', err);
           showError(`Couldn't log time to ${issueKey} — the session still ended.`);
@@ -126,7 +131,7 @@ export default function App() {
         }
       }
     },
-    [session, now, config, update, showError],
+    [session, now, config, update, showError, showSuccess, showInfo],
   );
 
   // Auto-end at remainingS 0, skipped while paused; null remainingS is unlimited.
@@ -145,16 +150,16 @@ export default function App() {
     (async () => {
       for (const entry of await loadPendingWorklogs()) {
         try {
-          const { worklogId } = await logWork(jiraConfig, entry.issueKey, entry.seconds, 'Logged via Deskbar');
+          const { worklogId, seconds } = await logWork(jiraConfig, entry.issueKey, entry.seconds, 'Logged via Deskbar');
           await removePendingWorklog(entry.id);
           void appendHistoryEntry({
             issueKey: entry.issueKey,
             issueSummary: entry.issueSummary,
-            seconds: entry.seconds,
+            seconds,
             loggedAt: entry.createdAt,
             worklogId,
           }).then(setHistory);
-          showSuccess(`Recovered ${formatDuration(entry.seconds)} logged to ${entry.issueKey}.`);
+          showSuccess(`Recovered ${formatDuration(seconds)} logged to ${entry.issueKey}.`);
         } catch {
           // Still can't reach Jira — leave it queued for the next launch.
         }
@@ -188,6 +193,7 @@ export default function App() {
     content = (
       <FocusSetup
         config={config}
+        lastIssueKey={lastIssueKey}
         onCancel={() => setScreen('home')}
         onStart={async (durationS, issue) => {
           const focus = { startedAt: Date.now(), durationS, issueKey: issue?.key, issueSummary: issue?.summary };
@@ -205,10 +211,18 @@ export default function App() {
     content = (
       <LogTimeNow
         config={config}
+        lastIssueKey={lastIssueKey}
         onCancel={() => setScreen('home')}
         onLogged={entry => {
           void appendHistoryEntry(entry).then(setHistory);
           showSuccess(`Logged ${formatDuration(entry.seconds)} to ${entry.issueKey}.`);
+          setScreen('home');
+        }}
+        onQueued={entry => {
+          void queuePendingWorklog({ ...entry, createdAt: entry.loggedAt });
+          showError(
+            `Couldn't reach Jira. ${formatDuration(entry.seconds)} to ${entry.issueKey} will retry next launch.`,
+          );
           setScreen('home');
         }}
       />

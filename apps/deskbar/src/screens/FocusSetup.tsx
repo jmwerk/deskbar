@@ -7,10 +7,12 @@ import { clampMinutes, DURATION_STEPS, useKeydown, useRotaryStep } from '../phys
 
 export function FocusSetup({
   config,
+  lastIssueKey,
   onCancel,
   onStart,
 }: {
   config: Config;
+  lastIssueKey?: string;
   onCancel: () => void;
   onStart: (durationS: number | null, issue: JiraIssue | undefined) => void;
 }) {
@@ -75,6 +77,7 @@ export function FocusSetup({
             onSelect={setSelected}
             allowNone
             dialEnabled={dialTarget === 'issue'}
+            preferredKey={lastIssueKey}
           />
         </div>
       )}

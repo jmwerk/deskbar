@@ -1,40 +1,53 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { Config } from '../config';
 import { DurationHintBar, DurationRow } from '../DurationPicker';
 import type { NewHistoryEntry } from '../history';
 import { IssuePicker } from '../IssuePicker';
-import { JiraError, logWork, type JiraIssue } from '../jira';
+import { isTransientJiraError, JiraError, logWork, type JiraIssue } from '../jira';
 import { clampMinutes, DURATION_STEPS, useKeydown, useRotaryStep } from '../physicalControls';
 
 export function LogTimeNow({
   config,
+  lastIssueKey,
   onCancel,
   onLogged,
+  onQueued,
 }: {
   config: Config;
+  lastIssueKey?: string;
   onCancel: () => void;
   onLogged: (entry: NewHistoryEntry) => void;
+  /** Jira was unreachable, so the worklog was handed to the retry queue instead. */
+  onQueued: (entry: Omit<NewHistoryEntry, 'worklogId'>) => void;
 }) {
   const [minutes, setMinutes] = useState(config.defaultFocusMinutes);
   const [selected, setSelected] = useState<JiraIssue | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // A second dial press can land before the re-render that disables Log Time.
+  const submittingRef = useRef(false);
   // Shared dial routes to whichever section was last touched; defaults to issue list.
   const [dialTarget, setDialTarget] = useState<'duration' | 'issue'>('issue');
 
   const submit = useCallback(async () => {
-    if (!config.jira || !selected || busy) return;
+    if (!config.jira || !selected || submittingRef.current) return;
+    submittingRef.current = true;
     setBusy(true);
     setError(null);
+    const entry = { issueKey: selected.key, issueSummary: selected.summary, seconds: minutes * 60 };
     try {
-      const seconds = minutes * 60;
-      const { worklogId } = await logWork(config.jira, selected.key, seconds, 'Logged via Deskbar');
-      onLogged({ issueKey: selected.key, issueSummary: selected.summary, seconds, loggedAt: Date.now(), worklogId });
+      const { worklogId, seconds } = await logWork(config.jira, entry.issueKey, entry.seconds, 'Logged via Deskbar');
+      onLogged({ ...entry, seconds, loggedAt: Date.now(), worklogId });
     } catch (err) {
+      if (isTransientJiraError(err)) {
+        onQueued({ ...entry, loggedAt: Date.now() });
+        return;
+      }
       setError(err instanceof JiraError ? err.message : 'Could not log time to Jira');
+      submittingRef.current = false;
       setBusy(false);
     }
-  }, [config, selected, minutes, busy, onLogged]);
+  }, [config, selected, minutes, onLogged, onQueued]);
 
   useKeydown(
     useCallback(
@@ -81,6 +94,7 @@ export function LogTimeNow({
           onSelect={setSelected}
           allowNone={false}
           dialEnabled={dialTarget === 'issue'}
+          preferredKey={lastIssueKey}
         />
         {error && <div className="hint error">{error}</div>}
       </div>

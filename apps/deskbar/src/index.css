@@ -885,6 +885,12 @@
     border: 1px solid color-mix(in srgb, var(--color-available) 45%, var(--color-edge));
   }
 
+  /* Neutral: nothing went wrong, but nothing was logged either. */
+  .toast-info {
+    background: var(--color-panel);
+    border: 1px solid var(--color-edge);
+  }
+
   /* Now playing: full-screen player over Home or Focus Running, laid out like Focus Running */
 
   /* Washed in the artwork's own color (useArtTint), falling back to the accent. Panels go

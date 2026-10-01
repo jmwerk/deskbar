@@ -118,15 +118,24 @@ export async function searchIssues(cfg: JiraConfig, jql: string): Promise<JiraIs
   }));
 }
 
-// Logs time (seconds >= 60); returns worklog id. Uses adjustEstimate=leave to preserve estimates.
+/** Jira rejects worklogs under a minute, so shorter sessions are never posted. */
+export const MIN_WORKLOG_S = 60;
+
+/** True when retrying later could succeed: Jira unreachable or a server-side failure, not a 4xx. */
+export function isTransientJiraError(err: unknown): boolean {
+  return !(err instanceof JiraError) || err.status === undefined || err.status >= 500;
+}
+
+// Returns the worklog id and the seconds actually posted. adjustEstimate=leave preserves estimates.
 export async function logWork(
   cfg: JiraConfig,
   issueKey: string,
   seconds: number,
   comment?: string,
-): Promise<{ worklogId: string }> {
+): Promise<{ worklogId: string; seconds: number }> {
+  const postedS = Math.max(MIN_WORKLOG_S, Math.round(seconds));
   const body: Record<string, unknown> = {
-    timeSpentSeconds: Math.max(60, Math.round(seconds)),
+    timeSpentSeconds: postedS,
   };
   if (comment) {
     body.comment = {
@@ -139,7 +148,7 @@ export async function logWork(
     method: 'POST',
     body,
   })) as { id: string };
-  return { worklogId: data.id };
+  return { worklogId: data.id, seconds: postedS };
 }
 
 // Deletes a worklog created by logWork; see the adjustEstimate note above for why.

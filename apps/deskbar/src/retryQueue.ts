@@ -1,6 +1,6 @@
 import { client } from './bridgething';
 
-// Session end has nowhere to retry a failed log; Log Time Now keeps state for a manual retry.
+// Worklogs that couldn't reach Jira: from a session end, or Log Time Now while Jira was unreachable.
 export type PendingWorklog = {
   id: string;
   issueKey: string;

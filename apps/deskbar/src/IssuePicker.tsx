@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Config } from './config';
+import { defaultIssue, nextDialIndex } from './issueSelection';
 import { searchIssues, JiraError, type JiraIssue } from './jira';
 import { useRotaryStep } from './physicalControls';
 
@@ -10,6 +11,7 @@ export function IssuePicker({
   onSelect,
   allowNone = true,
   dialEnabled = true,
+  preferredKey,
 }: {
   config: Config;
   selected: JiraIssue | undefined;
@@ -17,6 +19,8 @@ export function IssuePicker({
   allowNone?: boolean;
   /** Set false when the screen owns another dial control, so only one thing responds to turns. */
   dialEnabled?: boolean;
+  /** Preselected once issues load, when it's in the list; otherwise the first issue is. */
+  preferredKey?: string;
 }) {
   const [issues, setIssues] = useState<JiraIssue[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -30,9 +34,12 @@ export function IssuePicker({
     setIssues(null);
     setProjectFilter(null);
     searchIssues(config.jira, config.jiraJql)
-      .then(setIssues)
+      .then(loaded => {
+        setIssues(loaded);
+        onSelect(defaultIssue(loaded, preferredKey));
+      })
       .catch(err => setError(err instanceof JiraError ? err.message : 'Could not load Jira issues'));
-  }, [config]);
+  }, [config, preferredKey, onSelect]);
 
   useEffect(() => {
     if (!config.jira || loadedFor.current === config.jiraJql) return;
@@ -57,23 +64,36 @@ export function IssuePicker({
     [issues, projectFilter],
   );
 
-  // The rows in on-screen order, for the rotary dial to step through.
+  // The rows in on-screen order, for the rotary dial to step through. "No issue" goes last so the
+  // accurate path (an issue) is where the dial starts.
   const pickList = useMemo<(JiraIssue | undefined)[]>(
-    () => (allowNone ? [undefined, ...filteredIssues] : filteredIssues),
+    () => (allowNone ? [...filteredIssues, undefined] : filteredIssues),
     [filteredIssues, allowNone],
   );
 
+  // Wheel bursts can step twice before a re-render delivers the new `selected`.
+  const pendingKeyRef = useRef<{ key: string | undefined } | null>(null);
+  useEffect(() => {
+    pendingKeyRef.current = null;
+  }, [selected]);
+
   const onDialStep = useCallback(
     (direction: 1 | -1) => {
-      const currentIndex = Math.max(
-        0,
-        pickList.findIndex(i => i?.key === selected?.key),
-      );
-      const nextIndex = Math.min(pickList.length - 1, Math.max(0, currentIndex + direction));
-      onSelect(pickList[nextIndex]);
+      const currentKey = pendingKeyRef.current ? pendingKeyRef.current.key : selected?.key;
+      const next = pickList[nextDialIndex(pickList, currentKey, direction)];
+      pendingKeyRef.current = { key: next?.key };
+      onSelect(next);
     },
     [pickList, selected, onSelect],
   );
+
+  // A chip that hides the selected issue moves the selection into what's still visible.
+  const filterTo = (key: string | null) => {
+    setProjectFilter(key);
+    const visible = key ? (issues ?? []).filter(issue => issue.projectKey === key) : (issues ?? []);
+    const hidden = selected ? !visible.some(issue => issue.key === selected.key) : !allowNone;
+    if (hidden) onSelect(defaultIssue(visible, preferredKey));
+  };
   useRotaryStep(onDialStep, dialEnabled && !!config.jira && pickList.length > 0);
 
   // Keep the selected row in view when the dial moves the selection off-screen.
@@ -101,14 +121,14 @@ export function IssuePicker({
       )}
       {projectKeys.length > 1 && (
         <div className="filter-chips">
-          <button className={`filter-chip ${!projectFilter ? 'selected' : ''}`} onClick={() => setProjectFilter(null)}>
+          <button className={`filter-chip ${!projectFilter ? 'selected' : ''}`} onClick={() => filterTo(null)}>
             All
           </button>
           {projectKeys.map(key => (
             <button
               key={key}
               className={`filter-chip ${projectFilter === key ? 'selected' : ''}`}
-              onClick={() => setProjectFilter(key)}
+              onClick={() => filterTo(key)}
             >
               {key}
             </button>
@@ -116,15 +136,6 @@ export function IssuePicker({
         </div>
       )}
       <div className="issue-list">
-        {allowNone && (
-          <button
-            ref={!selected ? selectedRowRef : undefined}
-            className={`issue-row ${!selected && dialEnabled ? 'selected' : ''}`}
-            onClick={() => onSelect(undefined)}
-          >
-            No issue — just a timer
-          </button>
-        )}
         {filteredIssues.map(issue => (
           <button
             key={issue.key}
@@ -136,6 +147,15 @@ export function IssuePicker({
             <span className="issue-summary">{issue.summary}</span>
           </button>
         ))}
+        {allowNone && (
+          <button
+            ref={!selected ? selectedRowRef : undefined}
+            className={`issue-row ${!selected && dialEnabled ? 'selected' : ''}`}
+            onClick={() => onSelect(undefined)}
+          >
+            No issue — just a timer
+          </button>
+        )}
       </div>
     </>
   );

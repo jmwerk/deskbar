@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
-import { useIdle, useKeydown, useRotaryStep } from './physicalControls';
+import { adjustedRunningMinutes, useIdle, useKeydown, useRotaryStep } from './physicalControls';
 
 function wheel(deltaX: number, deltaY = 0) {
   window.dispatchEvent(new WheelEvent('wheel', { deltaX, deltaY, cancelable: true }));
@@ -165,5 +165,18 @@ describe('useIdle', () => {
       window.dispatchEvent(new PointerEvent('pointerdown'));
     });
     expect(result.current[0]).toBe(false);
+  });
+});
+
+describe('adjustedRunningMinutes', () => {
+  it('applies the delta within the usual 5-240 minute range', () => {
+    expect(adjustedRunningMinutes(25, 15, 0)).toBe(40);
+    expect(adjustedRunningMinutes(25, -15, 0)).toBe(10);
+  });
+
+  it('never shortens a running session to less than a minute remaining', () => {
+    // 20 minutes in, a 25 minute session shortened by 15 would otherwise end immediately.
+    expect(adjustedRunningMinutes(25, -15, 20 * 60)).toBe(21);
+    expect(adjustedRunningMinutes(25, -15, 20 * 60 + 10)).toBe(22);
   });
 });
