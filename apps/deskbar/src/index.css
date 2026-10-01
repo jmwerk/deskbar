@@ -7,6 +7,15 @@
  * generic rem scale: this UI is fit tightly to 800x480 (e.g. the 104px countdown clock), and the
  * scaffold's scale was tuned for a different, more compact layout.
  */
+/* Vendored so the Car Thing, which has only Liberation Sans (regular and bold), renders the real weights. */
+@font-face {
+  font-family: 'Inter Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('./fonts/inter-latin-wght-normal.woff2') format('woff2-variations');
+}
+
 @theme {
   --color-bg: #0b0d10;
   --color-off-white: #f5f6f7;
@@ -22,7 +31,7 @@
      matching the original --border it replaces exactly. */
   --color-edge: #262b31;
 
-  --font-body: -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Inter Variable', -apple-system, 'Segoe UI', Roboto, sans-serif;
 
   /* bridgething overlay stacks notification/pairing toasts here, on top of the app, for up to
      ~5s each; keep persistent/critical UI out of this corner. See HARDWARE.md. */
@@ -65,7 +74,7 @@
     background: var(--color-bg);
     color: var(--color-off-white);
     font-family: var(--font-body);
-    font-size: 18px;
+    font-size: 20px;
     overflow: hidden;
     user-select: none;
   }
@@ -262,11 +271,11 @@
 
   .now-playing-chip-title {
     font-size: 16px;
-    font-weight: 700;
+    font-weight: 800;
   }
 
   .now-playing-chip-artist {
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 600;
     color: var(--color-muted);
   }
@@ -317,10 +326,12 @@
   }
 
   .screensaver-clock {
-    font-size: 96px;
+    font-size: 104px;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
     color: var(--color-muted);
+    line-height: 1;
+    letter-spacing: -0.02em;
   }
 
   /* The status edge and today's total stay readable from across the desk while dimmed. */
@@ -337,7 +348,7 @@
   }
 
   .screensaver-day {
-    font-size: 24px;
+    font-size: 26px;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     color: var(--color-muted);
@@ -355,10 +366,11 @@
 
   .hint {
     margin-top: 12px;
-    font-size: 18px;
+    font-size: 20px;
     line-height: 1.35;
     color: var(--color-muted);
     text-align: center;
+    font-weight: 500;
   }
 
   /* Cancels .screen's 20px/28px padding for this element only, so it sits flush against
@@ -458,7 +470,7 @@
     font-size: 72px;
     font-weight: 800;
     line-height: 1;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
     font-variant-numeric: tabular-nums;
     transition: color 600ms ease;
   }
@@ -481,8 +493,8 @@
   }
 
   .unlogged {
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 20px;
+    font-weight: 700;
     color: var(--color-muted);
   }
 
@@ -508,9 +520,10 @@
     padding: 16px 18px;
     border-radius: 12px;
     border: 1px dashed var(--color-edge);
-    font-size: 18px;
+    font-size: 20px;
     line-height: 1.35;
     color: var(--color-muted);
+    font-weight: 500;
   }
 
   .hint.error {
@@ -524,7 +537,7 @@
     background: none;
     color: var(--color-accent);
     font-size: 16px;
-    font-weight: 700;
+    font-weight: 800;
     text-decoration: underline;
   }
 
@@ -614,8 +627,6 @@
     padding: 4px 12px;
     border-radius: 12px;
     border: 1px solid transparent;
-    font-size: 22px;
-    font-weight: 700;
     font-variant-numeric: tabular-nums;
     transition:
       background 150ms ease,
@@ -631,7 +642,7 @@
   }
 
   .dial-hint {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 600;
     color: var(--color-muted);
   }
@@ -642,8 +653,8 @@
     border: 1px solid var(--color-edge);
     background: var(--color-panel);
     color: var(--color-off-white);
-    font-size: 14px;
-    font-weight: 700;
+    font-size: 16px;
+    font-weight: 800;
   }
 
   .issue-picker {
@@ -665,9 +676,10 @@
     background: var(--color-panel);
     border-radius: 999px;
     padding: 6px 14px;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
     color: var(--color-muted);
+    letter-spacing: 0.04em;
   }
 
   .filter-chip.selected {
@@ -695,8 +707,9 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 19px;
+    font-size: 20px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-weight: 500;
   }
 
   .issue-row.selected,
@@ -716,6 +729,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-weight: 500;
   }
 
   .actions {
@@ -771,7 +785,7 @@
     padding: 2px 7px;
     border-radius: 6px;
     border: 1px solid color-mix(in srgb, currentColor 40%, transparent);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 800;
     letter-spacing: 0.04em;
     opacity: 0.8;
@@ -838,6 +852,7 @@
     font-weight: 800;
     line-height: 1;
     font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
   }
 
   .clock-paused {
@@ -847,6 +862,7 @@
   .issue-tag {
     font-size: 20px;
     color: var(--color-muted);
+    font-weight: 500;
   }
 
   /* One line at any summary length: a wrapped summary pushes the buttons into the dock. */
@@ -889,7 +905,7 @@
     background: var(--color-panel);
     border-radius: 12px;
     padding: 12px 14px;
-    font-size: 17px;
+    font-size: 20px;
     text-align: left;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   }
@@ -906,6 +922,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-weight: 500;
   }
 
   .history-duration {
@@ -953,8 +970,8 @@
     padding: 10px 16px;
     border-radius: 10px;
     border: none;
-    font-size: 15px;
-    font-weight: 700;
+    font-size: 16px;
+    font-weight: 800;
   }
 
   .history-confirm-cancel {
@@ -1065,7 +1082,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 700;
   }
 
@@ -1075,7 +1092,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 600;
     color: rgb(245 246 247 / 0.72);
   }
@@ -1090,7 +1107,7 @@
   }
 
   .receipt-today {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     color: rgb(245 246 247 / 0.72);
@@ -1205,11 +1222,13 @@
     font-size: 34px;
     font-weight: 800;
     line-height: 1.15;
+    letter-spacing: -0.01em;
   }
 
   .now-playing-album {
-    font-size: 17px;
+    font-size: 16px;
     color: var(--color-muted);
+    font-weight: 500;
   }
 
   /* The running focus clock, so opening the player doesn't hide how much time is left. */
@@ -1222,7 +1241,7 @@
     border-radius: 14px;
     border: 1px solid var(--color-edge);
     background: var(--color-panel);
-    font-size: 24px;
+    font-size: 26px;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
   }
@@ -1267,7 +1286,7 @@
   .scrubber-times {
     display: flex;
     justify-content: space-between;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
     color: var(--color-muted);

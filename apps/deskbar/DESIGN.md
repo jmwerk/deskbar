@@ -12,44 +12,50 @@ colors:
   stop-red: '#e74c3c'
 typography:
   display:
-    fontFamily: "-apple-system, 'Segoe UI', Roboto, sans-serif"
+    fontFamily: "'Inter Variable', -apple-system, 'Segoe UI', Roboto, sans-serif"
     fontSize: '104px'
-    fontWeight: 800
-    lineHeight: 1
-    fontFeature: 'tnum'
-  total:
-    fontFamily: "-apple-system, 'Segoe UI', Roboto, sans-serif"
-    fontSize: '72px'
     fontWeight: 800
     lineHeight: 1
     letterSpacing: '-0.02em'
     fontFeature: 'tnum'
+  total:
+    fontFamily: "'Inter Variable', -apple-system, 'Segoe UI', Roboto, sans-serif"
+    fontSize: '72px'
+    fontWeight: 800
+    lineHeight: 1
+    letterSpacing: '-0.03em'
+    fontFeature: 'tnum'
   headline:
-    fontFamily: "-apple-system, 'Segoe UI', Roboto, sans-serif"
+    fontFamily: "'Inter Variable', -apple-system, 'Segoe UI', Roboto, sans-serif"
     fontSize: '34px'
     fontWeight: 800
     lineHeight: 1.15
+    letterSpacing: '-0.01em'
   title:
-    fontFamily: "-apple-system, 'Segoe UI', Roboto, sans-serif"
+    fontFamily: "'Inter Variable', -apple-system, 'Segoe UI', Roboto, sans-serif"
     fontSize: '26px'
     fontWeight: 800
   body:
-    fontFamily: "-apple-system, 'Segoe UI', Roboto, sans-serif"
-    fontSize: '18px'
-    fontWeight: 400
+    fontFamily: "'Inter Variable', -apple-system, 'Segoe UI', Roboto, sans-serif"
+    fontSize: '20px'
+    fontWeight: 500
     lineHeight: 1.35
   label:
-    fontFamily: "-apple-system, 'Segoe UI', Roboto, sans-serif"
+    fontFamily: "'Inter Variable', -apple-system, 'Segoe UI', Roboto, sans-serif"
     fontSize: '16px'
     fontWeight: 800
+  small:
+    fontFamily: "'Inter Variable', -apple-system, 'Segoe UI', Roboto, sans-serif"
+    fontSize: '16px'
+    fontWeight: 600
   eyebrow:
-    fontFamily: "-apple-system, 'Segoe UI', Roboto, sans-serif"
+    fontFamily: "'Inter Variable', -apple-system, 'Segoe UI', Roboto, sans-serif"
     fontSize: '16px'
     fontWeight: 700
     letterSpacing: '0.08em'
   keycap:
-    fontFamily: "-apple-system, 'Segoe UI', Roboto, sans-serif"
-    fontSize: '12px'
+    fontFamily: "'Inter Variable', -apple-system, 'Segoe UI', Roboto, sans-serif"
+    fontSize: '13px'
     fontWeight: 800
     letterSpacing: '0.04em'
 rounded:
@@ -205,25 +211,32 @@ red and blue fills sits under 4:1.
 
 ## Typography
 
-**Body Font:** System sans (`-apple-system, 'Segoe UI', Roboto, sans-serif`)
+**Font:** Inter Variable, vendored as a 48 KB Latin woff2 in `src/fonts/` (SIL Open Font License, `Inter-OFL.txt`),
+falling back to the system sans.
 
-**Character:** One neutral system face pushed to heavy weights (700 to 800) so it reads at arm's length on a 235ppi
-panel. Hierarchy comes from size and weight, not from font pairing.
+**Character:** One neutral screen face, pushed to heavy weights (700 to 800) for anything that has to be read at arm's
+length on a 235ppi panel. Hierarchy comes from size and weight, not from font pairing. The face is vendored because the
+Car Thing has only Liberation Sans, which renders every weight from 600 up as one Bold.
 
 ### Hierarchy
 
-- **Display** (800, 104px, line-height 1): the focus countdown. The dimmed clock uses 96px in Muted Slate.
-- **Total** (800, 72px, line-height 1, -0.02em): today's logged total on Home.
-- **Headline** (800, 34px, 1.15): the now-playing track title.
-- **Title** (800, 26px): screen headings, the dock clock, the receipt's logged amount.
-- **Body** (400 to 700, 17 to 20px): list rows (19px issue rows, 17px ledger rows), action buttons (20px, 700), hints
-  and the today total's meta line (18 to 20px).
-- **Label** (800, 16px): preset and status tab labels.
+- **Display** (800, 104px, line-height 1, -0.02em): the focus countdown and the dimmed clock (Muted Slate there).
+- **Total** (800, 72px, line-height 1, -0.03em): today's logged total on Home.
+- **Headline** (800, 34px, 1.15, -0.01em): the now-playing track title.
+- **Title** (800, 26px): the setup sentence, the dock clock, the receipt amount, the focus timer pill, the day total on
+  the dimmed clock.
+- **Body** (20px; 500 for muted text, 700 for strong): list rows, action buttons, hints, the issue tag, the today
+  total's meta line. Muted body text is 500, never 400, so slate on black holds up.
+- **Label** (800, 16px): preset and status tab labels, the Unlimited toggle, confirm buttons, Undo.
+- **Small** (600, 16px): metadata: artist and album, scrubber times, chips (+0.04em, they're uppercase keys), the
+  receipt's summary and day total, the dial hint, toasts.
 - **Eyebrow** (700, 16px, 0.08em, uppercase): "FOCUS SESSION", "NOW PLAYING".
-- **Keycap** (800, 12px, 0.04em): the "Back" and "M" keycaps.
-- Small metadata (13 to 15px, 600): artist in the dock chip, scrubber times, chips, the receipt summary.
+- **Keycap** (800, 13px, 0.04em): the "Back" and "M" keycaps.
 
 ### Named Rules
+
+**The Sixteen Floor Rule.** Nothing reads smaller than 16px except a keycap (13px). At this panel's density 13 to 15px
+text sits at the edge of legibility from arm's length.
 
 **The Tabular Time Rule.** Every clock, countdown, duration, total and scrubber time uses
 `font-variant-numeric: tabular-nums` so digits never jitter.
@@ -304,7 +317,8 @@ graphite box says what to press next.
 
 - **Corner Style:** 12px.
 - **Background:** Panel Graphite with Edge Steel border and row-rest shadow; min height 52px.
-- **Content:** a bold Focus Blue issue key, then a Muted Slate one-line summary; ledger rows end with a tabular duration.
+- **Content:** a bold Focus Blue issue key, then a Muted Slate one-line summary at 500; ledger rows end with a tabular
+  duration. The issue tag on Focus Running uses the same blue key.
 - **Selected:** Focus Blue border, 15% blue tint.
 
 ### Setup Sentence

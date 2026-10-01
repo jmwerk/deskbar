@@ -251,6 +251,7 @@ index.html, src/          the webapp itself (React + TypeScript + Vite + Tailwin
   src/ScrollText.tsx       single-line text that pans when it overflows
   src/Toast.tsx, icons.tsx, DurationPicker.tsx, IssuePicker.tsx   shared UI
   src/screens/             Home, FocusSetup, LogTimeNow, FocusRunning
+  src/fonts/               Inter Variable (Latin woff2), vendored with its OFL license
   src/*.test.ts(x)         Vitest unit tests, one per source file
   src/index.css            Tailwind + the design-token @theme block
 settings/                 the settings webapp (settings.html/main.tsx/style.css), built separately

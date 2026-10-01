@@ -69,12 +69,7 @@ export function FocusRunning({
       <div className="focus-running-body">
         <div className="focus-eyebrow">{eyebrow}</div>
         <div className={`clock ${paused ? 'clock-paused' : ''}`}>{formatClock(displayS)}</div>
-        {issueKey && (
-          <ScrollText
-            text={issueSummary ? `${issueKey} — ${issueSummary}` : issueKey}
-            className="issue-tag focus-issue"
-          />
-        )}
+        {issueKey && <ScrollText issueKey={issueKey} text={issueSummary ?? ''} className="issue-tag focus-issue" />}
         {totalS != null && (
           <div className="progress-track">
             <div className="progress-fill" style={{ width: `${Math.min(1, Math.max(0, elapsedS / totalS)) * 100}%` }} />

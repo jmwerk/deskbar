@@ -8,6 +8,8 @@ Home now leads with the time you've logged today, when you last logged, and ever
 
 Focus Setup and Log Time Now open with one line, "Focus for 25 min on" or "Log 25 min to", in place of a heading and two labels, so twice as many issues fit. Start and Log Time take two thirds of the button row.
 
+Deskbar now ships its own typeface, Inter, because the Car Thing only has an Arial clone with regular and bold, so the screen finally shows the weights it was designed with. Nothing reads smaller than 16px apart from button keycaps, and muted text is a step heavier so it holds up on black.
+
 The main paths no longer need the touchscreen. A single tap of M ends a focus session; holding M or pressing it five times still goes home without ending it. On Focus Setup and Log Time Now, turning the dial up past the first issue moves it to the duration, and pressing it hands it back. On Home the dial picks a worklog and pressing twice deletes it.
 
 ## 0.7.1
