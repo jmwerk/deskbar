@@ -1,5 +1,9 @@
 # deskbar
 
+## 0.8.0
+
+Ending a focus session now confirms the worklog with a toast, and Today always matches what Jira received: sessions under a minute log nothing instead of a phantom 1m. The issue list preselects the issue you last logged to and puts "No issue" last, so the dial no longer skips the first row. Log Time Now queues the worklog to retry when Jira is unreachable, and the -15m preset can no longer end a running session.
+
 ## 0.7.1
 
 A long Jira issue summary no longer pushes the focus timer's buttons into the now-playing bar. The issue now stays on one line and scrolls when it's too long to fit.
