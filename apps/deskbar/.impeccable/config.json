@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "createdAt": "2026-10-01T19:56:58.484Z",
+        "reason": "user confirmed: chose 'Bundle Inter' when the device was found to render only Liberation Sans"
+      }
+    ]
+  }
+}

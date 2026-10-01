@@ -224,8 +224,7 @@ Car Thing has only Liberation Sans, which renders every weight from 600 up as on
 - **Display** (800, 104px, line-height 1, -0.02em): the focus countdown and the dimmed clock (Muted Slate there).
 - **Total** (800, 72px, line-height 1, -0.03em): today's logged total on Home.
 - **Headline** (800, 34px, 1.15, -0.01em): the now-playing track title.
-- **Title** (800, 26px): the setup sentence, the dock clock, the receipt amount, the focus timer pill, the day total on
-  the dimmed clock.
+- **Title** (800, 26px): the setup sentence, the dock clock, the receipt amount, the focus timer pill.
 - **Body** (20px; 500 for muted text, 700 for strong): list rows, action buttons, hints, the issue tag, the today
   total's meta line. Muted body text is 500, never 400, so slate on black holds up.
 - **Label** (800, 16px): preset and status tab labels, the Unlimited toggle, confirm buttons, Undo.
@@ -354,8 +353,8 @@ equalizer bars in Go Green that bounce while playing).
 
 ### Dimmed Clock
 
-After 3 idle minutes on Home: Control Black, a 6px top edge in the current status color at 70%, a 96px Muted Slate
-clock, today's total at 24px/700, and the current track while one is playing.
+After 3 idle minutes on Home: Control Black, a 104px Muted Slate clock, and the current track while one is playing.
+Nothing else, status included.
 
 ### Now-Playing Player
 

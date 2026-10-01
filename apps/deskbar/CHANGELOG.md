@@ -4,7 +4,7 @@
 
 Logging time, from a focus session or Log Time Now, now shows a receipt with what was logged, where, and today's new total, plus 8 seconds to undo it by touch or with Back. Today's total counts up as the time lands. Today always matches what Jira received: sessions under a minute log nothing instead of a phantom 1m. The issue list preselects the issue you last logged to and puts "No issue" last, so the dial no longer skips the first row. Log Time Now queues the worklog to retry when Jira is unreachable, and the -15m preset can no longer end a running session.
 
-Home now leads with the time you've logged today, when you last logged, and every worklog from today, each deletable in place, so the separate Today screen is gone. Status moved into the preset tabs along the top, where the current one lights up, and the dimmed clock shows your status and today's total.
+Home now leads with the time you've logged today, when you last logged, and every worklog from today, each deletable in place, so the separate Today screen is gone. Status moved into the preset tabs along the top, where the current one lights up.
 
 Focus Setup and Log Time Now open with one line, "Focus for 25 min on" or "Log 25 min to", in place of a heading and two labels, so twice as many issues fit. Start and Log Time take two thirds of the button row.
 

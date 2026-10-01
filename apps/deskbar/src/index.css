@@ -334,26 +334,6 @@
     letter-spacing: -0.02em;
   }
 
-  /* The status edge and today's total stay readable from across the desk while dimmed. */
-  .screensaver-available {
-    border-top: 6px solid color-mix(in srgb, var(--color-available) 70%, transparent);
-  }
-
-  .screensaver-busy {
-    border-top: 6px solid color-mix(in srgb, var(--color-busy) 70%, transparent);
-  }
-
-  .screensaver-focus {
-    border-top: 6px solid color-mix(in srgb, var(--color-accent) 70%, transparent);
-  }
-
-  .screensaver-day {
-    font-size: 26px;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    color: var(--color-muted);
-  }
-
   .screensaver-track {
     max-width: 80%;
     overflow: hidden;

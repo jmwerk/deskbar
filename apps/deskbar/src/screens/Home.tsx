@@ -92,9 +92,8 @@ export function Home({
   return (
     <div className="screen home">
       {idle && (
-        <div className={`screensaver screensaver-${status}`}>
+        <div className="screensaver">
           <div className="screensaver-clock">{clock}</div>
-          {jiraConfigured && <div className="screensaver-day">{formatDuration(todaySeconds)} logged today</div>}
           {player.track && player.playing && (
             <div className="screensaver-track">
               {player.track.title}
