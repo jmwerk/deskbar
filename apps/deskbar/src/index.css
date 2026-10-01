@@ -34,7 +34,7 @@
  * The physical rotary dial permanently covers part of the top-right corner (see HARDWARE.md) —
  * unlike the toast zone above, its extent has never been measured, so there's no token for it.
  * The enforceable rule instead: nothing interactive gets `absolute`/`fixed` positioning in the
- * top-right quadrant. Every rule below that places something near an edge (tile-badge, the
+ * top-right quadrant. Every rule below that places something near an edge (the receipt, the
  * history delete hint, the toast) deliberately keeps it on the top-left or full-width instead.
  */
 
@@ -200,33 +200,7 @@
     justify-content: center;
   }
 
-  /* Home — landing screen: status banner, today's tracked time, and the three quick-action tiles */
-
-  .status-banner {
-    text-align: center;
-    font-size: 28px;
-    font-weight: 700;
-    padding: 12px 0;
-    border-radius: 14px;
-    margin-bottom: 14px;
-  }
-
-  .status-available {
-    background: color-mix(in srgb, var(--color-available) 20%, transparent);
-    color: var(--color-available);
-  }
-
-  .status-busy {
-    background: color-mix(in srgb, var(--color-busy) 20%, transparent);
-    color: var(--color-busy);
-  }
-
-  .status-focus {
-    background: color-mix(in srgb, var(--color-accent) 20%, transparent);
-    color: var(--color-accent);
-  }
-
-  /* Bottom dock (Home, Focus Running): clock, now-playing, today total. The top-right is
+  /* Bottom dock (Home, Focus Running): clock and now-playing. The top-right is
      under the dial and bridgething's toasts, so persistent info and taps stay down here. */
   .dock {
     display: flex;
@@ -246,19 +220,6 @@
     font-size: 26px;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-  }
-
-  .today-bar {
-    flex-shrink: 0;
-    height: 100%;
-    padding: 0 18px;
-    border-radius: 14px;
-    border: 1px solid var(--color-edge);
-    background: var(--color-panel);
-    color: var(--color-muted);
-    font-size: 16px;
-    font-weight: 700;
     white-space: nowrap;
   }
 
@@ -368,6 +329,26 @@
     color: var(--color-muted);
   }
 
+  /* The status edge and today's total stay readable from across the desk while dimmed. */
+  .screensaver-available {
+    border-top: 6px solid color-mix(in srgb, var(--color-available) 70%, transparent);
+  }
+
+  .screensaver-busy {
+    border-top: 6px solid color-mix(in srgb, var(--color-busy) 70%, transparent);
+  }
+
+  .screensaver-focus {
+    border-top: 6px solid color-mix(in srgb, var(--color-accent) 70%, transparent);
+  }
+
+  .screensaver-day {
+    font-size: 24px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-muted);
+  }
+
   .screensaver-track {
     max-width: 80%;
     overflow: hidden;
@@ -376,63 +357,6 @@
     font-size: 20px;
     font-weight: 600;
     color: color-mix(in srgb, var(--color-muted) 70%, transparent);
-  }
-
-  .tiles {
-    flex: 1;
-    min-height: 0;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-  }
-
-  .tile {
-    position: relative;
-    border: none;
-    border-radius: 18px;
-    font-size: 28px;
-    font-weight: 800;
-    color: #fff;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
-  }
-
-  .tile.selected {
-    box-shadow:
-      0 0 0 4px rgba(255, 255, 255, 0.55) inset,
-      0 6px 18px rgba(0, 0, 0, 0.35);
-  }
-
-  /* Top-left, not top-right: the dial safe zone is the other top corner. */
-  .tile-badge {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    width: 28px;
-    height: 28px;
-    border-radius: 999px;
-    background: #fff;
-    color: var(--color-bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
-  }
-
-  .tile-available {
-    background: var(--color-available);
-  }
-
-  .tile-busy {
-    background: var(--color-busy);
-  }
-
-  .tile-focus {
-    background: var(--color-accent);
   }
 
   .hint {
@@ -474,20 +398,125 @@
     filter: brightness(1.3);
   }
 
-  .button-hint-available {
-    background: color-mix(in srgb, var(--color-available) 30%, var(--color-panel));
-  }
-  .button-hint-busy {
-    background: color-mix(in srgb, var(--color-busy) 30%, var(--color-panel));
-  }
-  .button-hint-focus {
-    background: color-mix(in srgb, var(--color-accent) 30%, var(--color-panel));
-  }
-
   .button-hint-label {
     font-size: 16px;
     font-weight: 800;
     color: var(--color-off-white);
+  }
+
+  /* Status lives in the preset tabs: each is tinted with its status, the current one lit solid. Dark
+     text on the lit tab, since white on Go Green is ~2:1. */
+  .status-tab {
+    border: none;
+    color: var(--color-off-white);
+  }
+
+  .status-tab:disabled {
+    cursor: default;
+  }
+
+  .status-tab-available {
+    background: color-mix(in srgb, var(--color-available) 22%, var(--color-panel));
+  }
+
+  .status-tab-busy {
+    background: color-mix(in srgb, var(--color-busy) 22%, var(--color-panel));
+  }
+
+  .status-tab-focus {
+    background: color-mix(in srgb, var(--color-accent) 22%, var(--color-panel));
+  }
+
+  .status-tab.lit {
+    color: var(--color-bg);
+  }
+
+  .status-tab.lit .button-hint-label {
+    color: inherit;
+  }
+
+  .status-tab-available.lit {
+    background: var(--color-available);
+  }
+
+  .status-tab-busy.lit {
+    background: var(--color-busy);
+  }
+
+  .status-tab-focus.lit {
+    background: var(--color-accent);
+  }
+
+  /* Today's total leads Home; its meta stacks beside the number, clear of the dial's corner. */
+  .today-total {
+    align-self: flex-start;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 14px;
+    padding: 0;
+    border: none;
+    background: none;
+    text-align: left;
+  }
+
+  .today-total-value {
+    font-size: 72px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    transition: color 600ms ease;
+  }
+
+  .today-total-bumped .today-total-value {
+    color: var(--color-available);
+    transition-duration: 150ms;
+  }
+
+  .today-total-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .today-total-label {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-muted);
+  }
+
+  .unlogged {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-muted);
+  }
+
+  .unlogged strong {
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-off-white);
+  }
+
+  .ledger {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .ledger-setup {
+    justify-content: center;
+  }
+
+  .ledger-empty {
+    padding: 16px 18px;
+    border-radius: 12px;
+    border: 1px dashed var(--color-edge);
+    font-size: 18px;
+    line-height: 1.35;
+    color: var(--color-muted);
   }
 
   .hint.error {
@@ -827,22 +856,15 @@
     transition: width 1s linear;
   }
 
-  /* Today / history — today's total tracked time and the scrollable list of past time entries */
+  /* Today's ledger rows on Home: the scrollable list of today's worklogs, each deletable in place */
 
-  .history-total {
-    color: var(--color-muted);
-    font-size: 18px;
-    margin-bottom: 4px;
-  }
-
-  .history-list {
+  .ledger-list {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin-top: 8px;
   }
 
   .history-row {
@@ -1089,22 +1111,6 @@
 
   .receipt-drain-held {
     animation-play-state: paused;
-  }
-
-  .today-bar {
-    transition:
-      transform 100ms ease,
-      filter 100ms ease,
-      background 600ms ease,
-      border-color 600ms ease,
-      color 600ms ease;
-  }
-
-  .today-bar-bumped {
-    background: color-mix(in srgb, var(--color-available) 22%, var(--color-panel));
-    border-color: color-mix(in srgb, var(--color-available) 45%, var(--color-edge));
-    color: var(--color-off-white);
-    transition-duration: 150ms;
   }
 
   @media (prefers-reduced-motion: reduce) {

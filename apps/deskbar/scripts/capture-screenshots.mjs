@@ -36,8 +36,22 @@ async function seedHistory(context) {
       id: 'screenshot-seed-1',
       issueKey: 'DESK-2',
       issueSummary: 'Test the focus timer end to end',
-      seconds: 18 * 60,
-      loggedAt: Date.now(),
+      seconds: 25 * 60,
+      loggedAt: Date.now() - 20 * 60_000,
+    },
+    {
+      id: 'screenshot-seed-2',
+      issueKey: 'OPS-7',
+      issueSummary: 'Rotate the office wifi password',
+      seconds: 40 * 60,
+      loggedAt: Date.now() - 75 * 60_000,
+    },
+    {
+      id: 'screenshot-seed-3',
+      issueKey: 'DESK-1',
+      issueSummary: 'Wire up the mock client',
+      seconds: 105 * 60,
+      loggedAt: Date.now() - 150 * 60_000,
     },
   ];
   await context.addInitScript(
@@ -90,10 +104,13 @@ async function main() {
     try {
       console.log('01-home.png');
       {
+        // Seeded so the store card shows the ledger Home is built around, not the empty morning.
         const context = await browser.newContext({ viewport });
+        await seedHistory(context);
         const page = await context.newPage();
         await page.goto(url);
         await page.locator('img.now-playing-chip-art').waitFor();
+        await page.locator('.ledger-list .history-row').first().waitFor();
         await shoot(page, '01-home.png');
         await context.close();
       }
@@ -103,7 +120,7 @@ async function main() {
         const context = await browser.newContext({ viewport });
         const page = await context.newPage();
         await page.goto(url);
-        await page.locator('.tile-focus').click();
+        await page.locator('.status-tab-focus').click();
         await page.locator('.issue-row').first().waitFor();
         await shoot(page, '02-focus-setup.png');
         await context.close();
@@ -114,7 +131,7 @@ async function main() {
         const context = await browser.newContext({ viewport });
         const page = await context.newPage();
         await page.goto(url);
-        await page.locator('.tile-focus').click();
+        await page.locator('.status-tab-focus').click();
         await page.locator('.issue-row', { hasText: 'DESK-2' }).waitFor();
         await page.locator('.issue-row', { hasText: 'DESK-2' }).click();
         await page.locator('.btn-primary').click();
@@ -130,19 +147,7 @@ async function main() {
         await context.close();
       }
 
-      console.log('05-today.png');
-      {
-        const context = await browser.newContext({ viewport });
-        await seedHistory(context);
-        const page = await context.newPage();
-        await page.goto(url);
-        await page.locator('.today-bar').click();
-        await page.locator('.history-row').first().waitFor();
-        await shoot(page, '05-today.png');
-        await context.close();
-      }
-
-      console.log('06-now-playing.png');
+      console.log('05-now-playing.png');
       {
         const context = await browser.newContext({ viewport });
         const page = await context.newPage();
@@ -151,7 +156,7 @@ async function main() {
         await page.locator('img.now-playing-art').waitFor();
         // Let the fade-in and the artwork color wash settle.
         await page.waitForTimeout(900);
-        await shoot(page, '06-now-playing.png');
+        await shoot(page, '05-now-playing.png');
         await context.close();
       }
     } finally {

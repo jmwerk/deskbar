@@ -155,7 +155,7 @@ function setPlayback(next: MockPlayback | null): void {
   playerListeners.forEach(fn => fn(reply));
 }
 
-// A diagonal gradient with three stacked bars, echoing Home's three status tiles.
+// A diagonal gradient with three stacked bars, standing in for album art.
 function mockArtwork(index: number): Uint8Array {
   const { color } = MOCK_TRACKS[index];
   const bars = [60, 112, 164]

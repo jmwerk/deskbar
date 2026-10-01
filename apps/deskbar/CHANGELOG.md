@@ -2,9 +2,11 @@
 
 ## 0.8.0
 
-Logging time, from a focus session or Log Time Now, now shows a receipt with what was logged, where, and today's new total, plus 8 seconds to undo it by touch or with Back. The Today total in the dock counts up as the time lands. Today always matches what Jira received: sessions under a minute log nothing instead of a phantom 1m. The issue list preselects the issue you last logged to and puts "No issue" last, so the dial no longer skips the first row. Log Time Now queues the worklog to retry when Jira is unreachable, and the -15m preset can no longer end a running session.
+Logging time, from a focus session or Log Time Now, now shows a receipt with what was logged, where, and today's new total, plus 8 seconds to undo it by touch or with Back. Today's total counts up as the time lands. Today always matches what Jira received: sessions under a minute log nothing instead of a phantom 1m. The issue list preselects the issue you last logged to and puts "No issue" last, so the dial no longer skips the first row. Log Time Now queues the worklog to retry when Jira is unreachable, and the -15m preset can no longer end a running session.
 
-The main paths no longer need the touchscreen. A single tap of M ends a focus session; holding M or pressing it five times still goes home without ending it. On Focus Setup and Log Time Now, turning the dial up past the first issue moves it to the duration, and pressing it hands it back. The dial press on Home opens Today, where the dial picks an entry and pressing twice deletes it.
+Home now leads with the time you've logged today, when you last logged, and every worklog from today, each deletable in place, so the separate Today screen is gone. Status moved into the preset tabs along the top, where the current one lights up, and the dimmed clock shows your status and today's total.
+
+The main paths no longer need the touchscreen. A single tap of M ends a focus session; holding M or pressing it five times still goes home without ending it. On Focus Setup and Log Time Now, turning the dial up past the first issue moves it to the duration, and pressing it hands it back. On Home the dial picks a worklog and pressing twice deletes it.
 
 ## 0.7.1
 

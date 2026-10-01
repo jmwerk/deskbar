@@ -1,24 +1,31 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { formatDuration, formatWallClock } from '../format';
 import type { HistoryEntry } from '../history';
-import { BoltIcon, BusyIcon, CheckIcon } from '../icons';
 import { NowPlayingChip, NowPlayingSheet } from '../NowPlaying';
 import { HOME_IDLE_TIMEOUT_MS, useIdle, useKeydown, useKeyFlash } from '../physicalControls';
 import { Receipt } from '../Receipt';
+import { TodayLedger } from '../TodayLedger';
 import type { Status } from '../session';
 import { useCountUp } from '../useCountUp';
 import type { Player } from '../usePlayer';
+
+const STATUS_TABS: { status: Status; label: string }[] = [
+  { status: 'available', label: 'Available' },
+  { status: 'busy', label: 'Busy' },
+  { status: 'focus', label: 'Focus' },
+];
 
 export function Home({
   status,
   jiraConfigured,
   todaySeconds,
+  todayLog,
   now,
   timezone,
   player,
   onSelect,
   onLogNow,
-  onOpenHistory,
+  onDeleteEntry,
   receipt,
   onUndoReceipt,
   onDismissReceipt,
@@ -26,12 +33,14 @@ export function Home({
   status: Status;
   jiraConfigured: boolean;
   todaySeconds: number;
+  /** Today's worklogs, newest first. */
+  todayLog: HistoryEntry[];
   now: number;
   timezone?: string;
   player: Player;
   onSelect: (status: Status) => void;
   onLogNow: () => void;
-  onOpenHistory: () => void;
+  onDeleteEntry: (entry: HistoryEntry) => Promise<void>;
   /** The worklog just posted, while it can still be undone. */
   receipt: HistoryEntry | null;
   onUndoReceipt: (entry: HistoryEntry) => Promise<void>;
@@ -42,36 +51,40 @@ export function Home({
   const [playerOpen, setPlayerOpen] = useState(false);
   const closePlayer = useCallback(() => setPlayerOpen(false), []);
   const presetsLive = !idle && !playerOpen;
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const pressedIndex = useKeyFlash(presetsLive);
   const clock = formatWallClock(now, timezone);
   const shownTodaySeconds = useCountUp(todaySeconds);
+  // Newest first, so the first entry is the last time anything was logged today.
+  const lastLoggedAt = todayLog[0]?.loggedAt;
 
-  // The Today pill glows briefly when time lands, tying the receipt to the running total.
+  // The total glows briefly when time lands, tying the receipt to the running total.
   const [bumped, setBumped] = useState(false);
   const lastTodayRef = useRef(todaySeconds);
   useEffect(() => {
     const rose = todaySeconds > lastTodayRef.current;
     lastTodayRef.current = todaySeconds;
-    if (!rose) return;
-    setBumped(true);
+    if (rose) setBumped(true);
+  }, [todaySeconds]);
+  // Its own effect, so a drop right after a rise (an undo) can't cancel the fade back.
+  useEffect(() => {
+    if (!bumped) return;
     const id = setTimeout(() => setBumped(false), 1400);
     return () => clearTimeout(id);
-  }, [todaySeconds]);
+  }, [bumped]);
 
   useKeydown(
     useCallback(
       e => {
-        // Presets 1-3 mirror the three tiles below; preset 4 opens Log Time Now (needs Jira).
-        // The dial press opens Today, the same place the dock's Today pill goes.
+        // Presets 1-3 are the status tabs; preset 4 opens Log Time Now (needs Jira).
         if (e.key === '1') onSelect('available');
         else if (e.key === '2') onSelect('busy');
         else if (e.key === '3') onSelect('focus');
         else if (e.key === '4' && jiraConfigured) onLogNow();
-        else if ((e.key === 'Enter' || e.key === ' ') && jiraConfigured) onOpenHistory();
         else return;
         e.preventDefault();
       },
-      [onSelect, onLogNow, onOpenHistory, jiraConfigured],
+      [onSelect, onLogNow, jiraConfigured],
     ),
     presetsLive,
   );
@@ -79,8 +92,9 @@ export function Home({
   return (
     <div className="screen home">
       {idle && (
-        <div className="screensaver">
+        <div className={`screensaver screensaver-${status}`}>
           <div className="screensaver-clock">{clock}</div>
+          {jiraConfigured && <div className="screensaver-day">{formatDuration(todaySeconds)} logged today</div>}
           {player.track && player.playing && (
             <div className="screensaver-track">
               {player.track.title}
@@ -91,75 +105,70 @@ export function Home({
       )}
       {/* Negative margins flush this to the screen's edge, aligning with the preset buttons above. */}
       <div className="button-hint">
-        <div className={`button-hint-item button-hint-available ${pressedIndex === 0 ? 'pressed' : ''}`}>
-          <span className="button-hint-label">Available</span>
-        </div>
-        <div className={`button-hint-item button-hint-busy ${pressedIndex === 1 ? 'pressed' : ''}`}>
-          <span className="button-hint-label">Busy</span>
-        </div>
-        <div className={`button-hint-item button-hint-focus ${pressedIndex === 2 ? 'pressed' : ''}`}>
-          <span className="button-hint-label">Focus</span>
-        </div>
-        <div className={`button-hint-item ${pressedIndex === 3 ? 'pressed' : ''}`}>
-          {jiraConfigured && <span className="button-hint-label">Log time</span>}
-        </div>
-      </div>
-      <div className={`status-banner status-${status}`}>{statusLabel(status)}</div>
-      <div className="tiles">
+        {STATUS_TABS.map((tab, i) => (
+          <button
+            key={tab.status}
+            className={`button-hint-item status-tab status-tab-${tab.status} ${status === tab.status ? 'lit' : ''} ${pressedIndex === i ? 'pressed' : ''}`}
+            aria-pressed={status === tab.status}
+            onClick={() => onSelect(tab.status)}
+          >
+            <span className="button-hint-label">{tab.label}</span>
+          </button>
+        ))}
         <button
-          className={`tile tile-available ${status === 'available' ? 'selected' : ''}`}
-          onClick={() => onSelect('available')}
+          className={`button-hint-item status-tab ${pressedIndex === 3 ? 'pressed' : ''}`}
+          disabled={!jiraConfigured}
+          onClick={onLogNow}
         >
-          {status === 'available' && (
-            <span className="tile-badge">
-              <CheckIcon size={18} />
-            </span>
-          )}
-          <CheckIcon />
-          <span>Available</span>
-        </button>
-        <button className={`tile tile-busy ${status === 'busy' ? 'selected' : ''}`} onClick={() => onSelect('busy')}>
-          {status === 'busy' && (
-            <span className="tile-badge">
-              <CheckIcon size={18} />
-            </span>
-          )}
-          <BusyIcon />
-          <span>Busy</span>
-        </button>
-        <button className={`tile tile-focus ${status === 'focus' ? 'selected' : ''}`} onClick={() => onSelect('focus')}>
-          {status === 'focus' && (
-            <span className="tile-badge">
-              <CheckIcon size={18} />
-            </span>
-          )}
-          <BoltIcon />
-          <span>Focus</span>
+          {jiraConfigured && <span className="button-hint-label">Log time</span>}
         </button>
       </div>
-      {!jiraConfigured && (
-        <div className="hint">
-          Set your Jira site, email and API token from the Deskbar settings on your phone to enable time tracking.
+
+      {jiraConfigured ? (
+        <>
+          {/* Kept on the left: the top-right is under the dial and bridgething's toasts. */}
+          <div className={`today-total ${bumped ? 'today-total-bumped' : ''}`}>
+            <span className="today-total-value">{formatDuration(shownTodaySeconds)}</span>
+            <span className="today-total-meta">
+              <span className="today-total-label">logged today</span>
+              {lastLoggedAt !== undefined && (
+                <span className="unlogged">
+                  unlogged since <strong>{formatWallClock(lastLoggedAt, timezone)}</strong>
+                </span>
+              )}
+            </span>
+          </div>
+          <div className="ledger">
+            <TodayLedger
+              entries={todayLog}
+              enabled={presetsLive}
+              confirmingId={confirmingId}
+              onConfirmingChange={setConfirmingId}
+              onDelete={onDeleteEntry}
+            />
+          </div>
+        </>
+      ) : (
+        <div className="ledger ledger-setup">
+          <div className="hint">
+            Set your Jira site, email and API token from the Deskbar settings on your phone to enable time tracking.
+          </div>
         </div>
       )}
+
       {/* Ambient info lives along the bottom: the top-right is under the dial and the toast overlay. */}
       <div className="dock">
         <button className="dock-clock" aria-label="Show clock" onClick={sleepNow}>
           {clock}
         </button>
         <NowPlayingChip player={player} onOpen={() => setPlayerOpen(true)} />
-        {jiraConfigured && (
-          <button className={`today-bar ${bumped ? 'today-bar-bumped' : ''}`} onClick={onOpenHistory}>
-            Today: {formatDuration(shownTodaySeconds)}
-          </button>
-        )}
       </div>
       {receipt && !idle && (
         <Receipt
           key={receipt.id}
           entry={receipt}
           todaySeconds={todaySeconds}
-          backUndoes={presetsLive}
+          backUndoes={presetsLive && !confirmingId}
           onUndo={onUndoReceipt}
           onDismiss={onDismissReceipt}
         />
@@ -167,15 +176,4 @@ export function Home({
       {playerOpen && <NowPlayingSheet player={player} enabled={!idle} onDismiss={closePlayer} />}
     </div>
   );
-}
-
-function statusLabel(status: Status): string {
-  switch (status) {
-    case 'available':
-      return 'Available';
-    case 'busy':
-      return 'Busy';
-    case 'focus':
-      return 'Focus';
-  }
 }

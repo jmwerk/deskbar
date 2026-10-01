@@ -20,14 +20,13 @@ import { usePlayer } from './usePlayer';
 import { fireFocusWebhook } from './webhook';
 import { FocusRunning } from './screens/FocusRunning';
 import { FocusSetup } from './screens/FocusSetup';
-import { History } from './screens/History';
 import { Home } from './screens/Home';
 import { LogTimeNow } from './screens/LogTimeNow';
 
 export default function App() {
   const [config, setConfig] = useState<Config>(DEFAULT_CONFIG);
   const [session, setSession] = useState<SessionState | null>(null);
-  const [screen, setScreen] = useState<'home' | 'focusSetup' | 'logTime' | 'history'>('home');
+  const [screen, setScreen] = useState<'home' | 'focusSetup' | 'logTime'>('home');
   const [now, setNow] = useState(() => Date.now());
   const [toast, setToast] = useState<{ message: string; kind: ToastKind } | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -96,10 +95,8 @@ export default function App() {
   // History is newest first, so this is the issue most recently logged to.
   const lastIssueKey = history[0]?.issueKey;
 
-  const todaySeconds = useMemo(
-    () => totalSeconds(todayEntries(history, now, config.timezone)),
-    [history, now, config.timezone],
-  );
+  const todayLog = useMemo(() => todayEntries(history, now, config.timezone), [history, now, config.timezone]);
+  const todaySeconds = useMemo(() => totalSeconds(todayLog), [todayLog]);
 
   const update = useCallback((next: SessionState) => {
     setSession(next);
@@ -259,16 +256,13 @@ export default function App() {
         }}
       />
     );
-  } else if (screen === 'history') {
-    content = (
-      <History entries={history} timezone={config.timezone} onBack={() => setScreen('home')} onDelete={deleteEntry} />
-    );
   } else {
     content = (
       <Home
         status={session.status}
         jiraConfigured={!!config.jira}
         todaySeconds={todaySeconds}
+        todayLog={todayLog}
         now={now}
         timezone={config.timezone}
         player={player}
@@ -277,7 +271,7 @@ export default function App() {
           else update({ status });
         }}
         onLogNow={() => setScreen('logTime')}
-        onOpenHistory={() => setScreen('history')}
+        onDeleteEntry={deleteEntry}
         receipt={receipt}
         onUndoReceipt={undoReceipt}
         onDismissReceipt={dismissReceipt}
