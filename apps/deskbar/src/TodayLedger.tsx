@@ -122,12 +122,12 @@ export function TodayLedger({
               className={`history-row ${entry.id === dialId ? 'selected' : ''}`}
               key={entry.id}
               ref={entry.id === dialId ? el => void (dialRowRef.current = el) : undefined}
-              aria-label={`Delete logged time for ${entry.issueKey}`}
               onClick={() => onConfirmingChange(entry.id)}
             >
               <span className="history-delete-hint" aria-hidden="true">
                 ×
               </span>
+              <span className="sr-only">Delete </span>
               <span className="history-issue">{entry.issueKey}</span>
               <span className="history-summary">{entry.issueSummary}</span>
               <span className="history-duration">{formatDuration(entry.seconds)}</span>

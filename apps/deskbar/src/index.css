@@ -109,14 +109,22 @@
   }
 }
 
+/* Reduced motion keeps the screen change legible as a fade, without the rise. */
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Scales, not height, so the endless loop never forces layout on the device's weak CPU. */
 @keyframes eq-pulse {
   0%,
   100% {
-    height: 4px;
+    transform: scaleY(0.25);
   }
 
   50% {
-    height: 16px;
+    transform: scaleY(1);
   }
 }
 
@@ -183,6 +191,14 @@
     flex-direction: column;
     padding: 20px 28px;
     animation: fade-in 200ms ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .screen,
+    .screensaver,
+    .toast {
+      animation-name: fade;
+    }
   }
 
   .loading-screen {
@@ -291,10 +307,12 @@
 
   .eq span {
     width: 3px;
-    height: 4px;
+    height: 16px;
     border-radius: 2px;
     background: var(--color-available);
     opacity: 0.5;
+    transform: scaleY(0.25);
+    transform-origin: bottom;
   }
 
   .eq-playing span {
@@ -308,6 +326,22 @@
 
   .eq-playing span:nth-child(3) {
     animation-delay: -600ms;
+  }
+
+  /* Still bars at uneven heights, so playing still reads apart from the low paused rest. */
+  @media (prefers-reduced-motion: reduce) {
+    .eq-playing span {
+      animation: none;
+      transform: scaleY(0.7);
+    }
+
+    .eq-playing span:nth-child(2) {
+      transform: scaleY(1);
+    }
+
+    .eq-playing span:nth-child(3) {
+      transform: scaleY(0.5);
+    }
   }
 
   /* Idle screensaver — fixed, not absolute: covers the full viewport regardless of
@@ -340,7 +374,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     font-size: 20px;
-    font-weight: 600;
+    font-weight: 700;
     color: color-mix(in srgb, var(--color-muted) 70%, transparent);
   }
 
@@ -658,6 +692,7 @@
   }
 
   .filter-chip {
+    position: relative;
     border: 1px solid var(--color-edge);
     background: var(--color-panel);
     border-radius: 999px;
@@ -666,6 +701,13 @@
     font-weight: 600;
     color: var(--color-muted);
     letter-spacing: 0.04em;
+  }
+
+  /* Grows the touch target to 44px into the surrounding gaps without moving the list. */
+  .filter-chip::after {
+    content: '';
+    position: absolute;
+    inset: -4px -3px;
   }
 
   .filter-chip.selected {
@@ -801,6 +843,11 @@
     z-index: -1;
     transform-origin: left;
     animation: mode-tap-fill 1500ms linear forwards;
+  }
+
+  /* Red on the red fill drops to ~2.8:1; off-white also marks the switch to "Ending…". */
+  .btn-ending {
+    color: var(--color-off-white);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -1258,12 +1305,13 @@
     height: 28px;
   }
 
-  /* The input does the dragging; it's invisible so the progress bar underneath is what shows. */
+  /* The input does the dragging; it's invisible so the progress bar underneath is what shows. Overhangs
+     the bar by 8px each way for a 44px touch target without re-laying out the player. */
   .scrubber-input {
     position: absolute;
-    inset: 0;
+    inset: -8px 0;
     width: 100%;
-    height: 100%;
+    height: calc(100% + 16px);
     margin: 0;
     opacity: 0;
     cursor: pointer;

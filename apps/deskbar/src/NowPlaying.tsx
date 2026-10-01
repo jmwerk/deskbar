@@ -38,7 +38,7 @@ export function NowPlayingChip({ player, onOpen }: { player: Player; onOpen: () 
         <ScrollText text={track.title} className="now-playing-chip-title" />
         {track.artist && <ScrollText text={track.artist} className="now-playing-chip-artist" />}
       </span>
-      <span className={`eq ${playing ? 'eq-playing' : ''}`} aria-label={playing ? 'playing' : 'paused'}>
+      <span className={`eq ${playing ? 'eq-playing' : ''}`} role="img" aria-label={playing ? 'Playing' : 'Paused'}>
         <span />
         <span />
         <span />
@@ -78,6 +78,8 @@ function Scrubber({ player }: { player: Player }) {
           disabled={durationMs <= 0}
           onChange={e => setDragMs(Number(e.target.value))}
           onPointerUp={commit}
+          // An interrupted drag (a palm, a system gesture) drops the seek instead of leaving it held.
+          onPointerCancel={() => setDragMs(null)}
           onKeyUp={commit}
           onBlur={commit}
         />
