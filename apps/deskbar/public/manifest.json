@@ -72,11 +72,7 @@
       "data": {
         "key": "focusWebhookFormat",
         "label": "Focus webhook payload format",
-        "choices": [
-          "json",
-          "slack",
-          "teams"
-        ],
+        "choices": ["json", "slack", "teams"],
         "default": "json"
       }
     },
@@ -103,9 +99,7 @@
       }
     }
   ],
-  "permissions": [
-    "net.fetch"
-  ],
+  "permissions": ["net.fetch"],
   "overlays": {
     "notifications": true,
     "call": true,

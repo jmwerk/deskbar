@@ -2,132 +2,132 @@
 name: Deskbar
 description: Today's logged Jira time, a focus timer, and busy/available/focus status on an 800x480 Car Thing.
 colors:
-  control-black: "#0b0d10"
-  panel-graphite: "#16191d"
-  edge-steel: "#262b31"
-  off-white: "#f5f6f7"
-  muted-slate: "#8a9099"
-  focus-blue: "#3b82f6"
-  go-green: "#2ecc71"
-  stop-red: "#e74c3c"
+  control-black: '#0b0d10'
+  panel-graphite: '#16191d'
+  edge-steel: '#262b31'
+  off-white: '#f5f6f7'
+  muted-slate: '#8a9099'
+  focus-blue: '#3b82f6'
+  go-green: '#2ecc71'
+  stop-red: '#e74c3c'
 typography:
   display:
     fontFamily: "-apple-system, 'Segoe UI', Roboto, sans-serif"
-    fontSize: "104px"
+    fontSize: '104px'
     fontWeight: 800
     lineHeight: 1
-    fontFeature: "tnum"
+    fontFeature: 'tnum'
   total:
     fontFamily: "-apple-system, 'Segoe UI', Roboto, sans-serif"
-    fontSize: "72px"
+    fontSize: '72px'
     fontWeight: 800
     lineHeight: 1
-    letterSpacing: "-0.02em"
-    fontFeature: "tnum"
+    letterSpacing: '-0.02em'
+    fontFeature: 'tnum'
   headline:
     fontFamily: "-apple-system, 'Segoe UI', Roboto, sans-serif"
-    fontSize: "34px"
+    fontSize: '34px'
     fontWeight: 800
     lineHeight: 1.15
   title:
     fontFamily: "-apple-system, 'Segoe UI', Roboto, sans-serif"
-    fontSize: "26px"
+    fontSize: '26px'
     fontWeight: 800
   body:
     fontFamily: "-apple-system, 'Segoe UI', Roboto, sans-serif"
-    fontSize: "18px"
+    fontSize: '18px'
     fontWeight: 400
     lineHeight: 1.35
   label:
     fontFamily: "-apple-system, 'Segoe UI', Roboto, sans-serif"
-    fontSize: "16px"
+    fontSize: '16px'
     fontWeight: 800
   eyebrow:
     fontFamily: "-apple-system, 'Segoe UI', Roboto, sans-serif"
-    fontSize: "16px"
+    fontSize: '16px'
     fontWeight: 700
-    letterSpacing: "0.08em"
+    letterSpacing: '0.08em'
   keycap:
     fontFamily: "-apple-system, 'Segoe UI', Roboto, sans-serif"
-    fontSize: "12px"
+    fontSize: '12px'
     fontWeight: 800
-    letterSpacing: "0.04em"
+    letterSpacing: '0.04em'
 rounded:
-  keycap: "6px"
-  tab: "8px"
-  row: "12px"
-  control: "14px"
-  art: "18px"
-  pill: "999px"
+  keycap: '6px'
+  tab: '8px'
+  row: '12px'
+  control: '14px'
+  art: '18px'
+  pill: '999px'
 spacing:
-  xs: "8px"
-  sm: "14px"
-  md: "16px"
-  screen-y: "20px"
-  screen-x: "28px"
+  xs: '8px'
+  sm: '14px'
+  md: '16px'
+  screen-y: '20px'
+  screen-x: '28px'
 components:
   button-primary:
-    backgroundColor: "{colors.focus-blue}"
-    textColor: "#ffffff"
-    rounded: "{rounded.control}"
-    padding: "16px"
+    backgroundColor: '{colors.focus-blue}'
+    textColor: '#ffffff'
+    rounded: '{rounded.control}'
+    padding: '16px'
   button-secondary:
-    backgroundColor: "{colors.panel-graphite}"
-    textColor: "{colors.off-white}"
-    rounded: "{rounded.control}"
-    padding: "16px"
+    backgroundColor: '{colors.panel-graphite}'
+    textColor: '{colors.off-white}'
+    rounded: '{rounded.control}'
+    padding: '16px'
   button-danger:
-    textColor: "{colors.stop-red}"
-    rounded: "{rounded.control}"
-    padding: "16px"
+    textColor: '{colors.stop-red}'
+    rounded: '{rounded.control}'
+    padding: '16px'
   status-tab:
-    backgroundColor: "{colors.panel-graphite}"
-    textColor: "{colors.off-white}"
-    typography: "{typography.label}"
-    padding: "9px 4px"
+    backgroundColor: '{colors.panel-graphite}'
+    textColor: '{colors.off-white}'
+    typography: '{typography.label}'
+    padding: '9px 4px'
   status-tab-lit-available:
-    backgroundColor: "{colors.go-green}"
-    textColor: "{colors.control-black}"
-    typography: "{typography.label}"
+    backgroundColor: '{colors.go-green}'
+    textColor: '{colors.control-black}'
+    typography: '{typography.label}'
   status-tab-lit-busy:
-    backgroundColor: "{colors.stop-red}"
-    textColor: "{colors.control-black}"
-    typography: "{typography.label}"
+    backgroundColor: '{colors.stop-red}'
+    textColor: '{colors.control-black}'
+    typography: '{typography.label}'
   status-tab-lit-focus:
-    backgroundColor: "{colors.focus-blue}"
-    textColor: "{colors.control-black}"
-    typography: "{typography.label}"
+    backgroundColor: '{colors.focus-blue}'
+    textColor: '{colors.control-black}'
+    typography: '{typography.label}'
   preset-tab:
-    backgroundColor: "{colors.panel-graphite}"
-    textColor: "{colors.off-white}"
-    typography: "{typography.label}"
-    padding: "9px 4px"
+    backgroundColor: '{colors.panel-graphite}'
+    textColor: '{colors.off-white}'
+    typography: '{typography.label}'
+    padding: '9px 4px'
   today-total:
-    textColor: "{colors.off-white}"
-    typography: "{typography.total}"
+    textColor: '{colors.off-white}'
+    typography: '{typography.total}'
   list-row:
-    backgroundColor: "{colors.panel-graphite}"
-    rounded: "{rounded.row}"
-    padding: "12px 14px"
-    height: "52px"
+    backgroundColor: '{colors.panel-graphite}'
+    rounded: '{rounded.row}'
+    padding: '12px 14px'
+    height: '52px'
   filter-chip:
-    backgroundColor: "{colors.panel-graphite}"
-    textColor: "{colors.muted-slate}"
-    rounded: "{rounded.pill}"
-    padding: "6px 14px"
+    backgroundColor: '{colors.panel-graphite}'
+    textColor: '{colors.muted-slate}'
+    rounded: '{rounded.pill}'
+    padding: '6px 14px'
   receipt:
-    textColor: "{colors.off-white}"
-    rounded: "{rounded.control}"
-    padding: "14px 16px 0"
+    textColor: '{colors.off-white}'
+    rounded: '{rounded.control}'
+    padding: '14px 16px 0'
   keycap:
-    typography: "{typography.keycap}"
-    rounded: "{rounded.keycap}"
-    padding: "2px 7px"
+    typography: '{typography.keycap}'
+    rounded: '{rounded.keycap}'
+    padding: '2px 7px'
   now-playing-chip:
-    backgroundColor: "{colors.panel-graphite}"
-    rounded: "{rounded.control}"
-    padding: "7px 16px 7px 7px"
-    height: "56px"
+    backgroundColor: '{colors.panel-graphite}'
+    rounded: '{rounded.control}'
+    padding: '7px 16px 7px 7px'
+    height: '56px'
 ---
 
 # Design System: Deskbar
@@ -150,6 +150,7 @@ text. The one place the instrument loosens up is the now-playing player, which w
 art's own color.
 
 **Key Characteristics:**
+
 - Dark-only, fixed 800x480, no responsive behavior.
 - Today's logged time is the largest thing on Home; status is a lit preset tab.
 - Chunky, finger-sized, rounded controls with a press-shrink response.
@@ -164,19 +165,23 @@ art's own color.
 A neutral graphite instrument body with three saturated signal lamps.
 
 ### Primary
+
 - **Focus Blue** (`focus-blue`): the Focus status, the primary action button, the dial's current target (selected issue
   row, selected ledger row, dial-focused duration, selected filter chip), Jira issue keys, the progress fill, and the
   now-playing wash fallback when artwork has no tint.
 
 ### Secondary
+
 - **Go Green** (`go-green`): the Available status, the receipt and success toasts, today's total glowing as time lands,
   the liked-track preset, and the now-playing equalizer bars.
 
 ### Tertiary
+
 - **Stop Red** (`stop-red`): the Busy status, destructive actions (End Focus, Delete), the End Focus fill while an M tap
   waits, error toasts and error hints.
 
 ### Neutral
+
 - **Control Black** (`control-black`): the screen background, the dimmed clock, and text on lit status tabs.
 - **Panel Graphite** (`panel-graphite`): every resting surface: preset tabs, rows, chips, secondary buttons, the dock,
   the neutral info toast.
@@ -185,6 +190,7 @@ A neutral graphite instrument body with three saturated signal lamps.
 - **Muted Slate** (`muted-slate`): secondary text, issue summaries, the paused clock, labels, the dimmed clock.
 
 ### Named Rules
+
 **The Signal Lamp Rule.** Green, red and blue mean Available, Busy and Focus. Never use them decoratively; red also means
 destructive or error, green also means success or time logged.
 
@@ -205,6 +211,7 @@ red and blue fills sits under 4:1.
 panel. Hierarchy comes from size and weight, not from font pairing.
 
 ### Hierarchy
+
 - **Display** (800, 104px, line-height 1): the focus countdown. The dimmed clock uses 96px in Muted Slate.
 - **Total** (800, 72px, line-height 1, -0.02em): today's logged total on Home.
 - **Headline** (800, 34px, 1.15): the now-playing track title.
@@ -217,6 +224,7 @@ panel. Hierarchy comes from size and weight, not from font pairing.
 - Small metadata (13 to 15px, 600): artist in the dock chip, scrubber times, chips, the receipt summary.
 
 ### Named Rules
+
 **The Tabular Time Rule.** Every clock, countdown, duration, total and scrubber time uses
 `font-variant-numeric: tabular-nums` so digits never jitter.
 
@@ -246,6 +254,7 @@ dark shadows lift the few elements meant to feel physical: the primary button (a
 and toasts. Full-screen overlays stack by z-index: now-playing 30, dimmed clock 40, receipt and toast 50.
 
 ### Shadow Vocabulary
+
 - **Art lift** (`box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35)`): large album art.
 - **Row rest** (`box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2)`): issue and ledger rows.
 - **Primary glow** (`box-shadow: 0 4px 12px color-mix(in srgb, var(--color-accent) 45%, transparent)`): the primary button.
@@ -261,7 +270,9 @@ material continuing into the screen.
 ## Components
 
 ### Buttons
+
 Chunky and tactile.
+
 - **Shape:** softly rounded (14px), full-width or equal `flex: 1` splits, 16px padding, 20px/700 text.
 - **Primary:** solid Focus Blue with white text and a blue glow.
 - **Secondary:** Panel Graphite with an Edge Steel border.
@@ -270,16 +281,19 @@ Chunky and tactile.
 - **Press:** every button scales to 0.96 and dims to 90% brightness on `:active` (100ms). Disabled drops to 50% opacity.
 
 ### Status Tabs
+
 The signature control on Home: presets 1 to 3 as on-screen tabs, each tinted 22% with its status color. The current
 status is lit solid in its color with Control Black text. Tab 4 is "Log time" in plain graphite. Tapping a tab does what
 its physical button does.
 
 ### Preset Tabs
+
 The on-screen twin of each physical preset elsewhere: four equal columns, 3px gaps, Panel Graphite,
 square-top/rounded-bottom (8px), 16px/800 labels or 24px glyphs. A physical press flashes the tab (`scale(0.93)`,
 `brightness(1.3)`).
 
 ### Today Total and Ledger
+
 Home's reading. The total is 72px/800 Off-White, with "logged today" and "unlogged since 2:07 PM" stacked beside it; it
 counts up and glows Go Green for 1.4s when time lands. Below it, the ledger lists every worklog from today as list rows
 with a leading × hint, scrolling past what fits. Tapping a row, or a dial press on the dial-selected row, expands it in
@@ -287,43 +301,52 @@ place into a red-bordered "Delete from Jira?" confirm with full-width Cancel and
 graphite box says what to press next.
 
 ### Lists (Issue and Ledger Rows)
+
 - **Corner Style:** 12px.
 - **Background:** Panel Graphite with Edge Steel border and row-rest shadow; min height 52px.
 - **Content:** a bold Focus Blue issue key, then a Muted Slate one-line summary; ledger rows end with a tabular duration.
 - **Selected:** Focus Blue border, 15% blue tint.
 
 ### Duration
+
 The duration value sits in a 12px box that is invisible at rest and becomes the dial-target box (blue border, 15% tint)
 when the dial is on it, so the row never shifts. A short Muted Slate hint beside it says how to hand the dial back.
 
 ### Chips
+
 - **Style:** pill, Panel Graphite, Edge Steel border, 14px/600 Muted Slate.
 - **State:** selected takes a Focus Blue border, 20% blue tint and Off-White text.
 
 ### Receipt
+
 The proof a worklog landed, top-left with the toast's width cap. A 16% Go Green tint with a 45% green border, 14px
 corners, float shadow, and a 260ms rise on an expo-out curve. A green check badge, the amount at 26px/800, "logged to
 KEY", the one-line summary and "Today 3h 10m" in 72% Off-White, and an Undo button with a "Back" keycap. A 3px line along
 the bottom drains over the 8s undo window and pauses while an undo is in flight.
 
 ### Keycaps
+
 Name the physical button that does the same thing as the control they sit in: 12px/800 text, 6px corners, a border at
 40% of the text color, 80% opacity, inheriting the host's color ("Back" on Undo, "M" on End Focus).
 
 ### Dock and Now-Playing Chip
+
 A 56px bottom band: the dock clock (26px/800) and a flexible now-playing chip (40px art, title 16px/700, artist 13px,
 equalizer bars in Go Green that bounce while playing).
 
 ### Dimmed Clock
+
 After 3 idle minutes on Home: Control Black, a 6px top edge in the current status color at 70%, a 96px Muted Slate
 clock, today's total at 24px/700, and the current track while one is playing.
 
 ### Now-Playing Player
+
 The one expressive surface: a full-screen wash built from radial gradients of the artwork's tint (`--art-tint`,
 animated over 600ms), with panels and edges switched to translucent black and white so the wash shows through. The
 progress fill turns Off-White here because blue fights most artwork.
 
 ### Toasts
+
 Top-left, width-capped clear of the toast safe zone, 12px corners, 16px/600 text, float shadow, 200ms fade-in. Success
 and error take a 22% green or red tint with a 45% border; info (nothing went wrong, nothing was logged) is plain
 graphite with a steel edge.
@@ -331,6 +354,7 @@ graphite with a steel edge.
 ## Do's and Don'ts
 
 ### Do:
+
 - **Do** make today's logged time the largest reading on Home.
 - **Do** mirror every physical preset with a flush top tab and flash it on press.
 - **Do** give every primary action a physical path, and name it with a keycap when it isn't the obvious one.
@@ -341,6 +365,7 @@ graphite with a steel edge.
 - **Do** honor `prefers-reduced-motion`: the receipt rise, its drain line, the M fill, the count-up and the text pan.
 
 ### Don't:
+
 - **Don't** place anything in the top-right corner that has to be pressed or read; the dial and bridgething's toasts own
   it.
 - **Don't** put white text on a solid Go Green, Stop Red or Focus Blue fill.
