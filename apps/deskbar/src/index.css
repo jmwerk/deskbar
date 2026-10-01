@@ -134,6 +134,28 @@
   }
 }
 
+@keyframes receipt-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes receipt-drain {
+  from {
+    transform: scaleX(1);
+  }
+
+  to {
+    transform: scaleX(0);
+  }
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -889,6 +911,157 @@
   .toast-info {
     background: var(--color-panel);
     border: 1px solid var(--color-edge);
+  }
+
+  /* Receipt: the undoable proof a worklog landed. Same top-left slot and width cap as the toast. */
+  .receipt {
+    position: fixed;
+    top: 20px;
+    left: 28px;
+    width: calc(100vw - var(--spacing-toast-safe-w) - 56px);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px 16px 0;
+    overflow: hidden;
+    border-radius: 14px;
+    border: 1px solid color-mix(in srgb, var(--color-available) 45%, var(--color-edge));
+    background: color-mix(in srgb, var(--color-available) 16%, var(--color-panel));
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+    animation: receipt-in 260ms cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 50;
+  }
+
+  .receipt-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .receipt-check {
+    flex-shrink: 0;
+    align-self: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-available);
+    color: var(--color-bg);
+  }
+
+  .receipt-amount {
+    flex-shrink: 0;
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .receipt-target {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  /* Secondary text on the green tint comes from the foreground, not slate, so it keeps contrast. */
+  .receipt-summary {
+    padding-left: 38px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 15px;
+    font-weight: 600;
+    color: rgb(245 246 247 / 0.72);
+  }
+
+  .receipt-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-left: 38px;
+    margin-top: 2px;
+  }
+
+  .receipt-today {
+    font-size: 15px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: rgb(245 246 247 / 0.72);
+  }
+
+  .receipt-undo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 40px;
+    padding: 0 14px 0 18px;
+    border-radius: 12px;
+    border: 1px solid rgb(255 255 255 / 0.18);
+    background: rgb(0 0 0 / 0.28);
+    font-size: 16px;
+    font-weight: 800;
+  }
+
+  .receipt-undo:disabled {
+    opacity: 0.6;
+  }
+
+  /* Names the physical button that also undoes, styled like a keycap. */
+  .receipt-key {
+    padding: 2px 7px;
+    border-radius: 6px;
+    border: 1px solid rgb(255 255 255 / 0.28);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: rgb(245 246 247 / 0.72);
+  }
+
+  /* The undo window running out, truthfully: it lasts exactly as long as the receipt does. */
+  .receipt-drain {
+    height: 3px;
+    margin: 8px -16px 0;
+    background: rgb(245 246 247 / 0.45);
+    transform-origin: left;
+    animation: receipt-drain var(--receipt-ms) linear forwards;
+  }
+
+  .receipt-drain-held {
+    animation-play-state: paused;
+  }
+
+  .today-bar {
+    transition:
+      transform 100ms ease,
+      filter 100ms ease,
+      background 600ms ease,
+      border-color 600ms ease,
+      color 600ms ease;
+  }
+
+  .today-bar-bumped {
+    background: color-mix(in srgb, var(--color-available) 22%, var(--color-panel));
+    border-color: color-mix(in srgb, var(--color-available) 45%, var(--color-edge));
+    color: var(--color-off-white);
+    transition-duration: 150ms;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .receipt {
+      animation: none;
+    }
+
+    .receipt-drain {
+      animation: none;
+      opacity: 0;
+    }
   }
 
   /* Now playing: full-screen player over Home or Focus Running, laid out like Focus Running */

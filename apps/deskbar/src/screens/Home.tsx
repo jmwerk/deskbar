@@ -1,9 +1,12 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { formatDuration, formatWallClock } from '../format';
+import type { HistoryEntry } from '../history';
 import { BoltIcon, BusyIcon, CheckIcon } from '../icons';
 import { NowPlayingChip, NowPlayingSheet } from '../NowPlaying';
 import { HOME_IDLE_TIMEOUT_MS, useIdle, useKeydown, useKeyFlash } from '../physicalControls';
+import { Receipt } from '../Receipt';
 import type { Status } from '../session';
+import { useCountUp } from '../useCountUp';
 import type { Player } from '../usePlayer';
 
 export function Home({
@@ -16,6 +19,9 @@ export function Home({
   onSelect,
   onLogNow,
   onOpenHistory,
+  receipt,
+  onUndoReceipt,
+  onDismissReceipt,
 }: {
   status: Status;
   jiraConfigured: boolean;
@@ -26,6 +32,10 @@ export function Home({
   onSelect: (status: Status) => void;
   onLogNow: () => void;
   onOpenHistory: () => void;
+  /** The worklog just posted, while it can still be undone. */
+  receipt: HistoryEntry | null;
+  onUndoReceipt: (entry: HistoryEntry) => Promise<void>;
+  onDismissReceipt: () => void;
 }) {
   // Dims to a clock when idle; presets disable so the wake key can't also fire its action.
   const [idle, sleepNow] = useIdle(HOME_IDLE_TIMEOUT_MS);
@@ -34,6 +44,19 @@ export function Home({
   const presetsLive = !idle && !playerOpen;
   const pressedIndex = useKeyFlash(presetsLive);
   const clock = formatWallClock(now, timezone);
+  const shownTodaySeconds = useCountUp(todaySeconds);
+
+  // The Today pill glows briefly when time lands, tying the receipt to the running total.
+  const [bumped, setBumped] = useState(false);
+  const lastTodayRef = useRef(todaySeconds);
+  useEffect(() => {
+    const rose = todaySeconds > lastTodayRef.current;
+    lastTodayRef.current = todaySeconds;
+    if (!rose) return;
+    setBumped(true);
+    const id = setTimeout(() => setBumped(false), 1400);
+    return () => clearTimeout(id);
+  }, [todaySeconds]);
 
   useKeydown(
     useCallback(
@@ -124,11 +147,21 @@ export function Home({
         </button>
         <NowPlayingChip player={player} onOpen={() => setPlayerOpen(true)} />
         {jiraConfigured && (
-          <button className="today-bar" onClick={onOpenHistory}>
-            Today: {formatDuration(todaySeconds)}
+          <button className={`today-bar ${bumped ? 'today-bar-bumped' : ''}`} onClick={onOpenHistory}>
+            Today: {formatDuration(shownTodaySeconds)}
           </button>
         )}
       </div>
+      {receipt && !idle && (
+        <Receipt
+          key={receipt.id}
+          entry={receipt}
+          todaySeconds={todaySeconds}
+          backUndoes={presetsLive}
+          onUndo={onUndoReceipt}
+          onDismiss={onDismissReceipt}
+        />
+      )}
       {playerOpen && <NowPlayingSheet player={player} enabled={!idle} onDismiss={closePlayer} />}
     </div>
   );

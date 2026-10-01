@@ -9,6 +9,7 @@ import {
   todayEntries,
   totalSeconds,
   type HistoryEntry,
+  type NewHistoryEntry,
 } from './history';
 import { deleteWorklog, logWork, MIN_WORKLOG_S } from './jira';
 import { adjustedRunningMinutes } from './physicalControls';
@@ -30,11 +31,46 @@ export default function App() {
   const [now, setNow] = useState(() => Date.now());
   const [toast, setToast] = useState<{ message: string; kind: ToastKind } | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [receipt, setReceipt] = useState<HistoryEntry | null>(null);
   const player = usePlayer(client);
 
   const showError = useCallback((message: string) => setToast({ message, kind: 'error' }), []);
   const showSuccess = useCallback((message: string) => setToast({ message, kind: 'success' }), []);
   const showInfo = useCallback((message: string) => setToast({ message, kind: 'info' }), []);
+
+  // A fresh worklog gets an undoable receipt instead of a plain toast.
+  const recordWorklog = useCallback(async (entry: NewHistoryEntry) => {
+    const next = await appendHistoryEntry(entry);
+    setHistory(next);
+    setToast(null);
+    setReceipt(next[0]);
+  }, []);
+
+  const deleteEntry = useCallback(
+    async (entry: HistoryEntry) => {
+      if (config.jira && entry.worklogId) {
+        await deleteWorklog(config.jira, entry.issueKey, entry.worklogId);
+      }
+      setHistory(await removeHistoryEntry(entry.id));
+      setReceipt(current => (current?.id === entry.id ? null : current));
+    },
+    [config.jira],
+  );
+
+  const undoReceipt = useCallback(
+    async (entry: HistoryEntry) => {
+      try {
+        await deleteEntry(entry);
+        showInfo(`Removed ${formatDuration(entry.seconds)} from ${entry.issueKey}.`);
+      } catch {
+        showError(`Couldn't remove it from Jira, so ${entry.issueKey} still has ${formatDuration(entry.seconds)}.`);
+      } finally {
+        setReceipt(null);
+      }
+    },
+    [deleteEntry, showInfo, showError],
+  );
+  const dismissReceipt = useCallback(() => setReceipt(null), []);
 
   useEffect(() => {
     if (!toast) return;
@@ -120,10 +156,7 @@ export default function App() {
         }
         try {
           const { worklogId, seconds } = await logWork(config.jira, issueKey, finalElapsedS, 'Logged via Deskbar');
-          void appendHistoryEntry({ issueKey, issueSummary, seconds, loggedAt: Date.now(), worklogId }).then(
-            setHistory,
-          );
-          showSuccess(`Logged ${formatDuration(seconds)} to ${issueKey}.`);
+          void recordWorklog({ issueKey, issueSummary, seconds, loggedAt: Date.now(), worklogId });
         } catch (err) {
           console.warn('[deskbar] failed to log work to Jira', err);
           showError(`Couldn't log time to ${issueKey} — the session still ended.`);
@@ -131,7 +164,7 @@ export default function App() {
         }
       }
     },
-    [session, now, config, update, showError, showSuccess, showInfo],
+    [session, now, config, update, showError, showInfo, recordWorklog],
   );
 
   // Auto-end at remainingS 0, skipped while paused; null remainingS is unlimited.
@@ -214,8 +247,7 @@ export default function App() {
         lastIssueKey={lastIssueKey}
         onCancel={() => setScreen('home')}
         onLogged={entry => {
-          void appendHistoryEntry(entry).then(setHistory);
-          showSuccess(`Logged ${formatDuration(entry.seconds)} to ${entry.issueKey}.`);
+          void recordWorklog(entry);
           setScreen('home');
         }}
         onQueued={entry => {
@@ -229,17 +261,7 @@ export default function App() {
     );
   } else if (screen === 'history') {
     content = (
-      <History
-        entries={history}
-        timezone={config.timezone}
-        onBack={() => setScreen('home')}
-        onDelete={async entry => {
-          if (config.jira && entry.worklogId) {
-            await deleteWorklog(config.jira, entry.issueKey, entry.worklogId);
-          }
-          setHistory(await removeHistoryEntry(entry.id));
-        }}
-      />
+      <History entries={history} timezone={config.timezone} onBack={() => setScreen('home')} onDelete={deleteEntry} />
     );
   } else {
     content = (
@@ -256,6 +278,9 @@ export default function App() {
         }}
         onLogNow={() => setScreen('logTime')}
         onOpenHistory={() => setScreen('history')}
+        receipt={receipt}
+        onUndoReceipt={undoReceipt}
+        onDismissReceipt={dismissReceipt}
       />
     );
   }
