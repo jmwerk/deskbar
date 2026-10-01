@@ -290,8 +290,11 @@ Chunky and tactile.
 - **Primary:** solid Focus Blue with white text and a blue glow.
 - **Secondary:** Panel Graphite with an Edge Steel border.
 - **Danger:** Stop Red text on a 14% red tint with a 45% red border. While an M tap waits out the daemon's go-home
-  window, End Focus reads "Ending…" and fills left to right with 28% red over 1.5s.
+  window, End Focus reads "Ending…" in Off-White and fills left to right with 28% red over 1.5s (red text on that
+  fill would drop under 3:1).
 - **Press:** every button scales to 0.96 and dims to 90% brightness on `:active` (100ms). Disabled drops to 50% opacity.
+- **Focus:** a tapped button gives up focus once its click is handled, and Enter/Space never activate a focused
+  button: those keys are the dial press, and the screen decides what it does.
 
 ### Status Tabs
 
@@ -331,7 +334,8 @@ Back keycap) takes a third of the action row and the primary action two thirds.
 
 ### Chips
 
-- **Style:** pill, Panel Graphite, Edge Steel border, 14px/600 Muted Slate.
+- **Style:** pill, Panel Graphite, Edge Steel border, 16px/600 Muted Slate, +0.04em. The chip draws at 38px, and an
+  invisible overhang into the surrounding gaps makes the touch target 44px.
 - **State:** selected takes a Focus Blue border, 20% blue tint and Off-White text.
 
 ### Receipt
@@ -343,13 +347,14 @@ the bottom drains over the 8s undo window and pauses while an undo is in flight.
 
 ### Keycaps
 
-Name the physical button that does the same thing as the control they sit in: 12px/800 text, 6px corners, a border at
+Name the physical button that does the same thing as the control they sit in: 13px/800 text, 6px corners, a border at
 40% of the text color, 80% opacity, inheriting the host's color ("Back" on Undo, "M" on End Focus).
 
 ### Dock and Now-Playing Chip
 
-A 56px bottom band: the dock clock (26px/800) and a flexible now-playing chip (40px art, title 16px/700, artist 13px,
-equalizer bars in Go Green that bounce while playing).
+A 56px bottom band: the dock clock (26px/800) and a flexible now-playing chip (40px art, title 16px/800, artist 16px/600 Muted
+Slate, equalizer bars in Go Green that bounce while playing). The bars animate `scaleY`, never `height`, so the endless
+loop costs no layout; under reduced motion they hold still at uneven heights, so playing still reads apart from paused.
 
 ### Dimmed Clock
 
@@ -360,7 +365,10 @@ Nothing else, status included.
 
 The one expressive surface: a full-screen wash built from radial gradients of the artwork's tint (`--art-tint`,
 animated over 600ms), with panels and edges switched to translucent black and white so the wash shows through. The
-progress fill turns Off-White here because blue fights most artwork.
+progress fill turns Off-White here because blue fights most artwork. The tint is darkened by relative luminance, not
+HSL lightness, until the 78% Off-White secondary text holds 4.5:1 on it: yellow at 55% lightness is far brighter than
+blue at 55%. Bright yellow, green and cyan art therefore wash deeper; blue, red and purple keep their tint. The
+scrubber's input overhangs the 28px bar by 8px each way for a 44px touch target, and a cancelled drag drops the seek.
 
 ### Toasts
 
@@ -379,7 +387,8 @@ graphite with a steel edge.
 - **Do** keep persistent and interactive UI in the bottom band or on the left side.
 - **Do** use tabular numerals for every time value.
 - **Do** give every button the 0.96 press-shrink.
-- **Do** honor `prefers-reduced-motion`: the receipt rise, its drain line, the M fill, the count-up and the text pan.
+- **Do** honor `prefers-reduced-motion`: the receipt rise, its drain line, the M fill, the count-up, the text pan and the
+  equalizer stop; screen, dimmed-clock and toast entrances fade without the rise.
 
 ### Don't:
 

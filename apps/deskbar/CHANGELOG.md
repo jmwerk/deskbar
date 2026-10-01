@@ -14,6 +14,8 @@ The main paths no longer need the touchscreen. A single tap of M ends a focus se
 
 Error messages now say what failed, like "Couldn't log time to DESK-2: Jira returned HTTP 403". The Delete button in the ledger is readable on its red fill, scrolling lists show a slim dark scrollbar, and progress bars move more smoothly.
 
+Pressing the dial no longer also presses whichever button you last tapped, which could reopen the player or resume a paused session. Album art in bright yellows, greens and cyans now washes the player a shade deeper so its text stays readable. The project chips and the seek bar are easier to hit, and Deskbar loads faster: it now runs on Preact, cutting the app's code by more than half.
+
 ## 0.7.1
 
 A long Jira issue summary no longer pushes the focus timer's buttons into the now-playing bar. The issue now stays on one line and scrolls when it's too long to fit.
