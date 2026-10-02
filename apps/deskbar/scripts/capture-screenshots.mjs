@@ -128,19 +128,19 @@ async function main() {
 
       console.log('03-focus-running.png + 04-paused.png');
       {
+        // Seeded history and a session 9 minutes in, so the meta line shows time earned and a real day total.
         const context = await browser.newContext({ viewport });
+        await seedHistory(context);
         const page = await context.newPage();
         await page.goto(url);
         await page.locator('.status-tab-focus').click();
         await page.locator('.issue-row', { hasText: 'DESK-2' }).waitFor();
         await page.locator('.issue-row', { hasText: 'DESK-2' }).click();
         await page.locator('.btn-primary').click();
+        await backdateFocusSession(page, 9);
         await page.locator('.focus-running .clock').waitFor();
         await shoot(page, '03-focus-running.png');
 
-        // Pause mid-session, not at the start, so the paused shot shows a mid-flight countdown.
-        await backdateFocusSession(page, 6);
-        await page.locator('.focus-running .clock').waitFor();
         await page.locator('.focus-running .btn-secondary').click();
         await page.locator('.clock-paused').waitFor();
         await shoot(page, '04-paused.png');
