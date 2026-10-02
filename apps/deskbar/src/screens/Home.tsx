@@ -173,7 +173,15 @@ export function Home({
           onDismiss={onDismissReceipt}
         />
       )}
-      {playerOpen && <NowPlayingSheet player={player} enabled={!idle} onDismiss={closePlayer} />}
+      {playerOpen && (
+        <NowPlayingSheet
+          player={player}
+          enabled={!idle}
+          wallTime={wallTime}
+          todaySeconds={jiraConfigured ? todaySeconds : undefined}
+          onDismiss={closePlayer}
+        />
+      )}
     </div>
   );
 }

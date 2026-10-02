@@ -165,11 +165,14 @@ async function main() {
 
       console.log('05-now-playing.png');
       {
+        // Seeded so the dock carries a real day total under the music.
         const context = await browser.newContext({ viewport });
+        await seedHistory(context);
         const page = await context.newPage();
         await page.goto(url);
         await page.locator('img.now-playing-chip-art').click();
         await page.locator('img.now-playing-art').waitFor();
+        await page.locator('.lyrics-current').waitFor();
         // Let the fade-in and the artwork color wash settle.
         await page.waitForTimeout(900);
         await shoot(page, '05-now-playing.png');

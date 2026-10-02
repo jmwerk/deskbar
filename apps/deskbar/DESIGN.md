@@ -48,11 +48,6 @@ typography:
     fontFamily: "'Inter Variable', -apple-system, 'Segoe UI', Roboto, sans-serif"
     fontSize: '16px'
     fontWeight: 600
-  eyebrow:
-    fontFamily: "'Inter Variable', -apple-system, 'Segoe UI', Roboto, sans-serif"
-    fontSize: '16px'
-    fontWeight: 700
-    letterSpacing: '0.08em'
   keycap:
     fontFamily: "'Inter Variable', -apple-system, 'Segoe UI', Roboto, sans-serif"
     fontSize: '13px'
@@ -204,7 +199,8 @@ destructive or error, green also means success or time logged.
 into graphite (14 to 30%) with a 45% border, not as a solid fill.
 
 **The Dial Points Blue Rule.** Whatever the dial will act on is marked in Focus Blue: a blue border plus a 15 to 20%
-tint, the same box on issue rows, ledger rows and the duration.
+tint, the same box on issue rows, ledger rows and the duration. The now-playing player is the one exception: its queue
+and artist rows take an Off-White border and an 18% white tint, for the same reason its progress fill is Off-White.
 
 **The Dark-On-Lamp Rule.** Text on a solid signal fill is Control Black: lit status tabs, the confirm Delete button,
 badges. White on Go Green is about 2:1, and white on the red and blue fills sits under 4:1. The one exception is the
@@ -228,10 +224,9 @@ Car Thing has only Liberation Sans, which renders every weight from 600 up as on
 - **Body** (20px; 500 for muted text, 700 for strong): list rows, action buttons, hints, the issue tag, the today
   total's meta line. Muted body text is 500, never 400, so slate on black holds up.
 - **Label** (800, 16px): preset and status tab labels, the Unlimited toggle, confirm buttons, Undo.
-- **Small** (600, 16px): metadata: artist and album, scrubber times, chips (+0.04em, they're uppercase keys), the
-  receipt's summary and day total, the dial hint, toasts.
-- **Eyebrow** (700, 16px, 0.08em, uppercase): "NOW PLAYING" on the player only. Focus Running dropped its
-  "FOCUS SESSION" eyebrow; the issue heads that screen instead.
+- **Small** (600, 16px): metadata: the player's source line and list rows, scrubber times, chips (+0.04em,
+  they're uppercase keys), the receipt's summary and day total, the dial hint, toasts.
+- No eyebrows. The player dropped "NOW PLAYING" and Focus Running dropped "FOCUS SESSION"; the content heads each.
 - **Keycap** (800, 13px, 0.04em): the "Back" and "M" keycaps.
 
 ### Named Rules
@@ -403,6 +398,48 @@ HSL lightness, until the 78% Off-White secondary text holds 4.5:1 on it: yellow 
 blue at 55%. Bright yellow, green and cyan art therefore wash deeper; blue, red and purple keep their tint. The
 scrubber's input overhangs the 28px bar by 8px each way for a 44px touch target, and a cancelled drag drops the seek.
 
+Laid out like Home. The presets stay transport on every view: previous, play/pause, next, like (Go Green tint
+while saved).
+
+- **Art:** 232px, top-left, its bottom edge level with the scrubber.
+- **Track reading:** beside the art, out to the right edge: the 34px title, then two lines that open lists, each
+  with a small chevron and an invisible overhang to a 44px target. The artist (20px/500) opens their top tracks; the
+  source line (16px/600: the playing context, "Deep Work", or the album, led by "Paused ·" in Off-White while
+  paused) opens the queue. This is the one place reading text runs into the toast corner, by choice: toasts pass in
+  about 5s and don't block taps, and the dial covers roughly the tab row above the title.
+- **Lyrics:** a 72px band under the art, for tracks with timed lyrics only. The line being sung at 26px/800, and
+  the next one under it at 20px/600 in 78% Off-White. Each new line rises 10px into place over 260ms on an
+  expo-out curve (a fade under reduced motion); an instrumental gap shows a music glyph. A "Lyrics" toggle in the
+  dock, lit Off-White while on, hides and shows the band; the choice is saved on the device. With lyrics off, or a
+  track with none (untimed lyrics count as none, having nothing to follow), the band and the toggle are gone and
+  the art and track reading center in the room.
+- **Dial:** seeks 10s per detent; dial press toggles play/pause; Back closes.
+- **Queue and artist lists:** open in place of the player body, keeping the wash, the tabs and the dock. A 26px/800
+  heading (the context name, or the artist) with a 20px/700 meta, then 60px rows: 44px art, title 16px/800,
+  artists 16px/600, one line each, and a ⋯ button. They work like Spotify's own track lists:
+  - **Tap a row** to play it within that playlist, album or artist (returning to the player); the dial walks the
+    rows and a press does the same.
+  - **Add to queue** by swiping a row right (it slides off a green box that goes solid past 72px, and snaps back
+    short of it), from the row's ⋯ menu, or by holding the dial press, the long-press. The ⋯ menu opens in place
+    at row height with Add to queue and Go to artist; the dial walks it and Back closes it before leaving the
+    list. The row confirms with a Go Green "Added to queue" pill for 2s.
+  - **The queue view** lays Spotify's queue over the whole playlist (browsed from the phone up to 500 tracks):
+    what's been played, then 16px/700 group labels "Now playing", "Next in queue" (tracks added by hand, in the
+    order added; they play before the playlist resumes) and "Next from: Chill Mix". It opens scrolled to the
+    playing row with its label and a sliver above in view; the meta reads "14 of 50 · 2 in queue". Tapping a queued
+    track jumps to it. Without a context to browse it shows just the queue.
+  - The phone's queue order is the truth but its queued flag isn't (tracks added from here can come back
+    unflagged), and it pushes no snapshot for a queue change. So Deskbar shows an added track at once, reads the
+    queue back, and keeps its own record of what it added: a track stays under "Next in queue" until it plays, and
+    only that one leaves, since jumping past queued tracks keeps them queued, as in the app.
+  - Spotify's remove, clear and reorder have no SDK commands, so they aren't here. There's no Play next either: the
+    app doesn't have one, and the SDK's queue position is ignored by the phone.
+  - The row playing carries the Go Green equalizer. Covers load only around the visible rows. Back, or the
+    dock's "Now playing" button, returns to the player. Loading, failure and emptiness take the dashed box.
+- **Dock:** the wall clock, then the focus timer pill while a session runs or "Today 2h 50m" (Off-White value)
+  when Jira is set up, then at the right the Lyrics toggle (on the player, for a track with lyrics) and Close (or
+  "Now playing" from a list) with a "Back" keycap.
+
 ### Toasts
 
 Top-left, width-capped clear of the toast safe zone, 12px corners, 16px/600 text, float shadow, 200ms fade-in. Success
@@ -426,7 +463,7 @@ graphite with a steel edge.
 ### Don't:
 
 - **Don't** place anything in the top-right corner that has to be pressed or read; the dial and bridgething's toasts own
-  it.
+  it. The now-playing player's track reading is the one deliberate exception.
 - **Don't** put white text on a solid Go Green, Stop Red or Focus Blue fill.
 - **Don't** use Go Green, Stop Red or Focus Blue for anything that doesn't carry their meaning.
 - **Don't** wrap titles or issue summaries; a wrap pushes actions into the dock.

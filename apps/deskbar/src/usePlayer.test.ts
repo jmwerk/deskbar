@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { mockClient, resetMockState, setMockNowPlaying } from './mockClient';
-import { usePlayer } from './usePlayer';
+import { mergeQueue, usePlayer } from './usePlayer';
 
 beforeEach(() => {
   resetMockState();
@@ -73,18 +73,97 @@ describe('usePlayer', () => {
     get.mockRestore();
   });
 
-  it('caches a cover that finishes loading after the track changed', async () => {
+  it('fetches each cover once even when the track changes mid-load', async () => {
     const get = vi.spyOn(mockClient.asset, 'get');
     const { result } = renderHook(() => usePlayer(mockClient));
-    await waitFor(() => expect(get).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(get).toHaveBeenCalled());
 
-    // Skip before the first cover resolves, then come straight back to it.
+    // Skip before the first covers resolve, then come straight back.
     await act(async () => result.current.skip(1));
     await act(async () => result.current.skip(-1));
 
     await waitFor(() => expect(result.current.track?.artUrl).toBe('blob:mock-art'));
-    expect(get.mock.calls.map(([req]) => req.id)).toEqual(['mock-art-0', 'mock-art-1']);
+    const ids = get.mock.calls.map(([req]) => req.id);
+    expect(new Set(ids).size).toBe(ids.length);
     get.mockRestore();
+  });
+
+  it('reports the next tracks and the playing context', async () => {
+    const { result } = renderHook(() => usePlayer(mockClient));
+    await waitFor(() => expect(result.current.queue).toHaveLength(5));
+    expect(result.current.queue.slice(0, 3).map(q => q.title)).toEqual([
+      'Five More Minutes (Calendar Invite Declined Remix)',
+      'Available',
+      'Inbox Zero',
+    ]);
+    expect(result.current.context).toBe('Deep Work');
+  });
+
+  it('jumps to an upcoming track by its queue position', async () => {
+    const { result } = renderHook(() => usePlayer(mockClient));
+    await waitFor(() => expect(result.current.queue).toHaveLength(5));
+
+    await act(async () => result.current.skipTo(2));
+    expect(result.current.track?.title).toBe('Inbox Zero');
+    expect(result.current.queue[0].title).toBe('Hard Stop');
+  });
+
+  it('adds to the end of the queue in the order added, before the playlist resumes', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const { result } = renderHook(() => usePlayer(mockClient));
+    await waitFor(() => expect(result.current.queue).toHaveLength(5));
+
+    const add = (n: number, title: string) =>
+      result.current.addToQueue({
+        uri: `spotify:track:mock-${n}`,
+        title,
+        artist: null,
+        artistUri: null,
+        artworkId: null,
+      });
+    act(() => add(3, 'Inbox Zero'));
+    act(() => add(4, 'Hard Stop'));
+    expect(result.current.track?.title).toBe('Heads Down');
+    expect(result.current.queue.slice(0, 2).map(q => [q.title, q.queued])).toEqual([
+      ['Inbox Zero', true],
+      ['Hard Stop', true],
+    ]);
+
+    await act(async () => vi.advanceTimersByTimeAsync(3000));
+    expect(result.current.queue.filter(q => q.queued).map(q => q.title)).toEqual(['Inbox Zero', 'Hard Stop']);
+    expect(result.current.queue).toHaveLength(7);
+
+    await act(async () => result.current.skip(1));
+    expect(result.current.track?.title).toBe('Inbox Zero');
+    expect(result.current.queue.filter(q => q.queued).map(q => q.title)).toEqual(['Hard Stop']);
+  });
+
+  it('keeps a track added here until it plays, even when the phone never lists it', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const silent = { ...mockClient, player: { ...mockClient.player, queue: vi.fn(async () => {}) } };
+    const { result } = renderHook(() => usePlayer(silent));
+    await waitFor(() => expect(result.current.queue).toHaveLength(5));
+
+    act(() =>
+      result.current.addToQueue({
+        uri: 'spotify:track:mock-4',
+        title: 'Hard Stop',
+        artist: null,
+        artistUri: null,
+        artworkId: null,
+      }),
+    );
+    await act(async () => vi.advanceTimersByTimeAsync(60_000));
+    expect(result.current.queue[0]).toMatchObject({ title: 'Hard Stop', queued: true, phoneIndex: null });
+  });
+
+  it('plays a track by uri within a context', async () => {
+    const { result } = renderHook(() => usePlayer(mockClient));
+    await waitFor(() => expect(result.current.track).not.toBeNull());
+
+    await act(async () => result.current.play('spotify:track:mock-3', 'spotify:artist:mock-auto-reply'));
+    expect(result.current.track?.title).toBe('Inbox Zero');
+    expect(result.current.track?.artistUri).toBe('spotify:artist:mock-auto-reply');
   });
 
   it('extrapolates the playhead between snapshots while playing', async () => {
@@ -134,5 +213,43 @@ describe('usePlayer', () => {
     act(() => setMockNowPlaying(false));
     expect(result.current.track).toBeNull();
     expect(result.current.playing).toBe(false);
+  });
+});
+
+describe('mergeQueue', () => {
+  const q = (title: string, queued = false) => ({
+    uri: `spotify:track:${title}`,
+    title,
+    artist: null,
+    artworkId: null,
+    queued,
+  });
+
+  it('takes tracks added here as queued even when the phone leaves them unflagged', () => {
+    const merged = mergeQueue([q('a', true), q('mine'), q('p1'), q('p2')], [q('mine')]);
+    expect(merged.map(m => [m.title, m.queued, m.phoneIndex])).toEqual([
+      ['a', true, 0],
+      ['mine', true, 1],
+      ['p1', false, 2],
+      ['p2', false, 3],
+    ]);
+  });
+
+  it('lists tracks added here that the phone has not shown yet right after the queued run', () => {
+    const merged = mergeQueue([q('a', true), q('p1')], [q('late')]);
+    expect(merged.map(m => [m.title, m.queued, m.phoneIndex])).toEqual([
+      ['a', true, 0],
+      ['late', true, null],
+      ['p1', false, 1],
+    ]);
+  });
+
+  it("doesn't mistake a later playlist copy of a track added here for the queued one", () => {
+    const merged = mergeQueue([q('p1'), q('mine')], [q('mine')]);
+    expect(merged.map(m => [m.title, m.queued])).toEqual([
+      ['mine', true],
+      ['p1', false],
+      ['mine', false],
+    ]);
   });
 });

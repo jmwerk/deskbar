@@ -1,15 +1,35 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { AppBridgeClient, NowPlayingReply } from './mockClient';
+import { useArtwork } from './music';
 
 export type NowPlayingTrack = {
+  uri: string | null;
   title: string;
+  artistUri: string | null;
   artist: string | null;
   album: string | null;
   artUrl: string | null;
 };
 
+export type QueuedTrack = {
+  uri: string;
+  title: string;
+  artist: string | null;
+  artworkId: string | null;
+  artistUri: string | null;
+  /** Queued by hand rather than coming up from the playlist; these play first. */
+  queued: boolean;
+  /** Its place in the phone's own queue, for `skipTo`; null for a track queued here the phone hasn't listed. */
+  phoneIndex: number | null;
+};
+
 export type Player = {
   track: NowPlayingTrack | null;
+  /** Upcoming tracks, in play order; empty when the phone reports none. */
+  queue: QueuedTrack[];
+  /** The playlist, album or station playing, once the phone has resolved its name. */
+  context: string | null;
+  contextUri: string | null;
   playing: boolean;
   positionMs: number;
   durationMs: number;
@@ -20,18 +40,39 @@ export type Player = {
   seekBy: (deltaMs: number) => void;
   seekTo: (ms: number) => void;
   skip: (dir: 1 | -1) => void;
+  /** Jumps to an upcoming track by its position in `queue`. */
+  skipTo: (index: number) => void;
+  /** Plays a track within an album, playlist or artist, so next and previous follow that context. */
+  play: (uri: string, contextUri: string | null) => void;
+  /**
+   * Spotify's Add to queue: the track goes to the end of the hand-queued tracks, which play before the playlist
+   * resumes, in the order they were added. It shows in `queue` at once and stays until it plays.
+   */
+  addToQueue: (track: Pick<QueuedTrack, 'uri' | 'title' | 'artist' | 'artistUri' | 'artworkId'>) => void;
 };
 
 type Track = NonNullable<NowPlayingReply['state']['track']>;
 
+type Queued = NonNullable<NowPlayingReply['state']['queue']>[number];
+
 // What the phone last said, stamped with when we heard it.
-type Report = { track: Track; title: string; playing: boolean; positionMs: number; receivedAt: number };
+type Report = {
+  track: Track;
+  title: string;
+  playing: boolean;
+  positionMs: number;
+  queue: Queued[];
+  context: string | null;
+  contextUri: string | null;
+  receivedAt: number;
+};
+
+// The phone pushes no snapshot when the queue changes and only sometimes a queue event, so after queueing a
+// track the queue is re-read a few times until the phone has applied it.
+const QUEUE_REFRESH_MS = [400, 1200, 2500];
 
 // Re-render cadence while playing; the playhead itself is computed from the clock, not stepped.
 const PLAYHEAD_REFRESH_MS = 500;
-
-// Covers kept as object URLs: the current one plus a couple back, so skipping back reuses them.
-const ART_CACHE_SIZE = 3;
 
 function toReport({ state }: NowPlayingReply): Report | null {
   const title = state.track?.title;
@@ -41,54 +82,42 @@ function toReport({ state }: NowPlayingReply): Report | null {
     title,
     playing: state.playback.state === 'playing',
     positionMs: state.playback.positionMs,
+    queue: state.queue ?? [],
+    context: state.context?.name ?? null,
+    contextUri: state.context?.uri ?? null,
     receivedAt: Date.now(),
   };
 }
 
-// Artwork arrives as bytes over the daemon; turn it into object URLs and revoke the oldest past the cap.
-function useArtwork(client: AppBridgeClient, artId: string | null): string | null {
-  const cache = useRef(new Map<string, string>());
-  const shownId = useRef<string | null>(null);
-  const [url, setUrl] = useState<string | null>(null);
+type MergedQueued = Queued & { queued: boolean; phoneIndex: number | null };
 
-  useEffect(() => {
-    const urls = cache.current;
-    return () => urls.forEach(u => URL.revokeObjectURL(u));
-  }, []);
-
-  useEffect(() => {
-    shownId.current = artId;
-    if (!artId) {
-      setUrl(null);
-      return;
-    }
-    const urls = cache.current;
-    const hit = urls.get(artId);
-    if (hit) {
-      // Re-insert so Map order stays least-recently-used first.
-      urls.delete(artId);
-      urls.set(artId, hit);
-      setUrl(hit);
-      return;
-    }
-    void client.asset.get({ id: artId, requestId: crypto.randomUUID() }).then(res => {
-      if (!res.ok || urls.has(artId)) return;
-      // Bytes can arrive as a plain number array depending on the transport's decoding.
-      const bytes = Uint8Array.from(res.response.bytes as unknown as number[]);
-      const created = URL.createObjectURL(new Blob([bytes], { type: res.response.mime ?? 'image/jpeg' }));
-      // Cached even if the track moved on meanwhile, so skipping straight back doesn't refetch it.
-      urls.set(artId, created);
-      for (const [id, oldUrl] of urls) {
-        if (urls.size <= ART_CACHE_SIZE) break;
-        if (id === shownId.current) continue;
-        urls.delete(id);
-        URL.revokeObjectURL(oldUrl);
-      }
-      if (shownId.current === artId) setUrl(created);
-    });
-  }, [client, artId]);
-
-  return url;
+/**
+ * The phone's queue order is the truth, but its queued flag is not: a track added from here can come back
+ * unflagged. So the hand-queued run at the head is every leading track the phone flags or that was added from
+ * here; tracks added here that the phone hasn't listed yet follow that run, and the playlist comes after.
+ */
+export function mergeQueue(reported: Queued[], handQueue: Queued[]): MergedQueued[] {
+  const owed = new Map<string, number>();
+  for (const q of handQueue) owed.set(q.uri, (owed.get(q.uri) ?? 0) + 1);
+  let lead = 0;
+  for (; lead < reported.length; lead++) {
+    const q = reported[lead];
+    const ours = (owed.get(q.uri) ?? 0) > 0;
+    if (!q.queued && !ours) break;
+    if (ours) owed.set(q.uri, (owed.get(q.uri) ?? 0) - 1);
+  }
+  const unseen: Queued[] = [];
+  for (const q of handQueue) {
+    const n = owed.get(q.uri) ?? 0;
+    if (n === 0) continue;
+    owed.set(q.uri, n - 1);
+    unseen.push(q);
+  }
+  return [
+    ...reported.slice(0, lead).map((q, i) => ({ ...q, queued: true, phoneIndex: i })),
+    ...unseen.map(q => ({ ...q, queued: true, phoneIndex: null })),
+    ...reported.slice(lead).map((q, i) => ({ ...q, queued: false, phoneIndex: lead + i })),
+  ];
 }
 
 /** Now-playing state from the phone's Spotify; `track` is null with no phone or nothing playing. */
@@ -106,6 +135,18 @@ export function usePlayer(client: AppBridgeClient): Player {
     return off;
   }, [client]);
 
+  const applyQueue = useCallback((queue: Queued[]) => setReport(r => (r ? { ...r, queue } : r)), []);
+  const refreshQueue = useCallback(() => {
+    void client.player.queueGet().then(res => {
+      if (res.ok) applyQueue(res.response.items);
+    });
+  }, [client, applyQueue]);
+  useEffect(() => client.player.onQueueChanged(reply => applyQueue(reply.items)), [client, applyQueue]);
+
+  // Tracks added from here, oldest first. The phone keeps them in the right place but its queued flag comes and
+  // goes, so this is what tells them apart from the playlist until each one plays.
+  const [handQueue, setHandQueue] = useState<Queued[]>([]);
+
   useEffect(() => client.library.onFavoriteChanged(({ uri, liked }) => setLikeOverride({ uri, liked })), [client]);
 
   const track = report?.track ?? null;
@@ -122,7 +163,7 @@ export function usePlayer(client: AppBridgeClient): Player {
     return () => clearInterval(id);
   }, [playing, report]);
 
-  const artUrl = useArtwork(client, track?.artworkId ?? null);
+  const [artUrl] = useArtwork(client, [track?.artworkId ?? null]);
 
   let positionMs = 0;
   if (report) {
@@ -154,6 +195,34 @@ export function usePlayer(client: AppBridgeClient): Player {
     [client],
   );
 
+  const skipTo = useCallback((index: number) => void client.player.skipToIndex({ index }), [client]);
+  const play = useCallback(
+    (uri: string, contextUri: string | null) =>
+      void client.player.play({ uri, context: contextUri ? { contextUri } : null }),
+    [client],
+  );
+
+  const addToQueue = useCallback(
+    (t: Pick<QueuedTrack, 'uri' | 'title' | 'artist' | 'artistUri' | 'artworkId'>) => {
+      setHandQueue(h => [...h, { ...t, queued: true }]);
+      void client.player.queue({ uri: t.uri, position: { type: 'append' } });
+      QUEUE_REFRESH_MS.forEach(ms => setTimeout(refreshQueue, ms));
+    },
+    [client, refreshQueue],
+  );
+
+  // A queued track is done once it plays. Only that one: on Spotify, jumping past queued tracks keeps them queued.
+  const trackUri = track?.uri ?? null;
+  useEffect(() => {
+    if (!trackUri) return;
+    setHandQueue(h => {
+      const at = h.findIndex(q => q.uri === trackUri);
+      return at === -1 ? h : [...h.slice(0, at), ...h.slice(at + 1)];
+    });
+  }, [trackUri]);
+
+  const queue = mergeQueue(report?.queue ?? [], handQueue);
+
   const likeUri = track?.uri != null && track.isLikeSupported !== false ? track.uri : null;
   const liked = likeUri == null ? null : likeOverride?.uri === likeUri ? likeOverride.liked : (track?.liked ?? false);
 
@@ -165,7 +234,28 @@ export function usePlayer(client: AppBridgeClient): Player {
   }, [client, likeUri, liked, track?.persistentId]);
 
   return {
-    track: report && track ? { title: report.title, artist: track.artist, album: track.album, artUrl } : null,
+    track:
+      report && track
+        ? {
+            uri: track.uri,
+            title: report.title,
+            artist: track.artist,
+            artistUri: track.artistUri,
+            album: track.album,
+            artUrl,
+          }
+        : null,
+    queue: queue.map(q => ({
+      uri: q.uri,
+      title: q.title ?? 'Untitled',
+      artist: q.artist,
+      artworkId: q.artworkId,
+      artistUri: q.artistUri ?? null,
+      queued: q.queued,
+      phoneIndex: q.phoneIndex,
+    })),
+    context: report?.context ?? null,
+    contextUri: report?.contextUri ?? null,
     playing,
     positionMs,
     durationMs,
@@ -175,5 +265,8 @@ export function usePlayer(client: AppBridgeClient): Player {
     seekBy,
     seekTo,
     skip,
+    skipTo,
+    play,
+    addToQueue,
   };
 }

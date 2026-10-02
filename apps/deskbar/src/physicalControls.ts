@@ -129,6 +129,46 @@ export function useModeTap(onTap: () => void, enabled = true): boolean {
   return pending;
 }
 
+/**
+ * The dial push as a tap or a hold, like a tap and a long-press on a phone. A tap fires on release; a hold fires
+ * once at the first autorepeat (about 400ms in on the device) and swallows its own release.
+ */
+export function useDialPress(onTap: () => void, onHold: () => void, enabled = true) {
+  const handlers = useRef({ onTap, onHold });
+  useEffect(() => {
+    handlers.current = { onTap, onHold };
+  }, [onTap, onHold]);
+
+  useEffect(() => {
+    if (!enabled) return;
+    let down = false;
+    let held = false;
+    const isDial = (e: KeyboardEvent) => e.key === 'Enter' || e.key === ' ';
+    const onDown = (e: KeyboardEvent) => {
+      if (!isDial(e)) return;
+      e.preventDefault();
+      if (!e.repeat) {
+        down = true;
+        held = false;
+      } else if (down && !held) {
+        held = true;
+        handlers.current.onHold();
+      }
+    };
+    const onUp = (e: KeyboardEvent) => {
+      if (!isDial(e) || !down) return;
+      down = false;
+      if (!held) handlers.current.onTap();
+    };
+    window.addEventListener('keydown', onDown);
+    window.addEventListener('keyup', onUp);
+    return () => {
+      window.removeEventListener('keydown', onDown);
+      window.removeEventListener('keyup', onUp);
+    };
+  }, [enabled]);
+}
+
 const HINT_KEYS = ['1', '2', '3', '4'];
 
 // Index of the pressed hint key, held flashMs to flash the hint, so a quick tap still shows.

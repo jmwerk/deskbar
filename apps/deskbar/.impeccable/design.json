@@ -150,17 +150,13 @@
         "displayName": "Label",
         "purpose": "Preset and status tab labels, the Unlimited toggle, confirm buttons, Undo."
       },
-      "eyebrow": {
-        "displayName": "Eyebrow",
-        "purpose": "Uppercase NOW PLAYING on the player only."
-      },
       "keycap": {
         "displayName": "Keycap",
         "purpose": "Names the physical button a control shares: Back, M."
       },
       "small": {
         "displayName": "Small",
-        "purpose": "Metadata: artist and album, scrubber times, chips, receipt summary, toasts."
+        "purpose": "Metadata: the player source line and list rows, scrubber times, chips, receipt summary, toasts."
       }
     },
     "shadows": [

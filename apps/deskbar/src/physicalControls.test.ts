@@ -4,6 +4,7 @@ import {
   adjustedRunningMinutes,
   logTimeDefaultMinutes,
   MODE_TAP_SETTLE_MS,
+  useDialPress,
   useIdle,
   useKeydown,
   useModeTap,
@@ -263,6 +264,46 @@ describe('useModeTap', () => {
     key('keydown', 2100);
     key('keyup', 2300);
     act(() => vi.advanceTimersByTime(MODE_TAP_SETTLE_MS * 2));
+    expect(onTap).not.toHaveBeenCalled();
+  });
+});
+
+describe('useDialPress', () => {
+  function key(type: 'keydown' | 'keyup', k: string, repeat = false) {
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent(type, { key: k, repeat, cancelable: true }));
+    });
+  }
+
+  it('taps on release of a short press, for Enter and Space alike', () => {
+    const onTap = vi.fn();
+    const onHold = vi.fn();
+    renderHook(() => useDialPress(onTap, onHold));
+    key('keydown', 'Enter');
+    expect(onTap).not.toHaveBeenCalled();
+    key('keyup', 'Enter');
+    key('keydown', ' ');
+    key('keyup', ' ');
+    expect(onTap).toHaveBeenCalledTimes(2);
+    expect(onHold).not.toHaveBeenCalled();
+  });
+
+  it('holds once at the first autorepeat and swallows the release', () => {
+    const onTap = vi.fn();
+    const onHold = vi.fn();
+    renderHook(() => useDialPress(onTap, onHold));
+    key('keydown', 'Enter');
+    key('keydown', 'Enter', true);
+    key('keydown', 'Enter', true);
+    key('keyup', 'Enter');
+    expect(onHold).toHaveBeenCalledOnce();
+    expect(onTap).not.toHaveBeenCalled();
+  });
+
+  it('ignores a release whose press it never saw', () => {
+    const onTap = vi.fn();
+    renderHook(() => useDialPress(onTap, vi.fn()));
+    key('keyup', 'Enter');
     expect(onTap).not.toHaveBeenCalled();
   });
 });

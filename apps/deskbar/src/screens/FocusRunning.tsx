@@ -127,7 +127,13 @@ export function FocusRunning({
         <NowPlayingChip player={player} onOpen={() => setPlayerOpen(true)} />
       </div>
       {playerOpen && (
-        <NowPlayingSheet player={player} enabled focusTimer={{ seconds: displayS, paused }} onDismiss={closePlayer} />
+        <NowPlayingSheet
+          player={player}
+          enabled
+          wallTime={formatWallClock(now, clock.timeZone, clock.hour12)}
+          focusTimer={{ seconds: displayS, paused }}
+          onDismiss={closePlayer}
+        />
       )}
     </div>
   );
