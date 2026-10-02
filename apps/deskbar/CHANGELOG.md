@@ -14,6 +14,8 @@ The main paths no longer need the touchscreen. A single tap of M ends a focus se
 
 Error messages now say what failed, like "Couldn't log time to DESK-2: Jira returned HTTP 403". The Delete button in the ledger is readable on its red fill, scrolling lists show a slim dark scrollbar, and progress bars move more smoothly.
 
+Focus Running now reads like Home. The issue you're logging to heads the screen, the countdown sits under it, and one line shows what the session has earned so far and today's total as if it were already logged, so the receipt lands on the number you were watching. The end button says what it will do, like "End & log 6m", and both Pause and End show the physical button that does the same thing. The dock shows the clock, as on Home.
+
 Pressing the dial no longer also presses whichever button you last tapped, which could reopen the player or resume a paused session. Album art in bright yellows, greens and cyans now washes the player a shade deeper so its text stays readable. The project chips and the seek bar are easier to hit, and Deskbar loads faster: it now runs on Preact, cutting the app's code by more than half.
 
 ## 0.7.1

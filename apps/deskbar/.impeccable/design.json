@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-01T20:12:31.000Z",
+  "generatedAt": "2026-10-01T20:24:15.000Z",
   "title": "Design System: Deskbar",
   "extensions": {
     "colorMeta": {
@@ -152,7 +152,7 @@
       },
       "eyebrow": {
         "displayName": "Eyebrow",
-        "purpose": "Uppercase kickers like FOCUS SESSION and NOW PLAYING."
+        "purpose": "Uppercase kicker NOW PLAYING on the player."
       },
       "keycap": {
         "displayName": "Keycap",
@@ -220,7 +220,7 @@
       {
         "name": "mode-tap-fill",
         "value": "1500ms linear",
-        "purpose": "End Focus fills while an M tap waits out the go-home window."
+        "purpose": "The End button fills while an M tap waits out the go-home window."
       },
       {
         "name": "count-up",
@@ -256,8 +256,8 @@
       "name": "Danger Button",
       "kind": "button",
       "refersTo": "button-danger",
-      "description": "End Focus and other destructive actions.",
-      "html": "<button class=\"ds-btn-danger\">End Focus</button>",
+      "description": "End and other destructive actions.",
+      "html": "<button class=\"ds-btn-danger\">End &amp; log 6m</button>",
       "css": ".ds-btn-danger{background:color-mix(in srgb,#e74c3c 14%,#16191d);color:var(--color-busy,#e74c3c);border:1px solid color-mix(in srgb,#e74c3c 45%,#262b31);border-radius:14px;padding:16px 48px;font-family:-apple-system, 'Segoe UI', Roboto, sans-serif;font-size:20px;font-weight:700;cursor:pointer;transition:transform 100ms ease,filter 100ms ease}.ds-btn-danger:hover{filter:brightness(1.15)}.ds-btn-danger:focus-visible{outline:3px solid #e74c3c;outline-offset:2px}.ds-btn-danger:active{transform:scale(0.96);filter:brightness(0.9)}"
     },
     {

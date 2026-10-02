@@ -213,6 +213,10 @@ export default function App() {
         elapsedS={elapsedS}
         totalS={session.focus.durationS}
         paused={!!session.focus.pausedAt}
+        jiraConfigured={!!config.jira}
+        todaySeconds={todaySeconds}
+        now={now}
+        timezone={config.timezone}
         player={player}
         onTogglePause={togglePause}
         onExtend={extendFocus}

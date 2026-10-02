@@ -183,7 +183,7 @@ A neutral graphite instrument body with three saturated signal lamps.
 
 ### Tertiary
 
-- **Stop Red** (`stop-red`): the Busy status, destructive actions (End Focus, Delete), the End Focus fill while an M tap
+- **Stop Red** (`stop-red`): the Busy status, destructive actions (End, Delete), the End button's fill while an M tap
   waits, error toasts and error hints.
 
 ### Neutral
@@ -230,7 +230,8 @@ Car Thing has only Liberation Sans, which renders every weight from 600 up as on
 - **Label** (800, 16px): preset and status tab labels, the Unlimited toggle, confirm buttons, Undo.
 - **Small** (600, 16px): metadata: artist and album, scrubber times, chips (+0.04em, they're uppercase keys), the
   receipt's summary and day total, the dial hint, toasts.
-- **Eyebrow** (700, 16px, 0.08em, uppercase): "FOCUS SESSION", "NOW PLAYING".
+- **Eyebrow** (700, 16px, 0.08em, uppercase): "NOW PLAYING" on the player only. Focus Running dropped its
+  "FOCUS SESSION" eyebrow; the issue heads that screen instead.
 - **Keycap** (800, 13px, 0.04em): the "Back" and "M" keycaps.
 
 ### Named Rules
@@ -290,7 +291,7 @@ Chunky and tactile.
 - **Primary:** solid Focus Blue with white text and a blue glow.
 - **Secondary:** Panel Graphite with an Edge Steel border.
 - **Danger:** Stop Red text on a 14% red tint with a 45% red border. While an M tap waits out the daemon's go-home
-  window, End Focus reads "Ending…" in Off-White and fills left to right with 28% red over 1.5s (red text on that
+  window, Focus Running's End button reads "Ending…" in Off-White and fills left to right with 28% red over 1.5s (red text on that
   fill would drop under 3:1).
 - **Press:** every button scales to 0.96 and dims to 90% brightness on `:active` (100ms). Disabled drops to 50% opacity.
 - **Focus:** a tapped button gives up focus once its click is handled, and Enter/Space never activate a focused
@@ -308,6 +309,18 @@ The on-screen twin of each physical preset elsewhere: four equal columns, 3px ga
 square-top/rounded-bottom (8px), 16px/800 labels or 24px glyphs. A physical press flashes the tab (`scale(0.93)`,
 `brightness(1.3)`).
 
+### Focus Running
+
+Home's reading carried into the session, left-aligned like Home. The issue heads the screen at 26px/800 (blue key,
+Off-White summary, one line that pans when long; "No issue — just a timer" in Muted Slate when there is none). Under it
+the 104px countdown (elapsed, counting up, for an unlimited session), then one 20px/700 Muted Slate meta line, always one
+line tall so pausing never shifts the buttons: "Paused" in Off-White while paused, "+6m so far" while the session will
+log, and "Today 5h 21m", today's total as if this session were already logged, so the receipt on Home lands on the same
+number. Time under a minute counts toward neither, since it posts nothing. The meta sits under the clock, not beside it:
+an hour-long countdown would push it into the toast corner. A full-width progress bar, then Pause/Resume with a Back
+keycap and the End button with an M keycap, labelled with what it does: "End & log 6m", "End · nothing to log" under a
+minute, or plain "End" when nothing goes to Jira. The dock matches Home's: wall clock, then the now-playing chip.
+
 ### Today Total and Ledger
 
 Home's reading. The total is 72px/800 Off-White, with "logged today" and "unlogged since 2:07 PM" stacked beside it; it
@@ -321,7 +334,7 @@ graphite box says what to press next.
 - **Corner Style:** 12px.
 - **Background:** Panel Graphite with Edge Steel border and row-rest shadow; min height 52px.
 - **Content:** a bold Focus Blue issue key, then a Muted Slate one-line summary at 500; ledger rows end with a tabular
-  duration. The issue tag on Focus Running uses the same blue key.
+  duration. Focus Running's headline uses the same blue key.
 - **Selected:** Focus Blue border, 15% blue tint.
 
 ### Setup Sentence
@@ -348,7 +361,7 @@ the bottom drains over the 8s undo window and pauses while an undo is in flight.
 ### Keycaps
 
 Name the physical button that does the same thing as the control they sit in: 13px/800 text, 6px corners, a border at
-40% of the text color, 80% opacity, inheriting the host's color ("Back" on Undo, "M" on End Focus).
+40% of the text color, 80% opacity, inheriting the host's color ("Back" on Undo and Pause, "M" on End).
 
 ### Dock and Now-Playing Chip
 

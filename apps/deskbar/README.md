@@ -203,7 +203,7 @@ via the shared `useKeydown`/`useRotaryStep` hooks in
   delete confirm on Home. On Focus Running it **toggles pause/resume**
   instead of ending the session. Right after time is logged, Back undoes
   it from the receipt (a delete confirm, if one is open, closes first).
-- **Mode ("m")**, one tap, ends a running focus session. The End Focus
+- **Mode ("m")**, one tap, ends a running focus session. The End
   button fills while Deskbar waits out the daemon's go-home window
   (~1.5s), so pressing M again or holding it to go home never ends the
   session. M does nothing on any other screen.

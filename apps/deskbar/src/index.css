@@ -232,6 +232,8 @@
 
   .dock-clock {
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
     height: 100%;
     padding: 0 0 0 4px;
     border: none;
@@ -856,21 +858,50 @@
     }
   }
 
-  /* Focus running — active countdown screen shown while a focus session is currently in progress */
-
-  /* Everything below the duration hint bar (which needs to stay flush against the
-     true top edge, like it does on the setup screens) is centered in the remaining
-     space rather than as part of one centered group with it — otherwise the hint bar
-     would get pulled down and centered along with the clock instead of staying pinned to the top. */
+  /* Focus running: Home's reading carried into the session. The issue heads it, the countdown is the reading,
+     and the meta line under it ties the session to today's total. Left-aligned like Home; the meta sits under
+     the clock, not beside it, because an hour-long countdown would push it into the toast corner. */
   .focus-running-body {
     flex: 1;
     min-height: 0;
     display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: center;
-    text-align: center;
+    gap: 12px;
+  }
+
+  .focus-headline {
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  .focus-headline-none {
+    color: var(--color-muted);
+  }
+
+  /* Always one line tall, so pausing never shifts the buttons below it. */
+  .focus-meta {
+    display: flex;
     gap: 14px;
+    min-height: 27px;
+    margin-top: -2px;
+    font-size: 20px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-muted);
+  }
+
+  .focus-meta-paused {
+    color: var(--color-off-white);
+  }
+
+  .focus-running .progress-track {
+    width: 100%;
+  }
+
+  .focus-running .actions {
+    margin-top: 4px;
   }
 
   .focus-eyebrow {
@@ -898,11 +929,6 @@
     font-size: 20px;
     color: var(--color-muted);
     font-weight: 500;
-  }
-
-  /* One line at any summary length: a wrapped summary pushes the buttons into the dock. */
-  .focus-issue {
-    align-self: stretch;
   }
 
   .progress-track {
