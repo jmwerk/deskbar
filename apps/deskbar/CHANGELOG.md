@@ -6,7 +6,7 @@ Logging time, from a focus session or Log Time Now, now shows a receipt with wha
 
 Home now leads with the time you've logged today, when you last logged, and every worklog from today, each deletable in place, so the separate Today screen is gone. Status moved into the preset tabs along the top, where the current one lights up.
 
-Focus Setup and Log Time Now open with one line, "Focus for 25 min on" or "Log 25 min to", in place of a heading and two labels, so twice as many issues fit. Start and Log Time take two thirds of the button row.
+Focus Setup and Log Time Now open with one line that says what you're about to do, like "Focus for 25 min on DESK-2", in place of a heading and two labels. Under it, today's total shows what it will become once the time is logged, and the clock stays in its spot at the bottom left, as on Home. Log Time Now starts at the time since you last logged today, the same gap Home calls unlogged, instead of the default focus length.
 
 Deskbar now ships its own typeface, Inter, because the Car Thing only has an Arial clone with regular and bold, so the screen finally shows the weights it was designed with. Nothing reads smaller than 16px apart from button keycaps, and muted text is a step heavier so it holds up on black.
 

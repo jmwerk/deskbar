@@ -228,6 +228,9 @@ export default function App() {
       <FocusSetup
         config={config}
         lastIssueKey={lastIssueKey}
+        todaySeconds={todaySeconds}
+        now={now}
+        timezone={config.timezone}
         onCancel={() => setScreen('home')}
         onStart={async (durationS, issue) => {
           const focus = { startedAt: Date.now(), durationS, issueKey: issue?.key, issueSummary: issue?.summary };
@@ -246,6 +249,10 @@ export default function App() {
       <LogTimeNow
         config={config}
         lastIssueKey={lastIssueKey}
+        todaySeconds={todaySeconds}
+        lastLoggedAt={todayLog[0]?.loggedAt}
+        now={now}
+        timezone={config.timezone}
         onCancel={() => setScreen('home')}
         onLogged={entry => {
           void recordWorklog(entry);

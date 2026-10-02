@@ -173,7 +173,7 @@ what would be published, into `site/`, without pushing anything.
 Regenerate `screenshots/*.png` with `bun run screenshots` rather than
 capturing them by hand. It drives the real app in `dev:mock` mode
 (Playwright + Chromium, installed once via `bunx playwright install
-chromium`) through Home (with a seeded ledger), Focus Setup, Focus Running, Paused, and Now Playing, at
+chromium`) through Home (with a seeded ledger), Focus Setup, Focus Running, Paused, Now Playing, and Log Time Now, at
 the device's actual 800x480, so they can't drift out of sync with a UI
 change the way a manually-captured set can. `bun run shot deskbar` (from the
 repo root) is the CLI's own screenshot command, capturing whatever's on a

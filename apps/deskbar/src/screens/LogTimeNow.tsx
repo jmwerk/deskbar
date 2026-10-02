@@ -1,26 +1,37 @@
 import { useCallback, useRef, useState } from 'react';
 import type { Config } from '../config';
-import { DurationHintBar, DurationSentence } from '../DurationPicker';
+import { DurationHintBar, DurationSentence, SentenceIssue, SetupBand, SetupMeta } from '../DurationPicker';
+import { formatWallClock } from '../format';
 import type { NewHistoryEntry } from '../history';
 import { IssuePicker } from '../IssuePicker';
 import { isTransientJiraError, JiraError, logWork, type JiraIssue } from '../jira';
-import { clampMinutes, DURATION_STEPS, useKeydown, useRotaryStep } from '../physicalControls';
+import { clampMinutes, DURATION_STEPS, logTimeDefaultMinutes, useKeydown, useRotaryStep } from '../physicalControls';
 
 export function LogTimeNow({
   config,
   lastIssueKey,
+  todaySeconds,
+  lastLoggedAt,
+  now,
+  timezone,
   onCancel,
   onLogged,
   onQueued,
 }: {
   config: Config;
   lastIssueKey?: string;
+  /** Seconds already logged today. */
+  todaySeconds: number;
+  /** When the newest of today's worklogs was posted; undefined when nothing was logged today. */
+  lastLoggedAt?: number;
+  now: number;
+  timezone?: string;
   onCancel: () => void;
   onLogged: (entry: NewHistoryEntry) => void;
   /** Jira was unreachable, so the worklog was handed to the retry queue instead. */
   onQueued: (entry: Omit<NewHistoryEntry, 'worklogId'>) => void;
 }) {
-  const [minutes, setMinutes] = useState(config.defaultFocusMinutes);
+  const [minutes, setMinutes] = useState(() => logTimeDefaultMinutes(lastLoggedAt, now, config.defaultFocusMinutes));
   const [selected, setSelected] = useState<JiraIssue | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -87,11 +98,16 @@ export function LogTimeNow({
       <DurationHintBar unlimited={false} onStep={delta => setMinutes(m => clampMinutes(m + delta))} />
       <DurationSentence
         lead="Log"
-        tail="to"
+        tail={<SentenceIssue word="to" issueKey={selected?.key} />}
         minutes={minutes}
         unlimited={false}
         dialFocused={dialTarget === 'duration'}
         dialHint="Press when done"
+      />
+      <SetupMeta
+        lead={lastLoggedAt !== undefined && <>unlogged since {formatWallClock(lastLoggedAt, timezone)}</>}
+        todaySeconds={todaySeconds}
+        addSeconds={selected ? minutes * 60 : 0}
       />
 
       <div className="issue-picker" onPointerDown={() => setDialTarget('issue')}>
@@ -107,15 +123,11 @@ export function LogTimeNow({
         {error && <div className="hint error">{error}</div>}
       </div>
 
-      <div className="actions actions-weighted">
-        <button className="btn-secondary btn-with-key" onClick={onCancel}>
-          Cancel
-          <span className="key-cap">Back</span>
-        </button>
+      <SetupBand now={now} timezone={timezone} onCancel={onCancel}>
         <button className="btn-primary" disabled={!selected || busy} onClick={() => void submit()}>
           {busy ? 'Logging…' : 'Log Time'}
         </button>
-      </div>
+      </SetupBand>
     </div>
   );
 }

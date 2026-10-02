@@ -254,7 +254,8 @@ A single fixed 800x480 viewport; nothing reflows. Each screen is a full-viewport
   top, left and right edges, one column per physical preset.
 - **Middle:** the flexible region. On Home, today's total with its meta stacked beside it, then the ledger, which
   scrolls. Elsewhere the issue list, the countdown, or the player body.
-- **Bottom band:** a 56px dock (clock, now-playing chip) or a row of equal-width actions.
+- **Bottom band:** a 56px dock: the clock, then the now-playing chip or, on setup screens, Cancel and the primary
+  action.
 
 Spacing rhythm is 8px between list rows, 14px between bands and in action rows, 16px between larger groups. Persistent
 and interactive UI is bottom-anchored or left-aligned. bridgething toasts occupy a 300x280px top-right zone
@@ -339,11 +340,19 @@ graphite box says what to press next.
 
 ### Setup Sentence
 
-Focus Setup and Log Time open with one 26px/800 line that reads into the issue list below it: "Focus for 25 min on",
-"Log 25 min to". The minutes sit in a 12px box that is invisible at rest and becomes the dial-target box (blue border,
-15% tint) when the dial is on it, so the line never shifts. While the dial is on the minutes, a short Muted Slate "Press when done" follows the
-Unlimited toggle, short enough to keep the line clear of the dial's corner. Below the list, Cancel (with a
-Back keycap) takes a third of the action row and the primary action two thirds.
+Focus Setup and Log Time open with one 26px/800 line that names what the primary action will do: "Focus for 25 min on
+DESK-2", "Log 20 min to DESK-2", "Focus with no limit and no issue". The issue key is Focus Blue, as in the list; a
+Muted Slate "an issue" holds its place while the list loads. The minutes sit in a 12px box that is invisible at rest and
+becomes the dial-target box (blue border, 15% tint) when the dial is on it, so the line never shifts. While the dial is
+on the minutes, a short Muted Slate "Press when done" follows.
+
+Under it, Home's reading carries on in the Focus Running meta style (20px/700 Muted Slate): "Today 2h 50m → 3h 15m",
+with only the after-total in Off-White because that is the number the receipt will land on. Log Time leads the line
+with "unlogged since 3:04 PM" and opens its minutes on that gap. Focus Setup's Unlimited toggle rides at the end of
+this line as a chip-sized pill, not on the sentence, so a long issue key never pushes it toward the dial's corner.
+
+The bottom band is the dock: Home's wall clock in its usual spot, then Cancel (with a Back keycap) and the primary
+action at twice its width, both 56px tall.
 
 ### Chips
 

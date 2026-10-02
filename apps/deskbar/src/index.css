@@ -219,7 +219,7 @@
     justify-content: center;
   }
 
-  /* Bottom dock (Home, Focus Running): clock and now-playing. The top-right is
+  /* Bottom dock (Home, Focus Running, setup screens): clock and now-playing or actions. The top-right is
      under the dial and bridgething's toasts, so persistent info and taps stay down here. */
   .dock {
     display: flex;
@@ -565,15 +565,35 @@
 
   /* Focus setup — duration picker and Jira issue selection screen shown before starting a session */
 
-  /* One line reads as a sentence into the list below it: "Focus for 25 min on". */
+  /* One line names what the primary action will do: "Focus for 25 min on DESK-1". */
   .setup-sentence {
-    margin-bottom: 12px;
+    margin-bottom: 4px;
   }
 
   .sentence {
     margin: 0;
     font-size: 26px;
     font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .sentence .issue-key {
+    font-weight: inherit;
+  }
+
+  .sentence-muted {
+    color: var(--color-muted);
+  }
+
+  /* The total after this time lands is the one number that matters, so it alone is bright. */
+  .setup-meta {
+    align-items: center;
+    margin: 0 0 4px;
+  }
+
+  .setup-meta strong {
+    font-weight: 800;
+    color: var(--color-off-white);
   }
 
   /* Negative margin eats most of the padding, so at rest the value reads as plain words in the line. */
@@ -669,14 +689,22 @@
     color: var(--color-muted);
   }
 
+  /* Chip-sized to sit in the meta line; the ::after grows its touch target to 44px like the filter chips. */
   .btn-toggle {
-    padding: 10px 16px;
+    position: relative;
+    padding: 4px 14px;
     border-radius: 999px;
     border: 1px solid var(--color-edge);
     background: var(--color-panel);
     color: var(--color-off-white);
     font-size: 16px;
     font-weight: 800;
+  }
+
+  .btn-toggle::after {
+    content: '';
+    position: absolute;
+    inset: -6px -4px;
   }
 
   .issue-picker {
@@ -773,8 +801,14 @@
     align-self: stretch;
   }
 
-  /* Setup screens: the primary action takes two thirds, so it's the obvious target. */
-  .actions-weighted .btn-primary {
+  /* Setup screens: the clock keeps its dock spot, and the primary action is the widest target. */
+  .setup-band .btn-primary,
+  .setup-band .btn-secondary {
+    height: 100%;
+    padding: 0 16px;
+  }
+
+  .setup-band .btn-primary {
     flex: 2;
   }
 

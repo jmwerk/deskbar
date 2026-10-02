@@ -93,7 +93,7 @@ export function FocusRunning({
         {issueKey ? (
           <ScrollText issueKey={issueKey} text={issueSummary ?? ''} className="focus-headline" />
         ) : (
-          <div className="focus-headline focus-headline-none">No issue — just a timer</div>
+          <div className="focus-headline focus-headline-none">No issue, just a timer</div>
         )}
         <div className={`clock ${paused ? 'clock-paused' : ''}`}>{formatClock(displayS)}</div>
         <div className="focus-meta">

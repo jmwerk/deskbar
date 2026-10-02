@@ -162,7 +162,7 @@ export function IssuePicker({
             className={`issue-row ${!selected && dialEnabled ? 'selected' : ''}`}
             onClick={() => onSelect(undefined)}
           >
-            No issue — just a timer
+            No issue, just a timer
           </button>
         )}
       </div>

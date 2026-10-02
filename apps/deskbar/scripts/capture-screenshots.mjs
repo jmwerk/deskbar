@@ -117,12 +117,28 @@ async function main() {
 
       console.log('02-focus-setup.png');
       {
+        // Seeded so the meta line shows today's total growing, as it would mid-afternoon.
         const context = await browser.newContext({ viewport });
+        await seedHistory(context);
         const page = await context.newPage();
         await page.goto(url);
         await page.locator('.status-tab-focus').click();
         await page.locator('.issue-row').first().waitFor();
         await shoot(page, '02-focus-setup.png');
+        await context.close();
+      }
+
+      console.log('06-log-time.png');
+      {
+        // Seeded so the duration opens on the 20m gap since the newest worklog.
+        const context = await browser.newContext({ viewport });
+        await seedHistory(context);
+        const page = await context.newPage();
+        await page.goto(url);
+        await page.locator('.ledger-list .history-row').first().waitFor();
+        await page.keyboard.press('4');
+        await page.locator('.issue-row').first().waitFor();
+        await shoot(page, '06-log-time.png');
         await context.close();
       }
 
