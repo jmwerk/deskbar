@@ -9,12 +9,15 @@ direct control over the things a physical BUSY Bar handles (system Do Not
 Disturb, app blocking, a camera/mic presence sensor). Here's what you get
 instead:
 
-- **Status display:** Tap Available / Busy / Focus and the status shows
-  full-screen, saved on the device so it survives a reload or reboot. Sit
-  idle on Home for 3 minutes and it dims down to a plain clock instead of
-  leaving the status tiles up forever; any touch, preset press, or dial
-  nudge wakes it back up. That first input only wakes the screen; it
-  never doubles as a tap on whatever's underneath.
+- **Home is today's ledger:** the time you've logged today leads the
+  screen, with when you last logged and every worklog from today listed
+  under it. Status lives in the preset tabs along the top: press or tap
+  Available / Busy / Focus and that tab lights up in its color, saved on
+  the device so it survives a reload or reboot. Sit idle on Home for 3
+  minutes and it dims to a clock (digital, analog, in words, or hours stacked
+  over minutes, 12h or 24h, set in settings); any touch, preset press, or dial nudge wakes
+  it back up. That first input only wakes the screen; it never doubles
+  as a tap on whatever's underneath.
 - **Focus timer:** Pick a duration, optionally attach a Jira issue, and
   run a full-screen countdown. You can pause and resume it (Back or a
   touch button toggles this), and paused time never counts toward the
@@ -32,16 +35,15 @@ instead:
 - **Log time now:** Log time to an issue directly, no timer required,
   from Home's fourth preset.
 - **Clock and now playing:** A dock along the bottom of Home shows the
-  time, whatever your phone's Spotify is playing, and today's logged
-  total. Tap the track for a full-screen player: presets 1-4 are
+  time and whatever your phone's Spotify is playing. Tap the track for a full-screen player: presets 1-4 are
   previous, play/pause, next and like (saves the track to your Spotify
   library), the dial seeks, pressing the dial
   plays/pauses, Back closes it. With no phone connected it just
   says "Nothing playing". It sits at the bottom because the top-right
   corner is under the dial and bridgething's notification toasts.
-- **Today:** A running total of what you've logged today, tappable from
-  Home's dock, with each session listed out. You can delete any entry, which
-  removes its worklog from Jira too (entries logged before this feature
+- **Deleting a worklog:** tap any row in Home's ledger, or point the dial
+  at it and press, to delete it in place. That removes its worklog from
+  Jira too (entries logged before this feature
   existed don't have a worklog id to delete by, so those only get removed
   from Deskbar).
 - **Focus automation hook:** bridgething has no API for toggling a
@@ -172,13 +174,13 @@ what would be published, into `site/`, without pushing anything.
 Regenerate `screenshots/*.png` with `bun run screenshots` rather than
 capturing them by hand. It drives the real app in `dev:mock` mode
 (Playwright + Chromium, installed once via `bunx playwright install
-chromium`) through Home, Focus Setup, Focus Running, Paused, and Today, at
+chromium`) through Home (with a seeded ledger), Focus Setup, Focus Running, Paused, Now Playing, and Log Time Now, at
 the device's actual 800x480, so they can't drift out of sync with a UI
 change the way a manually-captured set can. `bun run shot deskbar` (from the
 repo root) is the CLI's own screenshot command, capturing whatever's on a
 physically-connected device's screen over CDP — useful for a quick real-device
 check, but it can't seed a specific state (a paused session, a populated
-Today list) the way the Playwright script can.
+ledger) the way the Playwright script can.
 
 ## Physical controls
 
@@ -189,25 +191,30 @@ via the shared `useKeydown`/`useRotaryStep` hooks in
 `src/physicalControls.ts`:
 
 - **Presets 1-3** pick a status on Home; **preset 4** opens Log Time Now
-  (once Jira is configured). **Presets 1-4** pick a duration preset on
-  Focus Setup and Log Time Now.
+  (once Jira is configured). **Presets 1-4** nudge the duration on
+  Focus Setup, Log Time Now and Focus Running.
 - **Dial** scrolls the issue list on Focus Setup/Log Time Now
-  (auto-scrolling to keep the selection visible).
-- **Back / Escape** cancels on Focus Setup/Log Time Now, and backs out of
-  Today (or dismisses its delete-confirm step first). On Focus Running it
-  **toggles pause/resume** instead of ending the session. Ending it is a
-  separate touch button, available from either state.
+  (auto-scrolling to keep the selection visible). Turning up past the
+  first issue moves the dial to the duration (±1 min per detent);
+  pressing the dial there hands it back to the list.
+- On Home the **dial** walks today's ledger, a **press** asks to delete
+  the highlighted worklog, a second press deletes it, and **Back**
+  cancels.
+- **Back / Escape** cancels on Focus Setup/Log Time Now and dismisses a
+  delete confirm on Home. On Focus Running it **toggles pause/resume**
+  instead of ending the session. Right after time is logged, Back undoes
+  it from the receipt (a delete confirm, if one is open, closes first).
+- **Mode ("m")**, one tap, ends a running focus session. The End
+  button fills while Deskbar waits out the daemon's go-home window
+  (~1.5s), so pressing M again or holding it to go home never ends the
+  session. M does nothing on any other screen.
 - **Now playing** (opened from Home's dock): **presets 1-4** are
   previous, play/pause, next and like; the **dial** seeks 10s per
   detent; the **dial push-button** plays/pauses; **Back** closes it.
   Home's status presets are inactive while it's open.
-- **Dial push-button** starts a focus session on Focus Setup (both
-  `Enter` and `Space` are bound; see [HARDWARE.md](HARDWARE.md) for
-  why).
-- The **Today** summary and history rows are touch-only; no physical
-  binding, since Home's presets and dial are already spoken for.
-- **Mode ("m") is intentionally left unbound.** See
-  [HARDWARE.md](HARDWARE.md), and don't rebind it.
+- **Dial push-button** starts a focus session on Focus Setup and logs
+  on Log Time Now (both `Enter` and `Space` are bound; see
+  [HARDWARE.md](HARDWARE.md) for why).
 
 [HARDWARE.md](HARDWARE.md) is the canonical place for what's confirmed
 about the hardware itself versus guessed (the dial push-button's keycode,
@@ -243,7 +250,8 @@ index.html, src/          the webapp itself (React + TypeScript + Vite + Tailwin
   src/artTint.ts           picks the player background color from the artwork
   src/ScrollText.tsx       single-line text that pans when it overflows
   src/Toast.tsx, icons.tsx, DurationPicker.tsx, IssuePicker.tsx   shared UI
-  src/screens/             Home, FocusSetup, LogTimeNow, History, FocusRunning
+  src/screens/             Home, FocusSetup, LogTimeNow, FocusRunning
+  src/fonts/               Inter Variable (Latin woff2), vendored with its OFL license
   src/*.test.ts(x)         Vitest unit tests, one per source file
   src/index.css            Tailwind + the design-token @theme block
 settings/                 the settings webapp (settings.html/main.tsx/style.css), built separately

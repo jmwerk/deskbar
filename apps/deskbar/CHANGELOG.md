@@ -1,5 +1,27 @@
 # deskbar
 
+## 0.8.0
+
+Logging time, from a focus session or Log Time Now, now shows a receipt with what was logged, where, and today's new total, plus 8 seconds to undo it by touch or with Back. Today's total counts up as the time lands. Today always matches what Jira received: sessions under a minute log nothing instead of a phantom 1m. The issue list preselects the issue you last logged to and puts "No issue" last, so the dial no longer skips the first row. Log Time Now queues the worklog to retry when Jira is unreachable, and the -15m preset can no longer end a running session.
+
+Home now leads with the time you've logged today, when you last logged, and every worklog from today, each deletable in place, so the separate Today screen is gone. Status moved into the preset tabs along the top, where the current one lights up.
+
+Focus Setup and Log Time Now open with one line that says what you're about to do, like "Focus for 25 min on DESK-2", in place of a heading and two labels. Under it, today's total shows what it will become once the time is logged, and the clock stays in its spot at the bottom left, as on Home. Log Time Now starts at the time since you last logged today, the same gap Home calls unlogged, instead of the default focus length.
+
+The player now follows along with the lyrics, showing the line being sung and the next one under it; a Lyrics button turns them off and on, and tracks without lyrics leave the space to the art. Tap the playlist or album under the artist to see all of it, opened on the track playing, or tap the artist to see their top tracks. Those lists work like Spotify's: tap a track to play it, or add it to the queue without interrupting what's playing by swiping it right, from its ⋯ menu, or by holding the dial. The queue view shows Now playing, Next in queue and Next from the playlist, the way the app does. The art is bigger, the clock and today's total stay at the bottom like on Home, and Close takes the place of the full-width Back button.
+
+Deskbar now ships its own typeface, Inter, because the Car Thing only has an Arial clone with regular and bold, so the screen finally shows the weights it was designed with. Nothing reads smaller than 16px apart from button keycaps, and muted text is a step heavier so it holds up on black.
+
+The main paths no longer need the touchscreen. A single tap of M ends a focus session; holding M or pressing it five times still goes home without ending it. On Focus Setup and Log Time Now, turning the dial up past the first issue moves it to the duration, and pressing it hands it back. On Home the dial picks a worklog and pressing twice deletes it.
+
+Error messages now say what failed, like "Couldn't log time to DESK-2: Jira returned HTTP 403". The Delete button in the ledger is readable on its red fill, scrolling lists show a slim dark scrollbar, and progress bars move more smoothly.
+
+Focus Running now reads like Home. The issue you're logging to heads the screen, the countdown sits under it, and one line shows what the session has earned so far and today's total as if it were already logged, so the receipt lands on the number you were watching. The end button says what it will do, like "End & log 6m", and both Pause and End show the physical button that does the same thing. The dock shows the clock, as on Home.
+
+The idle clock comes in four faces, picked in settings: digital, analog hands, the time in words ("twenty to ten"), or hours stacked over minutes. A clock format setting switches every clock in the app between 12h and 24h.
+
+Pressing the dial no longer also presses whichever button you last tapped, which could reopen the player or resume a paused session. Album art in bright yellows, greens and cyans now washes the player a shade deeper so its text stays readable. The project chips and the seek bar are easier to hit, and Deskbar loads faster: it now runs on Preact, cutting the app's code by more than half.
+
 ## 0.7.1
 
 A long Jira issue summary no longer pushes the focus timer's buttons into the now-playing bar. The issue now stays on one line and scrolls when it's too long to fit.

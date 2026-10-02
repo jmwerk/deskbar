@@ -6,7 +6,16 @@ const SCROLL_SPEED = 45;
 const MOVING_SHARE = 0.7;
 
 /** One line of text that pans to its end and back when it doesn't fit, and sits still when it does. */
-export function ScrollText({ text, className = '' }: { text: string; className?: string }) {
+export function ScrollText({
+  text,
+  issueKey,
+  className = '',
+}: {
+  text: string;
+  /** Leads the line styled as an issue key, matching how keys read in the lists. */
+  issueKey?: string;
+  className?: string;
+}) {
   const outer = useRef<HTMLSpanElement>(null);
   const inner = useRef<HTMLSpanElement>(null);
   const [overflowPx, setOverflowPx] = useState(0);
@@ -23,7 +32,7 @@ export function ScrollText({ text, className = '' }: { text: string; className?:
     observer.observe(box);
     observer.observe(line);
     return () => observer.disconnect();
-  }, [text]);
+  }, [text, issueKey]);
 
   const moving = overflowPx > 0;
   const style = moving
@@ -35,7 +44,9 @@ export function ScrollText({ text, className = '' }: { text: string; className?:
 
   return (
     <span ref={outer} className={`scroll-text ${moving ? 'scroll-text-moving' : ''} ${className}`}>
-      <span ref={inner} key={text} className="scroll-text-line" style={style}>
+      <span ref={inner} key={`${issueKey}:${text}`} className="scroll-text-line" style={style}>
+        {issueKey && <span className="issue-key">{issueKey}</span>}
+        {issueKey && text && ' '}
         {text}
       </span>
     </span>

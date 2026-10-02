@@ -1,8 +1,9 @@
 import { useCallback, useState } from 'react';
 import { DurationHintBar } from '../DurationPicker';
-import { formatClock } from '../format';
+import { formatClock, formatDuration, formatWallClock, type WallClock } from '../format';
+import { MIN_WORKLOG_S } from '../jira';
 import { NowPlayingChip, NowPlayingSheet } from '../NowPlaying';
-import { DURATION_STEPS, useKeydown } from '../physicalControls';
+import { DURATION_STEPS, useKeydown, useModeTap } from '../physicalControls';
 import { ScrollText } from '../ScrollText';
 import type { Player } from '../usePlayer';
 
@@ -12,6 +13,10 @@ export function FocusRunning({
   elapsedS,
   totalS,
   paused,
+  jiraConfigured,
+  todaySeconds,
+  now,
+  clock,
   player,
   onTogglePause,
   onExtend,
@@ -23,6 +28,11 @@ export function FocusRunning({
   /** Planned duration in seconds, or null for an unlimited/stopwatch session. */
   totalS: number | null;
   paused: boolean;
+  jiraConfigured: boolean;
+  /** Seconds already logged today, before this session. */
+  todaySeconds: number;
+  now: number;
+  clock: WallClock;
   player: Player;
   onTogglePause: () => void;
   /** Nudge remaining duration by `deltaMinutes`; no-op when unlimited (no total). */
@@ -34,7 +44,10 @@ export function FocusRunning({
   const closePlayer = useCallback(() => setPlayerOpen(false), []);
   const { track, toggle: togglePlayback } = player;
 
-  // Back pauses/resumes, not ends; End Focus still exits. Duration buttons extend/shorten while running.
+  // A lone m tap ends the session; the daemon's own go-home gestures on m never do.
+  const ending = useModeTap(onEnd);
+
+  // Back pauses/resumes, not ends; End still exits. Duration buttons extend/shorten while running.
   useKeydown(
     useCallback(
       e => {
@@ -58,39 +71,69 @@ export function FocusRunning({
     !playerOpen,
   );
 
-  const displayS = totalS != null ? Math.max(0, totalS - elapsedS) : elapsedS;
-  const eyebrow = paused ? 'Paused' : totalS != null ? 'Focus session' : 'Tracking time';
+  const displayS = timed ? Math.max(0, totalS - elapsedS) : elapsedS;
+  const logsToJira = jiraConfigured && !!issueKey;
+  const loggable = logsToJira && elapsedS >= MIN_WORKLOG_S;
+  // Today reads as if this session were already logged, so the receipt on Home lands on the same number.
+  const meta = [
+    paused && 'Paused',
+    loggable && timed && `+${formatDuration(elapsedS)} so far`,
+    jiraConfigured && `Today ${formatDuration(todaySeconds + (loggable ? elapsedS : 0))}`,
+  ].filter(Boolean);
+
+  let endLabel = 'End';
+  if (ending) endLabel = 'Ending…';
+  else if (loggable) endLabel = `End & log ${formatDuration(elapsedS)}`;
+  else if (logsToJira) endLabel = 'End · nothing to log';
+
   return (
     <div className="screen focus-running">
       {timed && <DurationHintBar unlimited={false} onStep={onExtend} />}
       <div className="focus-running-body">
-        <div className="focus-eyebrow">{eyebrow}</div>
-        <div className={`clock ${paused ? 'clock-paused' : ''}`}>{formatClock(displayS)}</div>
-        {issueKey && (
-          <ScrollText
-            text={issueSummary ? `${issueKey} — ${issueSummary}` : issueKey}
-            className="issue-tag focus-issue"
-          />
+        {issueKey ? (
+          <ScrollText issueKey={issueKey} text={issueSummary ?? ''} className="focus-headline" />
+        ) : (
+          <div className="focus-headline focus-headline-none">No issue, just a timer</div>
         )}
-        {totalS != null && (
+        <div className={`clock ${paused ? 'clock-paused' : ''}`}>{formatClock(displayS)}</div>
+        <div className="focus-meta">
+          {meta.map((line, i) => (
+            <span key={i} className={line === 'Paused' ? 'focus-meta-paused' : undefined}>
+              {line}
+            </span>
+          ))}
+        </div>
+        {timed && (
           <div className="progress-track">
-            <div className="progress-fill" style={{ width: `${Math.min(1, Math.max(0, elapsedS / totalS)) * 100}%` }} />
+            <div
+              className="progress-fill"
+              style={{ transform: `scaleX(${Math.min(1, Math.max(0, elapsedS / totalS))})` }}
+            />
           </div>
         )}
         <div className="actions">
-          <button className="btn-secondary" onClick={onTogglePause}>
+          <button className="btn-secondary btn-with-key" onClick={onTogglePause}>
             {paused ? 'Resume' : 'Pause'}
+            <span className="key-cap">Back</span>
           </button>
-          <button className="btn-danger" onClick={onEnd}>
-            End Focus
+          <button className={`btn-danger btn-with-key ${ending ? 'btn-ending' : ''}`} onClick={onEnd}>
+            {endLabel}
+            <span className="key-cap">M</span>
           </button>
         </div>
       </div>
       <div className="dock">
+        <div className="dock-clock">{formatWallClock(now, clock.timeZone, clock.hour12)}</div>
         <NowPlayingChip player={player} onOpen={() => setPlayerOpen(true)} />
       </div>
       {playerOpen && (
-        <NowPlayingSheet player={player} enabled focusTimer={{ seconds: displayS, paused }} onDismiss={closePlayer} />
+        <NowPlayingSheet
+          player={player}
+          enabled
+          wallTime={formatWallClock(now, clock.timeZone, clock.hour12)}
+          focusTimer={{ seconds: displayS, paused }}
+          onDismiss={closePlayer}
+        />
       )}
     </div>
   );

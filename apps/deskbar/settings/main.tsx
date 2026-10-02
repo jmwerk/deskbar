@@ -84,7 +84,9 @@ function Settings() {
         </div>
       </form>
 
-      <p className="status">{status}</p>
+      <p className="status" role="status">
+        {status}
+      </p>
     </main>
   );
 }

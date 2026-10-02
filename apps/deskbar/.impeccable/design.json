@@ -1,0 +1,402 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-02T13:25:42.000Z",
+  "title": "Design System: Deskbar",
+  "extensions": {
+    "colorMeta": {
+      "focus-blue": {
+        "role": "primary",
+        "displayName": "Focus Blue",
+        "canonical": "oklch(62.3% 0.188 259.8)",
+        "tonalRamp": [
+          "oklch(15% 0.094 259.8)",
+          "oklch(25% 0.188 259.8)",
+          "oklch(35% 0.188 259.8)",
+          "oklch(45% 0.188 259.8)",
+          "oklch(55% 0.188 259.8)",
+          "oklch(65% 0.188 259.8)",
+          "oklch(80% 0.188 259.8)",
+          "oklch(95% 0.094 259.8)"
+        ]
+      },
+      "go-green": {
+        "role": "secondary",
+        "displayName": "Go Green",
+        "canonical": "oklch(75.4% 0.18 151)",
+        "tonalRamp": [
+          "oklch(15% 0.090 151)",
+          "oklch(25% 0.180 151)",
+          "oklch(35% 0.180 151)",
+          "oklch(45% 0.180 151)",
+          "oklch(55% 0.180 151)",
+          "oklch(65% 0.180 151)",
+          "oklch(80% 0.180 151)",
+          "oklch(95% 0.090 151)"
+        ]
+      },
+      "stop-red": {
+        "role": "tertiary",
+        "displayName": "Stop Red",
+        "canonical": "oklch(63.6% 0.19 29)",
+        "tonalRamp": [
+          "oklch(15% 0.095 29)",
+          "oklch(25% 0.190 29)",
+          "oklch(35% 0.190 29)",
+          "oklch(45% 0.190 29)",
+          "oklch(55% 0.190 29)",
+          "oklch(65% 0.190 29)",
+          "oklch(80% 0.190 29)",
+          "oklch(95% 0.095 29)"
+        ]
+      },
+      "control-black": {
+        "role": "neutral",
+        "displayName": "Control Black",
+        "canonical": "oklch(16% 0.006 255)",
+        "tonalRamp": [
+          "oklch(15% 0.003 255)",
+          "oklch(25% 0.006 255)",
+          "oklch(35% 0.006 255)",
+          "oklch(45% 0.006 255)",
+          "oklch(55% 0.006 255)",
+          "oklch(65% 0.006 255)",
+          "oklch(80% 0.006 255)",
+          "oklch(95% 0.003 255)"
+        ]
+      },
+      "panel-graphite": {
+        "role": "neutral",
+        "displayName": "Panel Graphite",
+        "canonical": "oklch(21% 0.008 250)",
+        "tonalRamp": [
+          "oklch(15% 0.004 250)",
+          "oklch(25% 0.008 250)",
+          "oklch(35% 0.008 250)",
+          "oklch(45% 0.008 250)",
+          "oklch(55% 0.008 250)",
+          "oklch(65% 0.008 250)",
+          "oklch(80% 0.008 250)",
+          "oklch(95% 0.004 250)"
+        ]
+      },
+      "edge-steel": {
+        "role": "neutral",
+        "displayName": "Edge Steel",
+        "canonical": "oklch(28% 0.012 250)",
+        "tonalRamp": [
+          "oklch(15% 0.006 250)",
+          "oklch(25% 0.012 250)",
+          "oklch(35% 0.012 250)",
+          "oklch(45% 0.012 250)",
+          "oklch(55% 0.012 250)",
+          "oklch(65% 0.012 250)",
+          "oklch(80% 0.012 250)",
+          "oklch(95% 0.006 250)"
+        ]
+      },
+      "off-white": {
+        "role": "neutral",
+        "displayName": "Off-White",
+        "canonical": "oklch(97% 0.002 250)",
+        "tonalRamp": [
+          "oklch(15% 0.001 250)",
+          "oklch(25% 0.002 250)",
+          "oklch(35% 0.002 250)",
+          "oklch(45% 0.002 250)",
+          "oklch(55% 0.002 250)",
+          "oklch(65% 0.002 250)",
+          "oklch(80% 0.002 250)",
+          "oklch(95% 0.001 250)"
+        ]
+      },
+      "muted-slate": {
+        "role": "neutral",
+        "displayName": "Muted Slate",
+        "canonical": "oklch(65% 0.015 255)",
+        "tonalRamp": [
+          "oklch(15% 0.007 255)",
+          "oklch(25% 0.015 255)",
+          "oklch(35% 0.015 255)",
+          "oklch(45% 0.015 255)",
+          "oklch(55% 0.015 255)",
+          "oklch(65% 0.015 255)",
+          "oklch(80% 0.015 255)",
+          "oklch(95% 0.007 255)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The focus countdown and the digital dimmed clock; tabular numerals."
+      },
+      "total": {
+        "displayName": "Total",
+        "purpose": "Today's logged total on Home."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Now-playing track title."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "The setup sentence, the dock clock, the receipt amount, the focus timer pill."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "List rows, action buttons, hints, the issue tag, meta lines (20px; 500 muted, 700 strong)."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Preset and status tab labels, the Unlimited toggle, confirm buttons, Undo."
+      },
+      "keycap": {
+        "displayName": "Keycap",
+        "purpose": "Names the physical button a control shares: Back, M."
+      },
+      "small": {
+        "displayName": "Small",
+        "purpose": "Metadata: the player source line and list rows, scrubber times, chips, receipt summary, toasts."
+      }
+    },
+    "shadows": [
+      {
+        "name": "art-lift",
+        "value": "0 4px 14px rgba(0, 0, 0, 0.35)",
+        "purpose": "Large album art."
+      },
+      {
+        "name": "row-rest",
+        "value": "0 2px 6px rgba(0, 0, 0, 0.2)",
+        "purpose": "Issue and ledger rows."
+      },
+      {
+        "name": "primary-glow",
+        "value": "0 4px 12px color-mix(in srgb, var(--color-accent) 45%, transparent)",
+        "purpose": "The primary button."
+      },
+      {
+        "name": "float",
+        "value": "0 6px 18px rgba(0, 0, 0, 0.4)",
+        "purpose": "The receipt and in-app toasts."
+      }
+    ],
+    "motion": [
+      {
+        "name": "press",
+        "value": "transform 100ms ease, filter 100ms ease",
+        "purpose": "Button press: scale(0.96) brightness(0.9)."
+      },
+      {
+        "name": "preset-flash",
+        "value": "scale(0.93) brightness(1.3), 100ms",
+        "purpose": "On-screen tab feedback for a physical preset press."
+      },
+      {
+        "name": "screen-enter",
+        "value": "fade-in 200ms ease (opacity 0, translateY 6px)",
+        "purpose": "Every screen and toast on mount; screensaver uses 400ms."
+      },
+      {
+        "name": "art-tint",
+        "value": "--art-tint 600ms ease",
+        "purpose": "Now-playing wash crossfades between tracks."
+      },
+      {
+        "name": "eq-pulse",
+        "value": "900ms ease-in-out infinite, staggered -300ms",
+        "purpose": "Equalizer bars while playing."
+      },
+      {
+        "name": "receipt-in",
+        "value": "260ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "The receipt rises in."
+      },
+      {
+        "name": "receipt-drain",
+        "value": "8000ms linear",
+        "purpose": "The undo window running out."
+      },
+      {
+        "name": "mode-tap-fill",
+        "value": "1500ms linear",
+        "purpose": "The End button fills while an M tap waits out the go-home window."
+      },
+      {
+        "name": "count-up",
+        "value": "900ms exponential ease-out",
+        "purpose": "Today's total rises to its new value."
+      },
+      {
+        "name": "screensaver-enter",
+        "value": "fade-in 400ms ease",
+        "purpose": "The dimmed clock fades in after 3 idle minutes."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "device",
+        "value": "800x480 fixed"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main action: Start, Log, Reload.",
+      "html": "<button class=\"ds-btn-primary\">Start Focus</button>",
+      "css": ".ds-btn-primary{background:var(--color-accent,#3b82f6);color:#f5f6f7;border:none;border-radius:14px;padding:16px 48px;font-family:'Inter Variable', -apple-system, 'Segoe UI', Roboto, sans-serif;font-size:20px;font-weight:700;box-shadow:0 4px 12px color-mix(in srgb,#3b82f6 45%,transparent);cursor:pointer;transition:transform 100ms ease,filter 100ms ease}.ds-btn-primary:hover{filter:brightness(1.08)}.ds-btn-primary:focus-visible{outline:3px solid #f5f6f7;outline-offset:2px}.ds-btn-primary:active{transform:scale(0.96);filter:brightness(0.9)}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Cancel, Pause, Back.",
+      "html": "<button class=\"ds-btn-secondary\">Pause</button>",
+      "css": ".ds-btn-secondary{background:var(--color-panel,#16191d);color:var(--color-off-white,#f5f6f7);border:1px solid var(--color-edge,#262b31);border-radius:14px;padding:16px 48px;font-family:'Inter Variable', -apple-system, 'Segoe UI', Roboto, sans-serif;font-size:20px;font-weight:700;cursor:pointer;transition:transform 100ms ease,filter 100ms ease}.ds-btn-secondary:hover{filter:brightness(1.15)}.ds-btn-secondary:focus-visible{outline:3px solid #3b82f6;outline-offset:2px}.ds-btn-secondary:active{transform:scale(0.96);filter:brightness(0.9)}"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "End and other destructive actions.",
+      "html": "<button class=\"ds-btn-danger\">End &amp; log 6m</button>",
+      "css": ".ds-btn-danger{background:color-mix(in srgb,#e74c3c 14%,#16191d);color:var(--color-busy,#e74c3c);border:1px solid color-mix(in srgb,#e74c3c 45%,#262b31);border-radius:14px;padding:16px 48px;font-family:'Inter Variable', -apple-system, 'Segoe UI', Roboto, sans-serif;font-size:20px;font-weight:700;cursor:pointer;transition:transform 100ms ease,filter 100ms ease}.ds-btn-danger:hover{filter:brightness(1.15)}.ds-btn-danger:focus-visible{outline:3px solid #e74c3c;outline-offset:2px}.ds-btn-danger:active{transform:scale(0.96);filter:brightness(0.9)}"
+    },
+    {
+      "name": "Status Tabs",
+      "kind": "nav",
+      "refersTo": "status-tab",
+      "description": "Presets 1-3 as status tabs; the current status is lit solid with dark text.",
+      "html": "<div class=\"ds-tabs\"><button class=\"ds-tab ds-av ds-lit\">Available</button><button class=\"ds-tab ds-bz\">Busy</button><button class=\"ds-tab ds-fc\">Focus</button><button class=\"ds-tab\">Log time</button></div>",
+      "css": ".ds-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;background:#0b0d10;padding-bottom:16px}.ds-tab{display:flex;align-items:center;justify-content:center;padding:9px 4px;border:none;border-radius:0 0 8px 8px;background:#16191d;color:#f5f6f7;font-family:'Inter Variable', -apple-system, 'Segoe UI', Roboto, sans-serif;font-size:16px;font-weight:800;cursor:pointer;transition:transform 100ms ease,filter 100ms ease}.ds-av{background:color-mix(in srgb,#2ecc71 22%,#16191d)}.ds-bz{background:color-mix(in srgb,#e74c3c 22%,#16191d)}.ds-fc{background:color-mix(in srgb,#3b82f6 22%,#16191d)}.ds-av.ds-lit{background:#2ecc71;color:#0b0d10}.ds-tab:hover{filter:brightness(1.15)}.ds-tab:focus-visible{outline:3px solid #f5f6f7;outline-offset:-3px}.ds-tab:active{transform:scale(0.93);filter:brightness(1.3)}"
+    },
+    {
+      "name": "Today Total and Ledger",
+      "kind": "custom",
+      "refersTo": "today-total",
+      "description": "Home leads with the day total, its meta, and deletable ledger rows.",
+      "html": "<div class=\"ds-home\"><div class=\"ds-total\"><span class=\"ds-num\">2h 50m</span><span class=\"ds-meta\"><span>logged today</span><span>unlogged since <b>1:51 PM</b></span></span></div><button class=\"ds-row ds-sel\"><i>×</i><span class=\"ds-k\">DESK-2</span><span class=\"ds-s\">Test the focus timer end to end</span><span class=\"ds-d\">25m</span></button><button class=\"ds-row\"><i>×</i><span class=\"ds-k\">OPS-7</span><span class=\"ds-s\">Rotate the office wifi password</span><span class=\"ds-d\">40m</span></button></div>",
+      "css": ".ds-home{display:flex;flex-direction:column;gap:8px;background:#0b0d10;padding:16px 28px;font-family:'Inter Variable', -apple-system, 'Segoe UI', Roboto, sans-serif}.ds-total{display:flex;align-items:center;gap:16px;margin-bottom:6px;color:#f5f6f7}.ds-num{font-size:72px;font-weight:800;line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums}.ds-meta{display:flex;flex-direction:column;gap:4px;color:#8a9099;font-size:20px;font-weight:700}.ds-meta b{color:#f5f6f7;font-weight:800}.ds-row{display:flex;align-items:center;gap:10px;min-height:52px;padding:12px 14px;border:1px solid #262b31;background:#16191d;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,.2);font-family:inherit;font-size:20px;text-align:left;color:#f5f6f7;cursor:pointer;transition:transform 100ms ease,border-color 150ms ease}.ds-row i{font-style:normal;color:#8a9099;width:20px;text-align:center}.ds-k{font-weight:700;color:#3b82f6}.ds-s{flex:1;color:#8a9099;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ds-d{font-weight:700;font-variant-numeric:tabular-nums}.ds-sel{border-color:#3b82f6;background:color-mix(in srgb,#3b82f6 15%,#16191d)}.ds-row:hover{border-color:#3b82f6}.ds-row:focus-visible{outline:3px solid #3b82f6;outline-offset:2px}.ds-row:active{transform:scale(0.96)}"
+    },
+    {
+      "name": "Receipt",
+      "kind": "custom",
+      "refersTo": "receipt",
+      "description": "Undoable proof a worklog landed, with a draining 8s window.",
+      "html": "<div class=\"ds-rc\"><div class=\"ds-rh\"><span class=\"ds-ck\">&#10003;</span><b>25m</b><span>logged to DESK-2</span></div><div class=\"ds-rs\">Test the focus timer end to end</div><div class=\"ds-rf\"><span>Today 3h 10m</span><button class=\"ds-un\">Undo<span class=\"ds-kc\">Back</span></button></div><div class=\"ds-dr\"></div></div>",
+      "css": ".ds-rc{width:444px;display:flex;flex-direction:column;gap:6px;padding:14px 16px 0;overflow:hidden;border-radius:14px;border:1px solid color-mix(in srgb,#2ecc71 45%,#262b31);background:color-mix(in srgb,#2ecc71 16%,#16191d);box-shadow:0 6px 18px rgba(0,0,0,.4);color:#f5f6f7;font-family:'Inter Variable', -apple-system, 'Segoe UI', Roboto, sans-serif}.ds-rh{display:flex;align-items:baseline;gap:10px}.ds-rh b{font-size:26px;font-weight:800;line-height:1}.ds-rh span:last-child{font-size:20px;font-weight:700}.ds-ck{align-self:center;width:28px;height:28px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:#2ecc71;color:#0b0d10;font-size:16px}.ds-rs,.ds-rf span{padding-left:38px;font-size:16px;font-weight:600;color:rgb(245 246 247/.72)}.ds-rf{display:flex;align-items:center;justify-content:space-between}.ds-rf span{padding-left:38px}.ds-un{display:flex;align-items:center;gap:10px;min-height:40px;padding:0 14px 0 18px;border-radius:12px;border:1px solid rgb(255 255 255/.18);background:rgb(0 0 0/.28);color:#f5f6f7;font-family:inherit;font-size:16px;font-weight:800;cursor:pointer;transition:transform 100ms ease}.ds-un:hover{background:rgb(0 0 0/.4)}.ds-un:focus-visible{outline:3px solid #f5f6f7;outline-offset:2px}.ds-un:active{transform:scale(0.96)}.ds-kc{padding:2px 7px;border-radius:6px;border:1px solid color-mix(in srgb,currentColor 40%,transparent);font-size:13px;font-weight:800;letter-spacing:.04em;opacity:.8}.ds-dr{height:3px;margin:8px -16px 0;background:rgb(245 246 247/.45);transform-origin:left;animation:ds-drain 8s linear infinite}@keyframes ds-drain{from{transform:scaleX(1)}to{transform:scaleX(0)}}@media (prefers-reduced-motion:reduce){.ds-dr{animation:none}}"
+    },
+    {
+      "name": "Filter Chip",
+      "kind": "chip",
+      "refersTo": "filter-chip",
+      "description": "Jira project-key filter above the issue list.",
+      "html": "<div class=\"ds-chips\"><button class=\"ds-chip ds-chip-on\">DESK</button><button class=\"ds-chip\">OPS</button></div>",
+      "css": ".ds-chips{display:flex;gap:6px;background:#0b0d10;padding:12px}.ds-chip{border:1px solid #262b31;background:#16191d;border-radius:999px;padding:6px 14px;font-family:'Inter Variable', -apple-system, 'Segoe UI', Roboto, sans-serif;font-size:16px;font-weight:600;letter-spacing:.04em;color:#8a9099;cursor:pointer;transition:transform 100ms ease,border-color 150ms ease}.ds-chip-on{border-color:#3b82f6;background:color-mix(in srgb,#3b82f6 20%,#16191d);color:#f5f6f7}.ds-chip:hover{border-color:#3b82f6}.ds-chip:focus-visible{outline:3px solid #3b82f6;outline-offset:2px}.ds-chip:active{transform:scale(0.96)}"
+    },
+    {
+      "name": "Now-Playing Chip",
+      "kind": "custom",
+      "refersTo": "now-playing-chip",
+      "description": "Dock widget for the phone Spotify track, with equalizer bars.",
+      "html": "<button class=\"ds-np\"><span class=\"ds-np-art\"></span><span class=\"ds-np-text\"><b>Heads Down</b><small>The Standups</small></span><span class=\"ds-eq\"><i></i><i></i><i></i></span></button>",
+      "css": ".ds-np{display:flex;align-items:center;gap:12px;width:420px;height:56px;padding:7px 16px 7px 7px;border:1px solid #262b31;background:#16191d;border-radius:14px;color:#f5f6f7;text-align:left;font-family:'Inter Variable', -apple-system, 'Segoe UI', Roboto, sans-serif;cursor:pointer;transition:transform 100ms ease}.ds-np-art{width:40px;height:40px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#0b0d10);border:1px solid rgba(255,255,255,.1)}.ds-np-text{flex:1;display:flex;flex-direction:column;line-height:1.2}.ds-np-text b{font-size:16px}.ds-np-text small{font-size:16px;font-weight:600;color:#8a9099}.ds-eq{display:flex;align-items:flex-end;gap:3px;height:16px}.ds-eq i{width:3px;height:16px;border-radius:2px;background:#2ecc71;transform:scaleY(.25);transform-origin:bottom;animation:ds-eq 900ms ease-in-out infinite}.ds-eq i:nth-child(2){animation-delay:-300ms}.ds-eq i:nth-child(3){animation-delay:-600ms}@keyframes ds-eq{0%,100%{transform:scaleY(.25)}50%{transform:scaleY(1)}}.ds-np:hover{border-color:#3b82f6}.ds-np:focus-visible{outline:3px solid #3b82f6;outline-offset:2px}.ds-np:active{transform:scale(0.96)}@media (prefers-reduced-motion:reduce){.ds-eq i{animation:none}}"
+    },
+    {
+      "name": "Toast",
+      "kind": "custom",
+      "refersTo": "toast",
+      "description": "Top-left in-app success/error notice, width-capped clear of the dial corner.",
+      "html": "<div class=\"ds-toast ds-toast-ok\">Logged 25m to DESK-2</div><div class=\"ds-toast ds-toast-err\">Could not reach Jira. Queued to retry.</div><div class=\"ds-toast ds-toast-info\">Nothing to log: the session ran under a minute.</div>",
+      "css": ".ds-toast{max-width:420px;margin:8px;padding:12px 18px;border-radius:12px;color:#f5f6f7;font-family:'Inter Variable', -apple-system, 'Segoe UI', Roboto, sans-serif;font-size:16px;font-weight:600;line-height:1.35;box-shadow:0 6px 18px rgba(0,0,0,.4)}.ds-toast-ok{background:color-mix(in srgb,#2ecc71 22%,#16191d);border:1px solid color-mix(in srgb,#2ecc71 45%,#262b31)}.ds-toast-err{background:color-mix(in srgb,#e74c3c 22%,#16191d);border:1px solid color-mix(in srgb,#e74c3c 45%,#262b31)}.ds-toast-info{background:#16191d;border:1px solid #262b31}"
+    },
+    {
+      "name": "Focus Running",
+      "kind": "custom",
+      "refersTo": "focus-running",
+      "description": "Home's reading carried into the session: the issue, the 104px countdown, one meta line, progress, and End labelled with what it logs.",
+      "html": "<div class=\"ds-fr\"><div class=\"ds-fr-issue\"><b>DESK-2</b> Test the focus timer end to end</div><div class=\"ds-fr-clock\">18:42</div><div class=\"ds-fr-meta\">+6m so far · Today <b>3h 16m</b></div><div class=\"ds-fr-bar\"><i></i></div><div class=\"ds-fr-row\"><button class=\"ds-fr-btn\">Pause <span class=\"ds-kc\">Back</span></button><button class=\"ds-fr-btn ds-fr-end\">End &amp; log 6m <span class=\"ds-kc\">M</span></button></div></div>",
+      "css": ".ds-fr{display:flex;flex-direction:column;gap:10px;width:744px;padding:20px 28px;background:#0b0d10;color:#f5f6f7;font-family:'Inter Variable', -apple-system, 'Segoe UI', Roboto, sans-serif}.ds-fr-issue{font-size:26px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ds-fr-issue b{color:#3b82f6}.ds-fr-clock{font-size:104px;font-weight:800;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}.ds-fr-meta{font-size:20px;font-weight:700;color:#8a9099}.ds-fr-meta b{color:#f5f6f7}.ds-fr-bar{height:8px;border-radius:999px;background:#16191d;overflow:hidden}.ds-fr-bar i{display:block;width:38%;height:100%;background:#3b82f6}.ds-fr-row{display:flex;gap:14px}.ds-fr-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:10px;padding:16px;border-radius:14px;border:1px solid #262b31;background:#16191d;color:#f5f6f7;font-family:inherit;font-size:20px;font-weight:700;cursor:pointer;transition:transform 100ms ease,filter 100ms ease}.ds-fr-end{color:#e74c3c;background:color-mix(in srgb,#e74c3c 14%,#16191d);border-color:color-mix(in srgb,#e74c3c 45%,#262b31)}.ds-kc{padding:2px 7px;border-radius:6px;border:1px solid color-mix(in srgb,currentColor 40%,transparent);font-size:13px;font-weight:800;letter-spacing:.04em;opacity:.8}.ds-fr-btn:hover{filter:brightness(1.15)}.ds-fr-btn:focus-visible{outline:3px solid #3b82f6;outline-offset:2px}.ds-fr-btn:active{transform:scale(0.96);filter:brightness(0.9)}"
+    },
+    {
+      "name": "Idle Clock Faces",
+      "kind": "custom",
+      "refersTo": "idle-clock",
+      "description": "The dimmed clock after 3 idle minutes, in the face chosen in settings: digital, analog, words, stacked. Monochrome slate, secondary parts at 70%.",
+      "html": "<div class=\"ds-idle\"><div class=\"ds-face\"><div class=\"ds-dig\">9:41 PM</div></div><div class=\"ds-face\"><svg class=\"ds-ana\" viewBox=\"-100 -100 200 200\"><line class=\"ds-tM\" x1=\"0\" y1=\"-96\" x2=\"0\" y2=\"-84\" transform=\"rotate(0)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(6)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(12)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(18)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(24)\"/><line class=\"ds-tM\" x1=\"0\" y1=\"-96\" x2=\"0\" y2=\"-84\" transform=\"rotate(30)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(36)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(42)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(48)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(54)\"/><line class=\"ds-tM\" x1=\"0\" y1=\"-96\" x2=\"0\" y2=\"-84\" transform=\"rotate(60)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(66)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(72)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(78)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(84)\"/><line class=\"ds-tM\" x1=\"0\" y1=\"-96\" x2=\"0\" y2=\"-84\" transform=\"rotate(90)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(96)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(102)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(108)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(114)\"/><line class=\"ds-tM\" x1=\"0\" y1=\"-96\" x2=\"0\" y2=\"-84\" transform=\"rotate(120)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(126)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(132)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(138)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(144)\"/><line class=\"ds-tM\" x1=\"0\" y1=\"-96\" x2=\"0\" y2=\"-84\" transform=\"rotate(150)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(156)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(162)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(168)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(174)\"/><line class=\"ds-tM\" x1=\"0\" y1=\"-96\" x2=\"0\" y2=\"-84\" transform=\"rotate(180)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(186)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(192)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(198)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(204)\"/><line class=\"ds-tM\" x1=\"0\" y1=\"-96\" x2=\"0\" y2=\"-84\" transform=\"rotate(210)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(216)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(222)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(228)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(234)\"/><line class=\"ds-tM\" x1=\"0\" y1=\"-96\" x2=\"0\" y2=\"-84\" transform=\"rotate(240)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(246)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(252)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(258)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(264)\"/><line class=\"ds-tM\" x1=\"0\" y1=\"-96\" x2=\"0\" y2=\"-84\" transform=\"rotate(270)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(276)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(282)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(288)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(294)\"/><line class=\"ds-tM\" x1=\"0\" y1=\"-96\" x2=\"0\" y2=\"-84\" transform=\"rotate(300)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(306)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(312)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(318)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(324)\"/><line class=\"ds-tM\" x1=\"0\" y1=\"-96\" x2=\"0\" y2=\"-84\" transform=\"rotate(330)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(336)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(342)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(348)\"/><line class=\"ds-tm\" x1=\"0\" y1=\"-95\" x2=\"0\" y2=\"-90\" transform=\"rotate(354)\"/><line class=\"ds-hh\" x1=\"0\" y1=\"10\" x2=\"0\" y2=\"-50\" transform=\"rotate(290.5)\"/><line class=\"ds-mh\" x1=\"0\" y1=\"14\" x2=\"0\" y2=\"-80\" transform=\"rotate(246)\"/><circle class=\"ds-pin\" r=\"4.5\"/></svg></div><div class=\"ds-face ds-words\"><span class=\"ds-wl\">twenty to</span><span class=\"ds-wh\">ten</span></div><div class=\"ds-face ds-stk\"><span>09</span><span class=\"ds-stm\">41</span></div></div>",
+      "css": ".ds-idle{display:grid;grid-template-columns:repeat(2,1fr);gap:3px;background:#262b31;font-family:'Inter Variable', -apple-system, 'Segoe UI', Roboto, sans-serif}.ds-face{display:flex;flex-direction:column;align-items:center;justify-content:center;height:240px;background:#0b0d10;color:#8a9099;overflow:hidden}.ds-dig{font-size:50px;font-weight:800;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}.ds-ana{width:190px;height:190px;stroke-linecap:round}.ds-tm{stroke:color-mix(in srgb,#8a9099 35%,transparent);stroke-width:1.2}.ds-tM{stroke:#8a9099;stroke-width:3}.ds-hh{stroke:#8a9099;stroke-width:7}.ds-mh{stroke:#8a9099;stroke-width:4}.ds-pin{fill:#0b0d10;stroke:#8a9099;stroke-width:3}.ds-words{gap:2px;text-align:center}.ds-wl{font-size:30px;font-weight:700;line-height:1.1;color:color-mix(in srgb,#8a9099 70%,transparent)}.ds-wh{font-size:72px;font-weight:800;line-height:1;letter-spacing:-.03em}.ds-stk{font-size:100px;font-weight:800;line-height:.86;letter-spacing:-.04em;font-variant-numeric:tabular-nums}.ds-stm{color:color-mix(in srgb,#8a9099 70%,transparent)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Desk Instrument",
+    "overview": "Deskbar is a purpose-built gadget, not a web page that happens to be small. The screen is a fixed 800x480 landscape pane read at arm's length, framed by physical hardware: four preset buttons above it, a rotary dial over its top-right corner, a Back button, and a Mode button. The design treats that hardware as part of the interface. The preset tabs hang from the top edge as if the buttons' own material continued into the glass, presses on hardware flash their on-screen twins, the dial's current target is always lit in Focus Blue, and controls name their physical twin with a small keycap.\n\nThe instrument's reading is the day's logged time. Home leads with today's total and a ledger of today's worklogs; status rides in the preset tabs, lit in its signal color. The surface is near-black and dense, with large, chunky, rounded controls that shrink under a finger. Color is signal: the three status hues mean Available, Busy and Focus, and appear at full strength only where that meaning is the point. Everything else is graphite panels, steel edges and slate text. The one place the instrument loosens up is the now-playing player, which washes the whole screen in the album art's own color.",
+    "keyCharacteristics": [
+      "Dark-only, fixed 800x480, no responsive behavior.",
+      "Today's logged time is the largest thing on Home; status is a lit preset tab.",
+      "Chunky, finger-sized, rounded controls with a press-shrink response.",
+      "Preset tabs flush to the top edge, mirroring the physical buttons above the screen.",
+      "Every action has a physical path, and on-screen keycaps name it.",
+      "Status color carries meaning; the chrome is neutral.",
+      "Bottom-anchored persistent UI; nothing in the top-right corner, interactive or meant to be read.",
+      "System sans at heavy weights, tabular numerals for every time value."
+    ],
+    "rules": [
+      {
+        "name": "The Signal Lamp Rule",
+        "body": "Green, red and blue mean Available, Busy and Focus. Never use them decoratively; red also means destructive or error, green also means success or time logged.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tint, Don't Fill Rule",
+        "body": "Outside a lit status tab and the primary button, a signal color appears as a tint mixed into graphite (14 to 30%) with a 45% border, not as a solid fill.",
+        "section": "colors"
+      },
+      {
+        "name": "The Dial Points Blue Rule",
+        "body": "Whatever the dial will act on is marked in Focus Blue: a blue border plus a 15 to 20% tint, the same box on issue rows, ledger rows and the duration.",
+        "section": "colors"
+      },
+      {
+        "name": "The Dark-On-Lamp Rule",
+        "body": "Text on a solid signal fill is Control Black: lit status tabs, the confirm Delete button, badges. White on Go Green is about 2:1, and white on the red and blue fills sits under 4:1. The one exception is the primary button's 20px/700 Off-White label on Focus Blue, which clears the 3:1 bar for large text.",
+        "section": "colors"
+      },
+      {
+        "name": "The Sixteen Floor Rule",
+        "body": "Nothing reads smaller than 16px except a keycap (13px). At this panel's density 13 to 15px text sits at the edge of legibility from arm's length.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Time Rule",
+        "body": "Every clock, countdown, duration, total and scrubber time uses `font-variant-numeric: tabular-nums` so digits never jitter.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Line Rule",
+        "body": "Titles and summaries that may run long stay on one line: ellipsis in lists, a slow pan (ScrollText) where the full text matters.",
+        "section": "typography"
+      }
+    ],
+    "dos": [
+      "Do make today's logged time the largest reading on Home.",
+      "Do mirror every physical preset with a flush top tab and flash it on press.",
+      "Do give every primary action a physical path, and name it with a keycap when it isn't the obvious one.",
+      "Do mark the dial's current target in Focus Blue (border plus tint).",
+      "Do keep persistent and interactive UI in the bottom band or on the left side.",
+      "Do use tabular numerals for every time value.",
+      "Do give every button the 0.96 press-shrink.",
+      "Do honor `prefers-reduced-motion`: the receipt rise, its drain line, the M fill, the count-up, the text pan and the equalizer stop; screen, dimmed-clock and toast entrances fade without the rise."
+    ],
+    "donts": [
+      "Don't place anything in the top-right corner that has to be pressed or read; the dial and bridgething's toasts own it.",
+      "Don't put white text on a solid Go Green, Stop Red or Focus Blue fill.",
+      "Don't use Go Green, Stop Red or Focus Blue for anything that doesn't carry their meaning.",
+      "Don't wrap titles or issue summaries; a wrap pushes actions into the dock.",
+      "Don't add a light theme or responsive breakpoints; the screen is fixed dark 800x480.",
+      "Don't use translucent edge colors outside the now-playing player and the receipt."
+    ]
+  }
+}

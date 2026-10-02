@@ -15,24 +15,6 @@ export function CheckIcon({ size = 34 }: { size?: number }) {
   );
 }
 
-export function BusyIcon({ size = 34 }: { size?: number }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width={size}
-      height={size}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="12" cy="12" r="9" />
-      <line x1="7" y1="12" x2="17" y2="12" />
-    </svg>
-  );
-}
-
 export function BoltIcon({ size = 34 }: { size?: number }) {
   return (
     <svg viewBox="0 0 24 24" width={size} height={size} fill="currentColor">
@@ -107,6 +89,68 @@ export function HeartIcon({ size = 34, filled = false }: { size?: number; filled
       strokeLinejoin="round"
     >
       <path d="M12 20s-7.5-4.6-9.2-9.3C1.6 7.4 3.6 4.5 6.7 4.5c2 0 3.5 1.1 5.3 3 1.8-1.9 3.3-3 5.3-3 3.1 0 5.1 2.9 3.9 6.2C19.5 15.4 12 20 12 20Z" />
+    </svg>
+  );
+}
+
+export function ChevronRightIcon({ size = 34 }: { size?: number }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m9 6 6 6-6 6" />
+    </svg>
+  );
+}
+
+export function QueueAddIcon({ size = 34 }: { size?: number }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.25"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 6h12M3 12h12M3 18h7M18 15v6M15 18h6" />
+    </svg>
+  );
+}
+
+export function MoreIcon({ size = 34 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="currentColor">
+      <circle cx="5" cy="12" r="2" />
+      <circle cx="12" cy="12" r="2" />
+      <circle cx="19" cy="12" r="2" />
+    </svg>
+  );
+}
+
+export function LyricsIcon({ size = 34 }: { size?: number }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l.9-5.4A8 8 0 1 1 21 12Z" />
+      <path d="M9 10h6M9 14h4" />
     </svg>
   );
 }

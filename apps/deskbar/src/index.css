@@ -7,6 +7,15 @@
  * generic rem scale: this UI is fit tightly to 800x480 (e.g. the 104px countdown clock), and the
  * scaffold's scale was tuned for a different, more compact layout.
  */
+/* Vendored so the Car Thing, which has only Liberation Sans (regular and bold), renders the real weights. */
+@font-face {
+  font-family: 'Inter Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('./fonts/inter-latin-wght-normal.woff2') format('woff2-variations');
+}
+
 @theme {
   --color-bg: #0b0d10;
   --color-off-white: #f5f6f7;
@@ -22,7 +31,7 @@
      matching the original --border it replaces exactly. */
   --color-edge: #262b31;
 
-  --font-body: -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Inter Variable', -apple-system, 'Segoe UI', Roboto, sans-serif;
 
   /* bridgething overlay stacks notification/pairing toasts here, on top of the app, for up to
      ~5s each; keep persistent/critical UI out of this corner. See HARDWARE.md. */
@@ -34,7 +43,7 @@
  * The physical rotary dial permanently covers part of the top-right corner (see HARDWARE.md) —
  * unlike the toast zone above, its extent has never been measured, so there's no token for it.
  * The enforceable rule instead: nothing interactive gets `absolute`/`fixed` positioning in the
- * top-right quadrant. Every rule below that places something near an edge (tile-badge, the
+ * top-right quadrant. Every rule below that places something near an edge (the receipt, the
  * history delete hint, the toast) deliberately keeps it on the top-left or full-width instead.
  */
 
@@ -65,7 +74,7 @@
     background: var(--color-bg);
     color: var(--color-off-white);
     font-family: var(--font-body);
-    font-size: 18px;
+    font-size: 20px;
     overflow: hidden;
     user-select: none;
   }
@@ -86,12 +95,6 @@
     transform: scale(0.96);
     filter: brightness(0.9);
   }
-
-  label {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--color-muted);
-  }
 }
 
 @keyframes fade-in {
@@ -106,14 +109,22 @@
   }
 }
 
-@keyframes eq-bounce {
+/* Reduced motion keeps the screen change legible as a fade, without the rise. */
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Scales, not height, so the endless loop never forces layout on the device's weak CPU. */
+@keyframes eq-pulse {
   0%,
   100% {
-    height: 4px;
+    transform: scaleY(0.25);
   }
 
   50% {
-    height: 16px;
+    transform: scaleY(1);
   }
 }
 
@@ -134,6 +145,45 @@
   }
 }
 
+@keyframes receipt-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes receipt-drain {
+  from {
+    transform: scaleX(1);
+  }
+
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes mode-tap-fill {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes lyric-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -148,6 +198,15 @@
     flex-direction: column;
     padding: 20px 28px;
     animation: fade-in 200ms ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .screen,
+    .screensaver,
+    .toast,
+    .lyrics-current {
+      animation-name: fade;
+    }
   }
 
   .loading-screen {
@@ -168,33 +227,7 @@
     justify-content: center;
   }
 
-  /* Home — landing screen: status banner, today's tracked time, and the three quick-action tiles */
-
-  .status-banner {
-    text-align: center;
-    font-size: 28px;
-    font-weight: 700;
-    padding: 12px 0;
-    border-radius: 14px;
-    margin-bottom: 14px;
-  }
-
-  .status-available {
-    background: color-mix(in srgb, var(--color-available) 20%, transparent);
-    color: var(--color-available);
-  }
-
-  .status-busy {
-    background: color-mix(in srgb, var(--color-busy) 20%, transparent);
-    color: var(--color-busy);
-  }
-
-  .status-focus {
-    background: color-mix(in srgb, var(--color-accent) 20%, transparent);
-    color: var(--color-accent);
-  }
-
-  /* Bottom dock (Home, Focus Running): clock, now-playing, today total. The top-right is
+  /* Bottom dock (Home, Focus Running, setup screens): clock and now-playing or actions. The top-right is
      under the dial and bridgething's toasts, so persistent info and taps stay down here. */
   .dock {
     display: flex;
@@ -207,6 +240,8 @@
 
   .dock-clock {
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
     height: 100%;
     padding: 0 0 0 4px;
     border: none;
@@ -214,19 +249,6 @@
     font-size: 26px;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-  }
-
-  .today-bar {
-    flex-shrink: 0;
-    height: 100%;
-    padding: 0 18px;
-    border-radius: 14px;
-    border: 1px solid var(--color-edge);
-    background: var(--color-panel);
-    color: var(--color-muted);
-    font-size: 16px;
-    font-weight: 700;
     white-space: nowrap;
   }
 
@@ -275,11 +297,11 @@
 
   .now-playing-chip-title {
     font-size: 16px;
-    font-weight: 700;
+    font-weight: 800;
   }
 
   .now-playing-chip-artist {
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 600;
     color: var(--color-muted);
   }
@@ -295,15 +317,17 @@
 
   .eq span {
     width: 3px;
-    height: 4px;
+    height: 16px;
     border-radius: 2px;
     background: var(--color-available);
     opacity: 0.5;
+    transform: scaleY(0.25);
+    transform-origin: bottom;
   }
 
   .eq-playing span {
     opacity: 1;
-    animation: eq-bounce 900ms ease-in-out infinite;
+    animation: eq-pulse 900ms ease-in-out infinite;
   }
 
   .eq-playing span:nth-child(2) {
@@ -312,6 +336,22 @@
 
   .eq-playing span:nth-child(3) {
     animation-delay: -600ms;
+  }
+
+  /* Still bars at uneven heights, so playing still reads apart from the low paused rest. */
+  @media (prefers-reduced-motion: reduce) {
+    .eq-playing span {
+      animation: none;
+      transform: scaleY(0.7);
+    }
+
+    .eq-playing span:nth-child(2) {
+      transform: scaleY(1);
+    }
+
+    .eq-playing span:nth-child(3) {
+      transform: scaleY(0.5);
+    }
   }
 
   /* Idle screensaver — fixed, not absolute: covers the full viewport regardless of
@@ -330,10 +370,86 @@
   }
 
   .screensaver-clock {
-    font-size: 96px;
+    font-size: 104px;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
     color: var(--color-muted);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .idle-analog {
+    width: 360px;
+    height: 360px;
+    stroke-linecap: round;
+  }
+
+  .idle-analog-tick {
+    stroke: color-mix(in srgb, var(--color-muted) 35%, transparent);
+    stroke-width: 1.2;
+  }
+
+  .idle-analog-tick-major {
+    stroke: var(--color-muted);
+    stroke-width: 3;
+  }
+
+  .idle-analog-hour {
+    stroke: var(--color-muted);
+    stroke-width: 7;
+  }
+
+  .idle-analog-minute {
+    stroke: var(--color-muted);
+    stroke-width: 4;
+  }
+
+  .idle-analog-pin {
+    fill: var(--color-bg);
+    stroke: var(--color-muted);
+    stroke-width: 3;
+  }
+
+  .idle-words {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    max-width: 744px;
+    color: var(--color-muted);
+    text-align: center;
+  }
+
+  .idle-words-lead,
+  .idle-words-tail {
+    font-size: 52px;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    color: color-mix(in srgb, var(--color-muted) 70%, transparent);
+  }
+
+  .idle-words-hour {
+    font-size: 120px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+
+  .idle-stacked {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 184px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    line-height: 0.86;
+    letter-spacing: -0.04em;
+    color: var(--color-muted);
+  }
+
+  .idle-stacked-minutes {
+    color: color-mix(in srgb, var(--color-muted) 70%, transparent);
   }
 
   .screensaver-track {
@@ -342,73 +458,17 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     font-size: 20px;
-    font-weight: 600;
+    font-weight: 700;
     color: color-mix(in srgb, var(--color-muted) 70%, transparent);
-  }
-
-  .tiles {
-    flex: 1;
-    min-height: 0;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-  }
-
-  .tile {
-    position: relative;
-    border: none;
-    border-radius: 18px;
-    font-size: 28px;
-    font-weight: 800;
-    color: #fff;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
-  }
-
-  .tile.selected {
-    box-shadow:
-      0 0 0 4px rgba(255, 255, 255, 0.55) inset,
-      0 6px 18px rgba(0, 0, 0, 0.35);
-  }
-
-  /* Top-left, not top-right: the dial safe zone is the other top corner. */
-  .tile-badge {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    width: 28px;
-    height: 28px;
-    border-radius: 999px;
-    background: #fff;
-    color: var(--color-bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
-  }
-
-  .tile-available {
-    background: var(--color-available);
-  }
-
-  .tile-busy {
-    background: var(--color-busy);
-  }
-
-  .tile-focus {
-    background: var(--color-accent);
   }
 
   .hint {
     margin-top: 12px;
-    font-size: 18px;
+    font-size: 20px;
     line-height: 1.35;
     color: var(--color-muted);
     text-align: center;
+    font-weight: 500;
   }
 
   /* Cancels .screen's 20px/28px padding for this element only, so it sits flush against
@@ -442,20 +502,132 @@
     filter: brightness(1.3);
   }
 
-  .button-hint-available {
-    background: color-mix(in srgb, var(--color-available) 30%, var(--color-panel));
-  }
-  .button-hint-busy {
-    background: color-mix(in srgb, var(--color-busy) 30%, var(--color-panel));
-  }
-  .button-hint-focus {
-    background: color-mix(in srgb, var(--color-accent) 30%, var(--color-panel));
-  }
-
   .button-hint-label {
     font-size: 16px;
     font-weight: 800;
     color: var(--color-off-white);
+  }
+
+  /* Status lives in the preset tabs: each is tinted with its status, the current one lit solid. Dark
+     text on the lit tab, since white on Go Green is ~2:1. */
+  .status-tab {
+    border: none;
+    color: var(--color-off-white);
+  }
+
+  .status-tab:disabled {
+    cursor: default;
+  }
+
+  .status-tab-available {
+    background: color-mix(in srgb, var(--color-available) 22%, var(--color-panel));
+  }
+
+  .status-tab-busy {
+    background: color-mix(in srgb, var(--color-busy) 22%, var(--color-panel));
+  }
+
+  .status-tab-focus {
+    background: color-mix(in srgb, var(--color-accent) 22%, var(--color-panel));
+  }
+
+  .status-tab.lit {
+    color: var(--color-bg);
+  }
+
+  .status-tab.lit .button-hint-label {
+    color: inherit;
+  }
+
+  .status-tab-available.lit {
+    background: var(--color-available);
+  }
+
+  .status-tab-busy.lit {
+    background: var(--color-busy);
+  }
+
+  .status-tab-focus.lit {
+    background: var(--color-accent);
+  }
+
+  /* Today's total leads Home; its meta stacks beside the number, clear of the dial's corner. */
+  .today-total {
+    align-self: flex-start;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 14px;
+    padding: 0;
+    border: none;
+    background: none;
+    text-align: left;
+  }
+
+  .today-total-value {
+    font-size: 72px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+    transition: color 600ms ease;
+  }
+
+  .today-total-bumped .today-total-value {
+    color: var(--color-available);
+    transition-duration: 150ms;
+  }
+
+  .today-total-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .today-total-label {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-muted);
+  }
+
+  .unlogged {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-muted);
+  }
+
+  .unlogged strong {
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-off-white);
+  }
+
+  .ledger {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .ledger-setup {
+    justify-content: center;
+  }
+
+  .ledger-empty {
+    padding: 16px 18px;
+    border-radius: 12px;
+    border: 1px dashed var(--color-edge);
+    font-size: 20px;
+    line-height: 1.35;
+    color: var(--color-muted);
+    font-weight: 500;
+  }
+
+  /* Hints inside a list sit with its left-aligned rows; Home's setup hint stays centered. */
+  .issue-picker .hint,
+  .ledger .hint {
+    text-align: left;
   }
 
   .hint.error {
@@ -468,16 +640,50 @@
     border: none;
     background: none;
     color: var(--color-accent);
-    font-size: 16px;
-    font-weight: 700;
+    font-size: inherit;
+    font-weight: 800;
     text-decoration: underline;
   }
 
   /* Focus setup — duration picker and Jira issue selection screen shown before starting a session */
 
-  .focus-setup h1 {
+  /* One line names what the primary action will do: "Focus for 25 min on DESK-1". */
+  .setup-sentence {
+    margin-bottom: 4px;
+  }
+
+  .sentence {
+    margin: 0;
     font-size: 26px;
-    margin: 0 0 12px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .sentence .issue-key {
+    font-weight: inherit;
+  }
+
+  .sentence-muted {
+    color: var(--color-muted);
+  }
+
+  /* The total after this time lands is the one number that matters, so it alone is bright. */
+  .setup-meta {
+    align-items: center;
+    margin: 0 0 4px;
+  }
+
+  .setup-meta strong {
+    font-weight: 800;
+    color: var(--color-off-white);
+  }
+
+  /* Negative margin eats most of the padding, so at rest the value reads as plain words in the line. */
+  .sentence .duration-value {
+    padding: 2px 10px;
+    margin: 0 -3px;
+    font-size: inherit;
+    font-weight: inherit;
   }
 
   .row {
@@ -540,28 +746,47 @@
     color: var(--color-off-white);
   }
 
+  /* Same box at rest and dial-focused, so moving the dial here never shifts the row. */
   .duration-value {
-    font-size: 22px;
-    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    font-variant-numeric: tabular-nums;
+    transition:
+      background 150ms ease,
+      border-color 150ms ease,
+      color 150ms ease;
   }
 
-  /* A subtle echo of .issue-row.selected's accent color, so both halves of
-     the screen use the same color to say "the dial is currently pointed at me". */
+  /* Matches .issue-row.selected: the dial's target always wears the same blue. */
   .duration-value.dial-focused {
-    color: var(--color-accent);
-    text-decoration: underline;
-    text-decoration-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
-    text-underline-offset: 4px;
+    border-color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 15%, var(--color-panel));
+    color: var(--color-off-white);
   }
 
+  .dial-hint {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-muted);
+  }
+
+  /* Chip-sized to sit in the meta line; the ::after grows its touch target to 44px like the filter chips. */
   .btn-toggle {
-    padding: 10px 16px;
+    position: relative;
+    padding: 4px 14px;
     border-radius: 999px;
     border: 1px solid var(--color-edge);
     background: var(--color-panel);
     color: var(--color-off-white);
-    font-size: 14px;
-    font-weight: 700;
+    font-size: 16px;
+    font-weight: 800;
+  }
+
+  .btn-toggle::after {
+    content: '';
+    position: absolute;
+    inset: -6px -4px;
   }
 
   .issue-picker {
@@ -579,13 +804,22 @@
   }
 
   .filter-chip {
+    position: relative;
     border: 1px solid var(--color-edge);
     background: var(--color-panel);
     border-radius: 999px;
     padding: 6px 14px;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
     color: var(--color-muted);
+    letter-spacing: 0.04em;
+  }
+
+  /* Grows the touch target to 44px into the surrounding gaps without moving the list. */
+  .filter-chip::after {
+    content: '';
+    position: absolute;
+    inset: -4px -3px;
   }
 
   .filter-chip.selected {
@@ -601,6 +835,8 @@
     flex-direction: column;
     gap: 8px;
     margin-top: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-edge) transparent;
   }
 
   .issue-row {
@@ -613,11 +849,13 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 19px;
+    font-size: 20px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-weight: 500;
   }
 
-  .issue-row.selected {
+  .issue-row.selected,
+  .history-row.selected {
     border-color: var(--color-accent);
     background: color-mix(in srgb, var(--color-accent) 15%, var(--color-panel));
   }
@@ -633,6 +871,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-weight: 500;
   }
 
   .actions {
@@ -642,6 +881,17 @@
     /* Full width regardless of the parent's align-items (Focus Running centers its other children,
        which would shrink this to fit content instead of letting the flex:1 buttons split evenly). */
     align-self: stretch;
+  }
+
+  /* Setup screens: the clock keeps its dock spot, and the primary action is the widest target. */
+  .setup-band .btn-primary,
+  .setup-band .btn-secondary {
+    height: 100%;
+    padding: 0 16px;
+  }
+
+  .setup-band .btn-primary {
+    flex: 2;
   }
 
   .btn-primary,
@@ -662,7 +912,7 @@
 
   .btn-primary {
     background: var(--color-accent);
-    color: #fff;
+    color: var(--color-off-white);
     box-shadow: 0 4px 12px color-mix(in srgb, var(--color-accent) 45%, transparent);
   }
 
@@ -678,29 +928,96 @@
     color: var(--color-busy);
   }
 
-  /* Focus running — active countdown screen shown while a focus session is currently in progress */
+  /* Names the physical button that does the same thing, styled like a keycap; inherits its color. */
+  .key-cap {
+    padding: 2px 7px;
+    border-radius: 6px;
+    border: 1px solid color-mix(in srgb, currentColor 40%, transparent);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    opacity: 0.8;
+  }
 
-  /* Everything below the duration hint bar (which needs to stay flush against the
-     true top edge, like it does on the setup screens) is centered in the remaining
-     space rather than as part of one centered group with it — otherwise the hint bar
-     would get pulled down and centered along with the clock instead of staying pinned to the top. */
+  .btn-with-key {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  /* The m tap was heard: the button fills over the daemon's go-home window, then the session ends. */
+  .btn-ending {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .btn-ending::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: color-mix(in srgb, var(--color-busy) 28%, transparent);
+    z-index: -1;
+    transform-origin: left;
+    animation: mode-tap-fill 1500ms linear forwards;
+  }
+
+  /* Red on the red fill drops to ~2.8:1; off-white also marks the switch to "Ending…". */
+  .btn-ending {
+    color: var(--color-off-white);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn-ending::before {
+      animation: none;
+    }
+  }
+
+  /* Focus running: Home's reading carried into the session. The issue heads it, the countdown is the reading,
+     and the meta line under it ties the session to today's total. Left-aligned like Home; the meta sits under
+     the clock, not beside it, because an hour-long countdown would push it into the toast corner. */
   .focus-running-body {
     flex: 1;
     min-height: 0;
     display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: center;
-    text-align: center;
-    gap: 14px;
+    gap: 12px;
   }
 
-  .focus-eyebrow {
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+  .focus-headline {
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  .focus-headline-none {
     color: var(--color-muted);
+  }
+
+  /* Always one line tall, so pausing never shifts the buttons below it. */
+  .focus-meta {
+    display: flex;
+    gap: 14px;
+    min-height: 27px;
+    margin-top: -2px;
+    font-size: 20px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-muted);
+  }
+
+  .focus-meta-paused {
+    color: var(--color-off-white);
+  }
+
+  .focus-running .progress-track {
+    width: 100%;
+  }
+
+  .focus-running .actions {
+    margin-top: 4px;
   }
 
   /* Tight line box: the default adds ~20px, which the now-playing dock below can't spare. */
@@ -709,20 +1026,11 @@
     font-weight: 800;
     line-height: 1;
     font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
   }
 
   .clock-paused {
     color: var(--color-muted);
-  }
-
-  .issue-tag {
-    font-size: 20px;
-    color: var(--color-muted);
-  }
-
-  /* One line at any summary length: a wrapped summary pushes the buttons into the dock. */
-  .focus-issue {
-    align-self: stretch;
   }
 
   .progress-track {
@@ -736,26 +1044,27 @@
 
   .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--color-accent), color-mix(in srgb, var(--color-accent) 60%, #fff));
-    transition: width 1s linear;
+    background: linear-gradient(
+      90deg,
+      var(--color-accent),
+      color-mix(in srgb, var(--color-accent) 60%, var(--color-off-white))
+    );
+    width: 100%;
+    transform-origin: left;
+    transition: transform 1s linear;
   }
 
-  /* Today / history — today's total tracked time and the scrollable list of past time entries */
+  /* Today's ledger rows on Home: the scrollable list of today's worklogs, each deletable in place */
 
-  .history-total {
-    color: var(--color-muted);
-    font-size: 18px;
-    margin-bottom: 4px;
-  }
-
-  .history-list {
+  .ledger-list {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin-top: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-edge) transparent;
   }
 
   .history-row {
@@ -767,7 +1076,7 @@
     background: var(--color-panel);
     border-radius: 12px;
     padding: 12px 14px;
-    font-size: 17px;
+    font-size: 20px;
     text-align: left;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   }
@@ -784,6 +1093,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-weight: 500;
   }
 
   .history-duration {
@@ -829,10 +1139,10 @@
   .history-confirm-delete {
     flex: 1;
     padding: 10px 16px;
-    border-radius: 10px;
+    border-radius: 12px;
     border: none;
-    font-size: 15px;
-    font-weight: 700;
+    font-size: 16px;
+    font-weight: 800;
   }
 
   .history-confirm-cancel {
@@ -843,7 +1153,7 @@
 
   .history-confirm-delete {
     background: var(--color-busy);
-    color: #fff;
+    color: var(--color-bg);
   }
 
   .history-confirm-cancel:disabled,
@@ -885,6 +1195,136 @@
     border: 1px solid color-mix(in srgb, var(--color-available) 45%, var(--color-edge));
   }
 
+  /* Neutral: nothing went wrong, but nothing was logged either. */
+  .toast-info {
+    background: var(--color-panel);
+    border: 1px solid var(--color-edge);
+  }
+
+  /* Receipt: the undoable proof a worklog landed. Same top-left slot and width cap as the toast. */
+  .receipt {
+    position: fixed;
+    top: 20px;
+    left: 28px;
+    width: calc(100vw - var(--spacing-toast-safe-w) - 56px);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px 16px 0;
+    overflow: hidden;
+    border-radius: 14px;
+    border: 1px solid color-mix(in srgb, var(--color-available) 45%, var(--color-edge));
+    background: color-mix(in srgb, var(--color-available) 16%, var(--color-panel));
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+    animation: receipt-in 260ms cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 50;
+  }
+
+  .receipt-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .receipt-check {
+    flex-shrink: 0;
+    align-self: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-available);
+    color: var(--color-bg);
+  }
+
+  .receipt-amount {
+    flex-shrink: 0;
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .receipt-target {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  /* Secondary text on the green tint comes from the foreground, not slate, so it keeps contrast. */
+  .receipt-summary {
+    padding-left: 38px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 16px;
+    font-weight: 600;
+    color: rgb(245 246 247 / 0.72);
+  }
+
+  .receipt-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-left: 38px;
+    margin-top: 2px;
+  }
+
+  .receipt-today {
+    font-size: 16px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: rgb(245 246 247 / 0.72);
+  }
+
+  .receipt-undo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 40px;
+    padding: 0 14px 0 18px;
+    border-radius: 12px;
+    border: 1px solid rgb(255 255 255 / 0.18);
+    background: rgb(0 0 0 / 0.28);
+    font-size: 16px;
+    font-weight: 800;
+  }
+
+  .receipt-undo:disabled {
+    opacity: 0.6;
+  }
+
+  /* The undo window running out, truthfully: it lasts exactly as long as the receipt does. */
+  .receipt-drain {
+    height: 3px;
+    margin: 8px -16px 0;
+    background: rgb(245 246 247 / 0.45);
+    transform-origin: left;
+    animation: receipt-drain var(--receipt-ms) linear forwards;
+  }
+
+  .receipt-drain-held {
+    animation-play-state: paused;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .receipt {
+      animation: none;
+    }
+
+    .receipt-drain {
+      animation: none;
+      opacity: 0;
+    }
+  }
+
   /* Now playing: full-screen player over Home or Focus Running, laid out like Focus Running */
 
   /* Washed in the artwork's own color (useArtTint), falling back to the accent. Panels go
@@ -897,7 +1337,11 @@
     --color-panel: rgb(0 0 0 / 0.28);
     --color-edge: rgb(255 255 255 / 0.12);
     background:
-      radial-gradient(80% 100% at 15% 30%, color-mix(in srgb, var(--art-tint) 90%, #fff 10%), transparent 75%),
+      radial-gradient(
+        80% 100% at 15% 30%,
+        color-mix(in srgb, var(--art-tint) 90%, var(--color-off-white) 10%),
+        transparent 75%
+      ),
       radial-gradient(70% 90% at 95% 100%, color-mix(in srgb, var(--art-tint) 70%, transparent), transparent 70%),
       linear-gradient(
         160deg,
@@ -912,10 +1356,10 @@
     background: var(--color-off-white);
   }
 
-  .now-playing-screen .focus-eyebrow,
-  .now-playing-screen .issue-tag,
-  .now-playing-screen .now-playing-album,
-  .now-playing-screen .scrubber-times {
+  .now-playing-screen .scrubber-times,
+  .now-playing-artist,
+  .now-playing-source,
+  .now-playing-today {
     color: rgb(245 246 247 / 0.78);
   }
 
@@ -923,14 +1367,32 @@
     flex: 1;
     min-height: 0;
     display: flex;
-    align-items: center;
-    gap: 28px;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  /* No lyrics band under it: the track block centers in the room instead of sitting at the top. */
+  .now-playing-body-solo {
+    justify-content: center;
+  }
+
+  .now-playing-top {
+    display: flex;
+    gap: 24px;
+  }
+
+  .now-playing-track {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
   }
 
   .now-playing-art {
     flex-shrink: 0;
-    width: 200px;
-    height: 200px;
+    width: 232px;
+    height: 232px;
     border-radius: 18px;
     border: 1px solid var(--color-edge);
     object-fit: cover;
@@ -941,27 +1403,381 @@
     background: var(--color-panel);
   }
 
+  /* Centered in the room above the scrubber, which lines up with the art's bottom edge. */
   .now-playing-meta {
     flex: 1;
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    justify-content: center;
+    gap: 4px;
   }
 
   .now-playing-title {
     font-size: 34px;
     font-weight: 800;
     line-height: 1.15;
+    letter-spacing: -0.01em;
   }
 
-  .now-playing-album {
-    font-size: 17px;
-    color: var(--color-muted);
+  .now-playing-artist {
+    font-size: 20px;
+    font-weight: 500;
+  }
+
+  .now-playing-source {
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .now-playing-paused {
+    flex-shrink: 0;
+    color: var(--color-off-white);
+    font-weight: 700;
+  }
+
+  /* Artist and source lines open their lists. Text-sized, with an invisible overhang to a 44px target. */
+  .now-playing-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    max-width: 100%;
+    align-self: flex-start;
+    margin: -10px -12px;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 12px;
+    background: none;
+    line-height: inherit;
+    text-align: left;
+  }
+
+  .now-playing-link svg {
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+
+  .now-playing-link:disabled {
+    cursor: default;
+  }
+
+  /* Two lines tall at every state, so a track with no lyrics never moves the scrubber. */
+  .lyrics {
+    flex-shrink: 0;
+    height: 72px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    overflow: hidden;
+  }
+
+  .lyrics-current {
+    display: flex;
+    align-items: center;
+    min-height: 34px;
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.25;
+    animation: lyric-in 260ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .lyrics-current svg {
+    color: rgb(245 246 247 / 0.78);
+  }
+
+  .lyrics-next {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 20px;
+    font-weight: 600;
+    color: rgb(245 246 247 / 0.78);
+  }
+
+  .lyrics-note {
+    justify-content: center;
+    padding: 0 18px;
+    border-radius: 12px;
+    border: 1px dashed var(--color-edge);
+    font-size: 16px;
+    font-weight: 600;
+    color: rgb(245 246 247 / 0.78);
+  }
+
+  /* Queue and artist lists: the player's wash, the tabs and the dock stay; the list takes the middle. */
+  .track-list-view {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .track-list-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  .track-list-title {
+    font-size: 26px;
+    font-weight: 800;
+  }
+
+  .track-list-meta {
+    flex-shrink: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: rgb(245 246 247 / 0.78);
+  }
+
+  /* Positioned, so a row's offsetTop measures from the list when it opens scrolled to the playing track. */
+  .track-list {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .track-list-note {
+    display: flex;
+    align-items: center;
+    height: 72px;
+  }
+
+  /* Splits the playlist where hand-queued tracks slot in, the way Spotify labels its own queue. */
+  .track-list-label {
+    flex-shrink: 0;
+    padding: 6px 4px 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: rgb(245 246 247 / 0.78);
+  }
+
+  /* Holds the row over the green box it slides off of when swiped right. */
+  .track-row-wrap {
+    position: relative;
+    flex-shrink: 0;
+    border-radius: 12px;
+  }
+
+  .track-row-reveal {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 18px;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--color-available) 55%, transparent);
+    color: var(--color-bg);
+    font-size: 16px;
+    font-weight: 800;
+  }
+
+  /* Past the commit distance the box goes solid, so letting go is a decision you can see. */
+  .track-row-reveal.armed {
+    background: var(--color-available);
+  }
+
+  .track-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 60px;
+    padding-right: 6px;
+    border-radius: 12px;
+    border: 1px solid var(--color-edge);
+    background: var(--color-panel);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    /* Horizontal drags are the swipe; vertical ones still scroll the list. */
+    touch-action: pan-y;
+    transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .track-row.swiping {
+    transition: none;
+  }
+
+  /* Panels are translucent in the player; a swiped row needs to cover the green box behind it. */
+  .track-row.swiping {
+    background: color-mix(in srgb, var(--art-tint) 30%, var(--color-bg));
+  }
+
+  .track-row-play {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 10px 0 8px;
+    border: none;
+    border-radius: 12px;
+    background: none;
+    text-align: left;
+  }
+
+  .track-row-play:active,
+  .track-row-more:active {
+    transform: none;
+  }
+
+  .track-row-more {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 10px;
+    background: none;
+    color: rgb(245 246 247 / 0.78);
+  }
+
+  /* The dial's target, in off-white rather than blue for the same reason as the progress fill. */
+  .track-row.selected {
+    border-color: var(--color-off-white);
+    background: rgb(255 255 255 / 0.18);
+  }
+
+  /* Opened in place, same height as a row so the list never jumps: the track stays named on the left. */
+  .track-row-open {
+    gap: 12px;
+    padding: 0 8px;
+    border-color: var(--color-off-white);
+    background: rgb(255 255 255 / 0.12);
+  }
+
+  .track-row-actions {
+    flex-shrink: 0;
+    display: flex;
+    gap: 6px;
+  }
+
+  .track-action {
+    height: 44px;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 1px solid var(--color-edge);
+    background: var(--color-panel);
+    font-size: 16px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  /* The dial's pick among the actions, matching the row selection. */
+  .track-action.selected {
+    border-color: var(--color-off-white);
+    background: rgb(255 255 255 / 0.22);
+  }
+
+  /* Proof the queue took it; Go Green is the success lamp. */
+  .track-row-queued {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--color-available) 45%, transparent);
+    background: color-mix(in srgb, var(--color-available) 22%, transparent);
+    font-size: 16px;
+    font-weight: 700;
+    animation: fade 200ms ease;
+  }
+
+  .track-row-art {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+
+  .track-row-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+  }
+
+  .track-row-title,
+  .track-row-artists {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 16px;
+  }
+
+  .track-row-title {
+    font-weight: 800;
+  }
+
+  .track-row-artists {
+    font-weight: 600;
+    color: rgb(245 246 247 / 0.78);
+  }
+
+  .now-playing-today {
+    font-size: 20px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .now-playing-today strong {
+    color: var(--color-off-white);
+    font-weight: 800;
+  }
+
+  /* Sits beside Close at the dock's right end; lit like a dial target while lyrics are showing. */
+  .now-playing-lyrics-toggle {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 100%;
+    margin-left: auto;
+    padding: 0 18px;
+    border-radius: 14px;
+    border: 1px solid var(--color-edge);
+    background: var(--color-panel);
+    color: rgb(245 246 247 / 0.78);
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .now-playing-lyrics-toggle.on {
+    border-color: var(--color-off-white);
+    background: rgb(255 255 255 / 0.18);
+    color: var(--color-off-white);
+  }
+
+  .now-playing-lyrics-toggle + .now-playing-close {
+    margin-left: 0;
+  }
+
+  .now-playing-close {
+    flex: none;
+    margin-left: auto;
+    height: 100%;
+    padding: 0 22px;
   }
 
   /* The running focus clock, so opening the player doesn't hide how much time is left. */
   .focus-timer-pill {
+    align-self: stretch;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -970,7 +1786,7 @@
     border-radius: 14px;
     border: 1px solid var(--color-edge);
     background: var(--color-panel);
-    font-size: 24px;
+    font-size: 26px;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
   }
@@ -987,12 +1803,13 @@
     height: 28px;
   }
 
-  /* The input does the dragging; it's invisible so the progress bar underneath is what shows. */
+  /* The input does the dragging; it's invisible so the progress bar underneath is what shows. Overhangs
+     the bar by 8px each way for a 44px touch target without re-laying out the player. */
   .scrubber-input {
     position: absolute;
-    inset: 0;
+    inset: -8px 0;
     width: 100%;
-    height: 100%;
+    height: calc(100% + 16px);
     margin: 0;
     opacity: 0;
     cursor: pointer;
@@ -1001,11 +1818,12 @@
 
   .scrubber .progress-track {
     width: 100%;
-    transition: height 150ms ease;
+    transition: transform 150ms ease;
   }
 
+  /* Thickens under the finger by scaling, so dragging never re-lays out the player. */
   .scrubber.held .progress-track {
-    height: 14px;
+    transform: scaleY(1.4);
   }
 
   .scrubber.held .progress-fill {
@@ -1015,7 +1833,7 @@
   .scrubber-times {
     display: flex;
     justify-content: space-between;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
     color: var(--color-muted);

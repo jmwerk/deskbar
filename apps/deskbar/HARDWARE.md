@@ -52,14 +52,32 @@ presses within 1500ms it forces the kiosk back to the launcher
 (`trigger_hub_switch`). A single "m" keydown still reaches the active
 webapp's handler first, though. Deskbar briefly bound "m" to Start Focus
 early on, which meant the _first_ press of a user's go-home gesture also
-kicked off an unwanted focus session, fixed by leaving "m" completely
-unbound. Don't rebind it to something "safer"; just leave it alone.
+kicked off an unwanted focus session. Holding "m" also goes home
+(confirmed hands-on: the launcher appears about 1.3s into the hold).
+
+So "m" is never bound directly. The one sanctioned use is `useModeTap`
+(`src/physicalControls.ts`), which Focus Running uses to end a session.
+It fires only for a lone tap: released within 350ms, no autorepeat, and
+no other "m" press within 1500ms before it or during the 1500ms it then
+waits. Both go-home gestures fail that test: the 5-press gesture on its
+second press, the hold on its first autorepeat. Never bind "m" any other
+way, and keep anything new on "m" behind that hook.
 
 Wheel events from the dial arrive as a burst of small deltas per
 physical detent, not one clean tick. `useRotaryStep`
 (`src/physicalControls.ts`) accumulates `deltaX` and fires a step once
 the accumulated magnitude crosses 100, resetting after each step. That
 threshold was tuned empirically, not derived from any spec.
+
+**Key timing, captured on real hardware over CDP:**
+
+- **Keyup:** every button fires `keyup`, not just `keydown`. A tap of M,
+  a preset or the dial press is about 130-220ms from down to up.
+- **Autorepeat:** holding a key autorepeats. The first `repeat=true`
+  keydown comes about 400ms in, then one every ~26ms.
+- **No page events on go-home:** the go-home switch fired no
+  `visibilitychange` or `pagehide` in the page. Don't rely on either to
+  notice the app being left.
 
 Every `keydown` handler in Deskbar ignores `e.repeat` (see `useKeydown`).
 Holding a preset down shouldn't repeat-fire whatever it's bound to.
