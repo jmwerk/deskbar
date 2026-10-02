@@ -50,4 +50,14 @@ describe('parseConfig', () => {
   it('discards an invalid timezone rather than let it break every date computation', () => {
     expect(parseConfig({ timezone: 'Not/AZone' }).timezone).toBeUndefined();
   });
+
+  it('reads 12-hour unless 24h is chosen', () => {
+    expect(parseConfig({}).hour12).toBe(true);
+    expect(parseConfig({ clockFormat: '24h' }).hour12).toBe(false);
+  });
+
+  it('accepts a known clock face and falls back to digital otherwise', () => {
+    expect(parseConfig({ clockFace: 'analog' }).clockFace).toBe('analog');
+    expect(parseConfig({ clockFace: 'sundial' }).clockFace).toBe('digital');
+  });
 });

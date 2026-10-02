@@ -14,7 +14,8 @@ instead:
   under it. Status lives in the preset tabs along the top: press or tap
   Available / Busy / Focus and that tab lights up in its color, saved on
   the device so it survives a reload or reboot. Sit idle on Home for 3
-  minutes and it dims to a plain clock; any touch, preset press, or dial nudge wakes
+  minutes and it dims to a clock (digital, analog, in words, or hours stacked
+  over minutes, 12h or 24h, set in settings); any touch, preset press, or dial nudge wakes
   it back up. That first input only wakes the screen; it never doubles
   as a tap on whatever's underneath.
 - **Focus timer:** Pick a duration, optionally attach a Jira issue, and

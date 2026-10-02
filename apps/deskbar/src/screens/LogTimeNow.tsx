@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import type { Config } from '../config';
 import { DurationHintBar, DurationSentence, SentenceIssue, SetupBand, SetupMeta } from '../DurationPicker';
-import { formatWallClock } from '../format';
+import { formatWallClock, type WallClock } from '../format';
 import type { NewHistoryEntry } from '../history';
 import { IssuePicker } from '../IssuePicker';
 import { isTransientJiraError, JiraError, logWork, type JiraIssue } from '../jira';
@@ -13,7 +13,7 @@ export function LogTimeNow({
   todaySeconds,
   lastLoggedAt,
   now,
-  timezone,
+  clock,
   onCancel,
   onLogged,
   onQueued,
@@ -25,7 +25,7 @@ export function LogTimeNow({
   /** When the newest of today's worklogs was posted; undefined when nothing was logged today. */
   lastLoggedAt?: number;
   now: number;
-  timezone?: string;
+  clock: WallClock;
   onCancel: () => void;
   onLogged: (entry: NewHistoryEntry) => void;
   /** Jira was unreachable, so the worklog was handed to the retry queue instead. */
@@ -105,7 +105,11 @@ export function LogTimeNow({
         dialHint="Press when done"
       />
       <SetupMeta
-        lead={lastLoggedAt !== undefined && <>unlogged since {formatWallClock(lastLoggedAt, timezone)}</>}
+        lead={
+          lastLoggedAt !== undefined && (
+            <>unlogged since {formatWallClock(lastLoggedAt, clock.timeZone, clock.hour12)}</>
+          )
+        }
         todaySeconds={todaySeconds}
         addSeconds={selected ? minutes * 60 : 0}
       />
@@ -123,7 +127,7 @@ export function LogTimeNow({
         {error && <div className="hint error">{error}</div>}
       </div>
 
-      <SetupBand now={now} timezone={timezone} onCancel={onCancel}>
+      <SetupBand now={now} clock={clock} onCancel={onCancel}>
         <button className="btn-primary" disabled={!selected || busy} onClick={() => void submit()}>
           {busy ? 'Logging…' : 'Log Time'}
         </button>

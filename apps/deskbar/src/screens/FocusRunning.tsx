@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { DurationHintBar } from '../DurationPicker';
-import { formatClock, formatDuration, formatWallClock } from '../format';
+import { formatClock, formatDuration, formatWallClock, type WallClock } from '../format';
 import { MIN_WORKLOG_S } from '../jira';
 import { NowPlayingChip, NowPlayingSheet } from '../NowPlaying';
 import { DURATION_STEPS, useKeydown, useModeTap } from '../physicalControls';
@@ -16,7 +16,7 @@ export function FocusRunning({
   jiraConfigured,
   todaySeconds,
   now,
-  timezone,
+  clock,
   player,
   onTogglePause,
   onExtend,
@@ -32,7 +32,7 @@ export function FocusRunning({
   /** Seconds already logged today, before this session. */
   todaySeconds: number;
   now: number;
-  timezone?: string;
+  clock: WallClock;
   player: Player;
   onTogglePause: () => void;
   /** Nudge remaining duration by `deltaMinutes`; no-op when unlimited (no total). */
@@ -123,7 +123,7 @@ export function FocusRunning({
         </div>
       </div>
       <div className="dock">
-        <div className="dock-clock">{formatWallClock(now, timezone)}</div>
+        <div className="dock-clock">{formatWallClock(now, clock.timeZone, clock.hour12)}</div>
         <NowPlayingChip player={player} onOpen={() => setPlayerOpen(true)} />
       </div>
       {playerOpen && (

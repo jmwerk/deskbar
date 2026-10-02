@@ -370,6 +370,80 @@
     letter-spacing: -0.02em;
   }
 
+  .idle-analog {
+    width: 360px;
+    height: 360px;
+    stroke-linecap: round;
+  }
+
+  .idle-analog-tick {
+    stroke: color-mix(in srgb, var(--color-muted) 35%, transparent);
+    stroke-width: 1.2;
+  }
+
+  .idle-analog-tick-major {
+    stroke: var(--color-muted);
+    stroke-width: 3;
+  }
+
+  .idle-analog-hour {
+    stroke: var(--color-muted);
+    stroke-width: 7;
+  }
+
+  .idle-analog-minute {
+    stroke: var(--color-muted);
+    stroke-width: 4;
+  }
+
+  .idle-analog-pin {
+    fill: var(--color-bg);
+    stroke: var(--color-muted);
+    stroke-width: 3;
+  }
+
+  .idle-words {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    max-width: 744px;
+    color: var(--color-muted);
+    text-align: center;
+  }
+
+  .idle-words-lead,
+  .idle-words-tail {
+    font-size: 52px;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    color: color-mix(in srgb, var(--color-muted) 70%, transparent);
+  }
+
+  .idle-words-hour {
+    font-size: 120px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+
+  .idle-stacked {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 184px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    line-height: 0.86;
+    letter-spacing: -0.04em;
+    color: var(--color-muted);
+  }
+
+  .idle-stacked-minutes {
+    color: color-mix(in srgb, var(--color-muted) 70%, transparent);
+  }
+
   .screensaver-track {
     max-width: 80%;
     overflow: hidden;

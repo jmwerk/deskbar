@@ -40,6 +40,8 @@ const DEFAULT_MOCK_CONFIG: Record<string, string> = {
   focusWebhookFormat: 'json',
   defaultFocusMinutes: '25',
   timezone: '',
+  clockFormat: '12h',
+  clockFace: 'digital',
 };
 
 const MOCK_ISSUES = [

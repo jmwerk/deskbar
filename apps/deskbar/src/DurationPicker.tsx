@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { formatDuration, formatWallClock } from './format';
+import { formatDuration, formatWallClock, type WallClock } from './format';
 import { DURATION_STEPS, useKeyFlash } from './physicalControls';
 
 /** Bound to the same physical buttons; each nudges duration by a fixed delta, not a preset. */
@@ -110,19 +110,19 @@ export function UnlimitedToggle({ unlimited, onToggle }: { unlimited: boolean; o
 /** Setup's bottom band: Home's wall clock in the dock's spot, then Cancel and the primary action. */
 export function SetupBand({
   now,
-  timezone,
+  clock,
   onCancel,
   children,
 }: {
   now: number;
-  timezone?: string;
+  clock: WallClock;
   onCancel: () => void;
   /** The primary button. */
   children: ReactNode;
 }) {
   return (
     <div className="dock setup-band">
-      <div className="dock-clock">{formatWallClock(now, timezone)}</div>
+      <div className="dock-clock">{formatWallClock(now, clock.timeZone, clock.hour12)}</div>
       <button className="btn-secondary btn-with-key" onClick={onCancel}>
         Cancel
         <span className="key-cap">Back</span>

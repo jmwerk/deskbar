@@ -16,6 +16,8 @@ Error messages now say what failed, like "Couldn't log time to DESK-2: Jira retu
 
 Focus Running now reads like Home. The issue you're logging to heads the screen, the countdown sits under it, and one line shows what the session has earned so far and today's total as if it were already logged, so the receipt lands on the number you were watching. The end button says what it will do, like "End & log 6m", and both Pause and End show the physical button that does the same thing. The dock shows the clock, as on Home.
 
+The idle clock comes in four faces, picked in settings: digital, analog hands, the time in words ("twenty to ten"), or hours stacked over minutes. A clock format setting switches every clock in the app between 12h and 24h.
+
 Pressing the dial no longer also presses whichever button you last tapped, which could reopen the player or resume a paused session. Album art in bright yellows, greens and cyans now washes the player a shade deeper so its text stays readable. The project chips and the seek bar are easier to hit, and Deskbar loads faster: it now runs on Preact, cutting the app's code by more than half.
 
 ## 0.7.1

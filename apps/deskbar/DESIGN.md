@@ -221,7 +221,7 @@ Car Thing has only Liberation Sans, which renders every weight from 600 up as on
 
 ### Hierarchy
 
-- **Display** (800, 104px, line-height 1, -0.02em): the focus countdown and the dimmed clock (Muted Slate there).
+- **Display** (800, 104px, line-height 1, -0.02em): the focus countdown and the digital dimmed clock (Muted Slate there).
 - **Total** (800, 72px, line-height 1, -0.03em): today's logged total on Home.
 - **Headline** (800, 34px, 1.15, -0.01em): the now-playing track title.
 - **Title** (800, 26px): the setup sentence, the dock clock, the receipt amount, the focus timer pill.
@@ -380,8 +380,19 @@ loop costs no layout; under reduced motion they hold still at uneven heights, so
 
 ### Dimmed Clock
 
-After 3 idle minutes on Home: Control Black, a 104px Muted Slate clock, and the current track while one is playing.
-Nothing else, status included.
+After 3 idle minutes on Home: Control Black, the clock in Muted Slate, and the current track while one is playing.
+Nothing else, status included. The face is a setting (`clockFace`), and every face stays monochrome slate, with
+secondary parts at 70% slate (about 3.4:1, clear of the large-text bar):
+
+- **Digital:** the 104px Display clock.
+- **Analog:** a 360px dial of 60 ticks, no numerals and no ring; hour ticks and both round-capped hands in slate, minute
+  ticks at 35%. No second hand: the screensaver should sit still.
+- **Words:** the time to the nearest five minutes, "twenty to" at 52px/700 over the hour at 120px/800; "noon" and
+  "midnight" replace twelve o'clock.
+- **Stacked:** two-digit hours over minutes at 184px/800, line-height 0.86, -0.04em, minutes at 70%.
+
+`clockFormat` (12h or 24h) applies to every wall-clock time: the dock clock, "unlogged since", and the faces. 24h pads
+the hour ("09:41").
 
 ### Now-Playing Player
 

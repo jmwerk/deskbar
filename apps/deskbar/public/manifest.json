@@ -97,6 +97,24 @@
         "maxLength": 100,
         "default": null
       }
+    },
+    {
+      "type": "enum",
+      "data": {
+        "key": "clockFormat",
+        "label": "Clock format: 12h (9:41 PM) or 24h (21:41)",
+        "choices": ["12h", "24h"],
+        "default": "12h"
+      }
+    },
+    {
+      "type": "enum",
+      "data": {
+        "key": "clockFace",
+        "label": "Idle clock face: digital, analog hands, the time in words, or hours stacked over minutes",
+        "choices": ["digital", "analog", "words", "stacked"],
+        "default": "digital"
+      }
     }
   ],
   "permissions": ["net.fetch"],

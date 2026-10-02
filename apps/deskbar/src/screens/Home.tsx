@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { formatDuration, formatWallClock } from '../format';
+import { formatDuration, formatWallClock, type WallClock } from '../format';
 import type { HistoryEntry } from '../history';
 import { NowPlayingChip, NowPlayingSheet } from '../NowPlaying';
+import { IdleClock } from '../IdleClock';
 import { HOME_IDLE_TIMEOUT_MS, useIdle, useKeydown, useKeyFlash } from '../physicalControls';
 import { Receipt } from '../Receipt';
 import { TodayLedger } from '../TodayLedger';
@@ -21,7 +22,7 @@ export function Home({
   todaySeconds,
   todayLog,
   now,
-  timezone,
+  clock,
   player,
   onSelect,
   onLogNow,
@@ -36,7 +37,7 @@ export function Home({
   /** Today's worklogs, newest first. */
   todayLog: HistoryEntry[];
   now: number;
-  timezone?: string;
+  clock: WallClock;
   player: Player;
   onSelect: (status: Status) => void;
   onLogNow: () => void;
@@ -53,7 +54,7 @@ export function Home({
   const presetsLive = !idle && !playerOpen;
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const pressedIndex = useKeyFlash(presetsLive);
-  const clock = formatWallClock(now, timezone);
+  const wallTime = formatWallClock(now, clock.timeZone, clock.hour12);
   const shownTodaySeconds = useCountUp(todaySeconds);
   // Newest first, so the first entry is the last time anything was logged today.
   const lastLoggedAt = todayLog[0]?.loggedAt;
@@ -93,7 +94,7 @@ export function Home({
     <div className="screen home">
       {idle && (
         <div className="screensaver">
-          <div className="screensaver-clock">{clock}</div>
+          <IdleClock now={now} clock={clock} />
           {player.track && player.playing && (
             <div className="screensaver-track">
               {player.track.title}
@@ -132,7 +133,7 @@ export function Home({
               <span className="today-total-label">logged today</span>
               {lastLoggedAt !== undefined && (
                 <span className="unlogged">
-                  unlogged since <strong>{formatWallClock(lastLoggedAt, timezone)}</strong>
+                  unlogged since <strong>{formatWallClock(lastLoggedAt, clock.timeZone, clock.hour12)}</strong>
                 </span>
               )}
             </span>
@@ -158,7 +159,7 @@ export function Home({
       {/* Ambient info lives along the bottom: the top-right is under the dial and the toast overlay. */}
       <div className="dock">
         <button className="dock-clock" aria-label="Show clock" onClick={sleepNow}>
-          {clock}
+          {wallTime}
         </button>
         <NowPlayingChip player={player} onOpen={() => setPlayerOpen(true)} />
       </div>

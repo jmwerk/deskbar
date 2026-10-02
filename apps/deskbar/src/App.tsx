@@ -96,6 +96,10 @@ export default function App() {
   const lastIssueKey = history[0]?.issueKey;
 
   const todayLog = useMemo(() => todayEntries(history, now, config.timezone), [history, now, config.timezone]);
+  const clock = useMemo(
+    () => ({ timeZone: config.timezone, hour12: config.hour12, face: config.clockFace }),
+    [config.timezone, config.hour12, config.clockFace],
+  );
   const todaySeconds = useMemo(() => totalSeconds(todayLog), [todayLog]);
 
   const update = useCallback((next: SessionState) => {
@@ -216,7 +220,7 @@ export default function App() {
         jiraConfigured={!!config.jira}
         todaySeconds={todaySeconds}
         now={now}
-        timezone={config.timezone}
+        clock={clock}
         player={player}
         onTogglePause={togglePause}
         onExtend={extendFocus}
@@ -230,7 +234,7 @@ export default function App() {
         lastIssueKey={lastIssueKey}
         todaySeconds={todaySeconds}
         now={now}
-        timezone={config.timezone}
+        clock={clock}
         onCancel={() => setScreen('home')}
         onStart={async (durationS, issue) => {
           const focus = { startedAt: Date.now(), durationS, issueKey: issue?.key, issueSummary: issue?.summary };
@@ -252,7 +256,7 @@ export default function App() {
         todaySeconds={todaySeconds}
         lastLoggedAt={todayLog[0]?.loggedAt}
         now={now}
-        timezone={config.timezone}
+        clock={clock}
         onCancel={() => setScreen('home')}
         onLogged={entry => {
           void recordWorklog(entry);
@@ -275,7 +279,7 @@ export default function App() {
         todaySeconds={todaySeconds}
         todayLog={todayLog}
         now={now}
-        timezone={config.timezone}
+        clock={clock}
         player={player}
         onSelect={status => {
           if (status === 'focus') setScreen('focusSetup');

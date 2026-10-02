@@ -1,3 +1,4 @@
+import type { WallClock } from '../format';
 import { useCallback, useState, type ReactNode } from 'react';
 import type { Config } from '../config';
 import {
@@ -17,7 +18,7 @@ export function FocusSetup({
   lastIssueKey,
   todaySeconds,
   now,
-  timezone,
+  clock,
   onCancel,
   onStart,
 }: {
@@ -26,7 +27,7 @@ export function FocusSetup({
   /** Seconds already logged today. */
   todaySeconds: number;
   now: number;
-  timezone?: string;
+  clock: WallClock;
   onCancel: () => void;
   onStart: (durationS: number | null, issue: JiraIssue | undefined) => void;
 }) {
@@ -117,7 +118,7 @@ export function FocusSetup({
         </div>
       )}
 
-      <SetupBand now={now} timezone={timezone} onCancel={onCancel}>
+      <SetupBand now={now} clock={clock} onCancel={onCancel}>
         <button className="btn-primary" onClick={() => onStart(unlimited ? null : minutes * 60, selected)}>
           Start
         </button>
