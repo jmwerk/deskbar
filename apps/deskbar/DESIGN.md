@@ -109,7 +109,7 @@ components:
   list-row:
     backgroundColor: '{colors.panel-graphite}'
     rounded: '{rounded.row}'
-    padding: '12px 14px'
+    padding: '12px 36px 12px 14px'
     height: '52px'
   filter-chip:
     backgroundColor: '{colors.panel-graphite}'
@@ -356,6 +356,8 @@ clipped at its bottom edge so it never slides over the band below. A pull never 
 - **Content:** a bold Focus Blue issue key, then a Muted Slate one-line summary at 500; ledger rows end with a tabular
   duration. Focus Running's headline uses the same blue key.
 - **Selected:** Focus Blue border, 15% blue tint.
+- **Dial inset:** rows run full width as the tap target, but their content stops 36px from the right edge
+  (`--spacing-dial-inset`), clear of the dial's rim, which reaches about 46px into the screen around the first rows.
 - **Recent:** an issue kept from history because the query no longer returns it ends with a 16px/700 Muted Slate
   "Recent".
 
