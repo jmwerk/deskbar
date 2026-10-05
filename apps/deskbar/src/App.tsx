@@ -35,6 +35,8 @@ export default function App() {
   const [config, setConfig] = useState<Config>(DEFAULT_CONFIG);
   const [session, setSession] = useState<SessionState | null>(null);
   const [screen, setScreen] = useState<'home' | 'focusSetup' | 'logTime'>('home');
+  // Minutes tuned on Home's empty ledger, carried into Focus Setup; unset means the default length.
+  const [setupMinutes, setSetupMinutes] = useState<number | undefined>(undefined);
   const [now, setNow] = useState(() => Date.now());
   const [toast, setToast] = useState<{ message: string; kind: ToastKind } | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -321,6 +323,7 @@ export default function App() {
         config={config}
         lastIssueKey={lastIssueKey}
         recentIssues={recentIssues}
+        initialMinutes={setupMinutes}
         todaySeconds={todaySeconds}
         now={now}
         clock={clock}
@@ -378,10 +381,17 @@ export default function App() {
         clock={clock}
         player={player}
         onSelect={status => {
-          if (status === 'focus') setScreen('focusSetup');
-          else update({ status });
+          if (status === 'focus') {
+            setSetupMinutes(undefined);
+            setScreen('focusSetup');
+          } else update({ status });
         }}
         onLogNow={() => setScreen('logTime')}
+        onTuneFocus={minutes => {
+          setSetupMinutes(minutes);
+          setScreen('focusSetup');
+        }}
+        defaultFocusMinutes={config.defaultFocusMinutes}
         onDeleteEntry={deleteEntry}
         receipt={receipt}
         onUndoReceipt={undoReceipt}

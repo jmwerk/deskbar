@@ -6,6 +6,7 @@ import { IdleClock } from '../IdleClock';
 import { HOME_IDLE_TIMEOUT_MS, useIdle, useKeydown, useKeyFlash } from '../physicalControls';
 import { Receipt } from '../Receipt';
 import { TodayLedger } from '../TodayLedger';
+import { TuneFocus } from '../TuneFocus';
 import type { Status } from '../session';
 import { syncLabel, type SyncState } from '../timesheet';
 import { RefreshIcon } from '../icons';
@@ -30,6 +31,8 @@ export function Home({
   player,
   onSelect,
   onLogNow,
+  onTuneFocus,
+  defaultFocusMinutes,
   onDeleteEntry,
   receipt,
   onUndoReceipt,
@@ -50,6 +53,9 @@ export function Home({
   player: Player;
   onSelect: (status: Status) => void;
   onLogNow: () => void;
+  /** Opens Focus Setup at the minutes tuned on the empty ledger. */
+  onTuneFocus: (minutes: number) => void;
+  defaultFocusMinutes: number;
   onDeleteEntry: (entry: HistoryEntry) => Promise<void>;
   /** The worklog just posted, while it can still be undone. */
   receipt: HistoryEntry | null;
@@ -170,13 +176,17 @@ export function Home({
           </div>
           <div className="ledger pull-area" ref={pullRef}>
             <PullFrame pull={pull} phase={phase}>
-              <TodayLedger
-                entries={todayLog}
-                enabled={presetsLive}
-                confirmingId={confirmingId}
-                onConfirmingChange={setConfirmingId}
-                onDelete={onDeleteEntry}
-              />
+              {todayLog.length === 0 ? (
+                <TuneFocus defaultMinutes={defaultFocusMinutes} enabled={presetsLive} onTune={onTuneFocus} />
+              ) : (
+                <TodayLedger
+                  entries={todayLog}
+                  enabled={presetsLive}
+                  confirmingId={confirmingId}
+                  onConfirmingChange={setConfirmingId}
+                  onDelete={onDeleteEntry}
+                />
+              )}
             </PullFrame>
           </div>
         </>

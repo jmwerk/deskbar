@@ -10,7 +10,10 @@ Disturb, app blocking, a camera/mic presence sensor). Here's what you get
 instead:
 
 - **Home is today's ledger:** the time you've logged today leads the
-  screen, with every worklog from today listed under it. Status lives in the preset tabs along the top:
+  screen, with every worklog from today listed under it. With nothing
+  logged yet, the list is a tuning strip instead: turn the dial (or drag
+  or tap the scale) to tune in a first focus, and press it to open Focus
+  Setup at that length. Status lives in the preset tabs along the top:
   press or tap Available / Busy / Focus and that tab lights up in its
   color, saved on the device so it survives a reload or reboot. Sit idle
   on Home for 3 minutes and it dims to a clock (digital, analog, in
@@ -242,7 +245,8 @@ via the shared hooks (`useKeydown`, `useRotaryStep`, `useDialPress`,
   pressing the dial there hands it back to the list.
 - On Home the **dial** walks today's ledger, a **press** asks to delete
   the highlighted worklog, a second press deletes it, and **Back**
-  cancels.
+  cancels. With nothing logged yet, the **dial** tunes a first focus
+  5 minutes per detent and a **press** opens Focus Setup at it.
 - **Back / Escape** cancels on Focus Setup/Log Time Now and dismisses a
   delete confirm on Home. On Focus Running it **toggles pause/resume**
   instead of ending the session. Right after time is logged, Back undoes
@@ -301,6 +305,7 @@ index.html, src/          the webapp itself (Preact via React compat + TypeScrip
   src/music.ts             artwork, lyrics and playlist/album browsing hooks
   src/artTint.ts           picks the player background color from the artwork
   src/ScrollText.tsx       single-line text that pans when it overflows
+  src/TuneFocus.tsx        the tuning strip Home shows with nothing logged yet
   src/usePullToRefresh.ts  pull-down-to-refresh gesture for the ledger and issue lists
   src/PullToRefresh.tsx    the strip a pulled list uncovers
   src/TodayLedger.tsx      Home's list of today's worklogs, with delete in place

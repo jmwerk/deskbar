@@ -8,6 +8,8 @@ New optional settings help keep timesheets tidy. Starting a focus session can mo
 
 Worklogs no longer carry a "Logged via Deskbar" comment. Home and Log Time Now no longer show "unlogged since", and Log Time Now starts at your default focus length again.
 
+With nothing logged yet, Home shows a tuning strip instead of a note: turn the dial to tune in a first focus, five minutes a click, and press it to open Focus Setup at that length. Dragging the strip or tapping a number works too.
+
 Issues you logged to in the past week stay in the issue list, marked Recent, after your JQL stops returning them.
 
 The first button press after Deskbar opened, or right as its clock ticked over, was sometimes ignored. It no longer is.

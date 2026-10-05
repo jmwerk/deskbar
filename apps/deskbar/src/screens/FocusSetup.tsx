@@ -17,6 +17,7 @@ export function FocusSetup({
   config,
   lastIssueKey,
   recentIssues,
+  initialMinutes,
   todaySeconds,
   now,
   clock,
@@ -26,6 +27,8 @@ export function FocusSetup({
   config: Config;
   lastIssueKey?: string;
   recentIssues: JiraIssue[];
+  /** Minutes tuned on Home's empty ledger; the default focus length otherwise. */
+  initialMinutes?: number;
   /** Seconds already logged today. */
   todaySeconds: number;
   now: number;
@@ -33,7 +36,7 @@ export function FocusSetup({
   onCancel: () => void;
   onStart: (durationS: number | null, issue: JiraIssue | undefined) => void;
 }) {
-  const [minutes, setMinutes] = useState(config.defaultFocusMinutes);
+  const [minutes, setMinutes] = useState(initialMinutes ?? config.defaultFocusMinutes);
   const [unlimited, setUnlimited] = useState(false);
   const [selected, setSelected] = useState<JiraIssue | undefined>(undefined);
   // Undefined means "No issue" only once the picker has chosen; before that the list is still loading.

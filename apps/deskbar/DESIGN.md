@@ -325,9 +325,21 @@ line with a 16px refresh glyph says how fresh the ledger is ("Synced 4 min ago")
 to a 44px target; the glyph spins while syncing, and a failure turns the line Busy Red ("Couldn't sync, tap to
 retry"). Below it, the ledger lists every worklog from today as list rows
 with a leading × hint, scrolling past what fits. Tapping a row, or a dial press on the dial-selected row, expands it in
-place into a red-bordered "Delete from Jira?" confirm with full-width Cancel and Delete. With nothing logged, a dashed graphite box says
-what to press next. The ledger matches the tracker: worklogs from other devices and apps appear in
+place into a red-bordered "Delete from Jira?" confirm with full-width Cancel and Delete. With nothing logged, the ledger becomes
+the tuner (below). The ledger matches the tracker: worklogs from other devices and apps appear in
 it, sorted by start time, and ones deleted elsewhere drop out.
+
+### Tuner
+
+Home's empty ledger, a radio-style tuning strip for the first focus. A 20px/700 Off-White "Nothing logged yet today"
+with a 16px/600 Muted Slate hint beside it, then the readout: the dial's target, so a Focus Blue border and 15% tint,
+"25" at 34px/800 tabular with "min" at 20px/700 in 72% Off-White, and a 3px blue stem down into the window. The window
+is a 76px Panel Graphite strip with an Edge Steel border whose ends fade out; the scale slides behind a fixed 3px Focus
+Blue needle at its centre that stops above the numbers. Ticks hang from the top every 5 minutes (14px, slate at 45%),
+every 15 minutes taller (24px, Muted Slate) with a 16px/700 number under them, and the number under the needle turns
+Off-White. One dial detent is one tick: the scale glides on a 260ms expo-out and the needle catches with a short
+squash. A drag moves the scale with the finger, a tap on a number jumps to it, and the dial press or a tap on the
+readout opens Focus Setup at that length. Range 5 to 120 minutes; motion drops under reduced motion.
 
 ### Pull to Refresh
 
