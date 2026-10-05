@@ -5,23 +5,32 @@ import { formatDuration } from './format';
 import {
   loadHistory,
   appendHistoryEntry,
+  dayKey,
   removeHistoryEntry,
+  syncDay,
   todayEntries,
   totalSeconds,
   type HistoryEntry,
   type NewHistoryEntry,
 } from './history';
-import { deleteWorklog, logWork, MIN_WORKLOG_S } from './jira';
+import { recentFromHistory } from './issueSelection';
+import { JiraError, MIN_WORKLOG_S, transitionIssue } from './jira';
 import { adjustedRunningMinutes } from './physicalControls';
 import { loadPendingWorklogs, queuePendingWorklog, removePendingWorklog } from './retryQueue';
 import { activeElapsedS, loadSession, saveSession, type SessionState } from './session';
 import { Toast, type ToastKind } from './Toast';
 import { usePlayer } from './usePlayer';
+import { nudgeMessage, pastNudgeTime, roundWorklogSeconds, type SyncState } from './timesheet';
 import { fireFocusWebhook } from './webhook';
+import { fetchDayWorklogs, postWorklog, removeWorklog } from './worklogs';
 import { FocusRunning } from './screens/FocusRunning';
 import { FocusSetup } from './screens/FocusSetup';
 import { Home } from './screens/Home';
 import { LogTimeNow } from './screens/LogTimeNow';
+
+const SYNC_INTERVAL_MS = 10 * 60_000;
+// Waking the screen or coming back to Home syncs too, but not more often than this.
+const SYNC_MIN_GAP_MS = 30_000;
 
 export default function App() {
   const [config, setConfig] = useState<Config>(DEFAULT_CONFIG);
@@ -48,12 +57,33 @@ export default function App() {
   const deleteEntry = useCallback(
     async (entry: HistoryEntry) => {
       if (config.jira && entry.worklogId) {
-        await deleteWorklog(config.jira, entry.issueKey, entry.worklogId);
+        await removeWorklog({ ...config, jira: config.jira }, entry);
       }
       setHistory(await removeHistoryEntry(entry.id));
       setReceipt(current => (current?.id === entry.id ? null : current));
     },
-    [config.jira],
+    [config],
+  );
+
+  const moveIssue = useCallback(
+    async (issueKey: string, status: string) => {
+      if (!config.jira) return;
+      try {
+        if ((await transitionIssue(config.jira, issueKey, status)) === 'moved') {
+          showInfo(`Moved ${issueKey} to ${status}.`);
+        }
+      } catch (err) {
+        showError(
+          `Couldn't move ${issueKey} to ${status}: ${err instanceof JiraError ? err.message : 'unknown error'}`,
+        );
+        throw err;
+      }
+    },
+    [config.jira, showInfo, showError],
+  );
+  const doneReceipt = useCallback(
+    (entry: HistoryEntry, status: string) => moveIssue(entry.issueKey, status),
+    [moveIssue],
   );
 
   const undoReceipt = useCallback(
@@ -95,12 +125,86 @@ export default function App() {
   // History is newest first, so this is the issue most recently logged to.
   const lastIssueKey = history[0]?.issueKey;
 
+  // Issues logged to this past week, so the picker still offers them after the JQL drops them.
+  const recentIssues = useMemo(() => recentFromHistory(history, now), [history, now]);
+
   const todayLog = useMemo(() => todayEntries(history, now, config.timezone), [history, now, config.timezone]);
   const clock = useMemo(
     () => ({ timeZone: config.timezone, hour12: config.hour12, face: config.clockFace }),
     [config.timezone, config.hour12, config.clockFace],
   );
   const todaySeconds = useMemo(() => totalSeconds(todayLog), [todayLog]);
+
+  // Shown once the nudge time passes, until dismissed or until anything is logged after that time.
+  const [nudgeDismissedDay, setNudgeDismissedDay] = useState<string | null>(null);
+  const today = dayKey(now, config.timezone);
+  const nudge = useMemo(() => {
+    if (!config.jira || !config.nudgeAt || nudgeDismissedDay === today) return null;
+    if (!pastNudgeTime(now, config.nudgeAt, config.timezone)) return null;
+    const lastLoggedAt = todayLog[0]?.loggedAt;
+    if (lastLoggedAt !== undefined && pastNudgeTime(lastLoggedAt, config.nudgeAt, config.timezone)) return null;
+    return nudgeMessage({
+      now,
+      todaySeconds,
+      lastLoggedAt,
+      dailyTargetS: config.dailyTargetS,
+      timeZone: config.timezone,
+      hour12: config.hour12,
+    });
+  }, [config, nudgeDismissedDay, today, now, todayLog, todaySeconds]);
+  const dismissNudge = useCallback(() => setNudgeDismissedDay(today), [today]);
+
+  // Pulls today's worklogs from the tracker so Home matches it, including time logged elsewhere.
+  const historyRef = useRef(history);
+  const configRef = useRef(config);
+  useEffect(() => {
+    historyRef.current = history;
+    configRef.current = config;
+  });
+  const lastSyncRef = useRef(0);
+  const syncingRef = useRef(false);
+  const [sync, setSync] = useState<SyncState>({ status: 'idle' });
+  const syncNow = useCallback(async () => {
+    if (!config.jira || syncingRef.current) return;
+    syncingRef.current = true;
+    const startedAt = Date.now();
+    lastSyncRef.current = startedAt;
+    setSync(s => ({ ...s, status: 'syncing' }));
+    const knownKeys = [
+      ...new Set(
+        todayEntries(historyRef.current, startedAt, config.timezone)
+          .filter(e => e.worklogId)
+          .map(e => e.issueKey),
+      ),
+    ];
+    try {
+      const { day, worklogs } = await fetchDayWorklogs({ ...config, jira: config.jira }, startedAt, knownKeys);
+      setHistory(await syncDay(worklogs, day, config.timezone, startedAt));
+      setSync({ status: 'idle', at: Date.now() });
+    } catch (err) {
+      // Keep what's on screen; Home's sync line says it failed and the next sync tries again.
+      console.warn('[deskbar] worklog sync failed', err);
+      setSync(s => ({ ...s, status: 'error' }));
+    } finally {
+      syncingRef.current = false;
+    }
+  }, [config]);
+  useEffect(() => {
+    void syncNow();
+    const id = setInterval(() => void syncNow(), SYNC_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [syncNow]);
+  const syncSoon = useCallback(() => {
+    if (Date.now() - lastSyncRef.current >= SYNC_MIN_GAP_MS) void syncNow();
+  }, [syncNow]);
+
+  // Arriving on Home from another screen or a finished session is when a fresh ledger matters.
+  const onHome = !!session && session.status !== 'focus' && screen === 'home';
+  const wasOnHomeRef = useRef(onHome);
+  useEffect(() => {
+    if (onHome && !wasOnHomeRef.current) syncSoon();
+    wasOnHomeRef.current = onHome;
+  }, [onHome, syncSoon]);
 
   const update = useCallback((next: SessionState) => {
     setSession(next);
@@ -142,7 +246,7 @@ export default function App() {
     async (completed: boolean) => {
       if (!session?.focus || endedStartRef.current === session.focus.startedAt) return;
       endedStartRef.current = session.focus.startedAt;
-      const { durationS, issueKey, issueSummary } = session.focus;
+      const { durationS, issueKey, issueSummary, issueId } = session.focus;
       const finalElapsedS = completed && durationS != null ? durationS : activeElapsedS(session.focus, now);
       update({ status: 'available' });
       const webhookOk = await fireFocusWebhook(config.focusWebhookUrl, config.focusWebhookFormat, 'focus.stopped', {
@@ -155,13 +259,18 @@ export default function App() {
           showInfo(`Under a minute, so nothing was logged to ${issueKey}.`);
           return;
         }
+        const seconds = roundWorklogSeconds(finalElapsedS, config.roundToMinutes);
         try {
-          const { worklogId, seconds } = await logWork(config.jira, issueKey, finalElapsedS, 'Logged via Deskbar');
-          void recordWorklog({ issueKey, issueSummary, seconds, loggedAt: Date.now(), worklogId });
+          const entry = await postWorklog(
+            { ...config, jira: config.jira },
+            { key: issueKey, id: issueId, summary: issueSummary },
+            seconds,
+          );
+          void recordWorklog(entry);
         } catch (err) {
-          console.warn('[deskbar] failed to log work to Jira', err);
+          console.warn('[deskbar] failed to log work', err);
           showError(`Couldn't log time to ${issueKey} — the session still ended.`);
-          void queuePendingWorklog({ issueKey, issueSummary, seconds: finalElapsedS, createdAt: Date.now() });
+          void queuePendingWorklog({ issueKey, issueSummary, issueId, seconds, createdAt: Date.now() });
         }
       }
     },
@@ -180,20 +289,19 @@ export default function App() {
   useEffect(() => {
     const jiraConfig = config.jira;
     if (!jiraConfig || retriedPendingRef.current) return;
+    const latest = configRef.current;
     retriedPendingRef.current = true;
     (async () => {
       for (const entry of await loadPendingWorklogs()) {
         try {
-          const { worklogId, seconds } = await logWork(jiraConfig, entry.issueKey, entry.seconds, 'Logged via Deskbar');
+          const posted = await postWorklog(
+            { ...latest, jira: jiraConfig },
+            { key: entry.issueKey, id: entry.issueId, summary: entry.issueSummary },
+            entry.seconds,
+          );
           await removePendingWorklog(entry.id);
-          void appendHistoryEntry({
-            issueKey: entry.issueKey,
-            issueSummary: entry.issueSummary,
-            seconds,
-            loggedAt: entry.createdAt,
-            worklogId,
-          }).then(setHistory);
-          showSuccess(`Recovered ${formatDuration(seconds)} logged to ${entry.issueKey}.`);
+          void appendHistoryEntry(posted).then(setHistory);
+          showSuccess(`Recovered ${formatDuration(posted.seconds)} logged to ${entry.issueKey}.`);
         } catch {
           // Still can't reach Jira — leave it queued for the next launch.
         }
@@ -232,14 +340,22 @@ export default function App() {
       <FocusSetup
         config={config}
         lastIssueKey={lastIssueKey}
+        recentIssues={recentIssues}
         todaySeconds={todaySeconds}
         now={now}
         clock={clock}
         onCancel={() => setScreen('home')}
         onStart={async (durationS, issue) => {
-          const focus = { startedAt: Date.now(), durationS, issueKey: issue?.key, issueSummary: issue?.summary };
+          const focus = {
+            startedAt: Date.now(),
+            durationS,
+            issueKey: issue?.key,
+            issueSummary: issue?.summary,
+            issueId: issue?.id,
+          };
           update({ status: 'focus', focus });
           setScreen('home');
+          if (issue && config.startStatus) void moveIssue(issue.key, config.startStatus).catch(() => {});
           const webhookOk = await fireFocusWebhook(config.focusWebhookUrl, config.focusWebhookFormat, 'focus.started', {
             issueKey: issue?.key,
             durationS: durationS ?? undefined,
@@ -253,6 +369,7 @@ export default function App() {
       <LogTimeNow
         config={config}
         lastIssueKey={lastIssueKey}
+        recentIssues={recentIssues}
         todaySeconds={todaySeconds}
         lastLoggedAt={todayLog[0]?.loggedAt}
         now={now}
@@ -263,7 +380,7 @@ export default function App() {
           setScreen('home');
         }}
         onQueued={entry => {
-          void queuePendingWorklog({ ...entry, createdAt: entry.loggedAt });
+          void queuePendingWorklog(entry);
           showError(
             `Couldn't reach Jira. ${formatDuration(entry.seconds)} to ${entry.issueKey} will retry next launch.`,
           );
@@ -289,7 +406,15 @@ export default function App() {
         onDeleteEntry={deleteEntry}
         receipt={receipt}
         onUndoReceipt={undoReceipt}
+        onDoneReceipt={doneReceipt}
         onDismissReceipt={dismissReceipt}
+        doneStatus={config.doneStatus}
+        dailyTargetS={config.jira ? config.dailyTargetS : 0}
+        nudge={nudge}
+        onDismissNudge={dismissNudge}
+        onWake={syncSoon}
+        sync={sync}
+        onRefresh={syncNow}
       />
     );
   }

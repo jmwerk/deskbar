@@ -3,6 +3,8 @@ import type { Config } from './config';
 import { defaultIssue, nextDialIndex } from './issueSelection';
 import { searchIssues, JiraError, type JiraIssue } from './jira';
 import { useRotaryStep } from './physicalControls';
+import { PullFrame } from './PullToRefresh';
+import { usePullToRefresh } from './usePullToRefresh';
 
 /** Shared Jira issue list: dial-scroll, touch select, project chips, optional "No issue" row. */
 export function IssuePicker({
@@ -12,6 +14,7 @@ export function IssuePicker({
   allowNone = true,
   dialEnabled = true,
   preferredKey,
+  recentIssues = [],
   onDialPastTop,
 }: {
   config: Config;
@@ -22,6 +25,8 @@ export function IssuePicker({
   dialEnabled?: boolean;
   /** Preselected once issues load, when it's in the list; otherwise the first issue is. */
   preferredKey?: string;
+  /** Issues logged to lately, listed after the query's results when the query no longer returns them. */
+  recentIssues?: JiraIssue[];
   /** Turning up past the first row hands the dial to whatever sits above the list. */
   onDialPastTop?: () => void;
 }) {
@@ -29,26 +34,49 @@ export function IssuePicker({
   const [error, setError] = useState<string | null>(null);
   const [projectFilter, setProjectFilter] = useState<string | null>(null);
   const loadedFor = useRef<string | null>(null);
+  const recentKeys = useRef<Set<string>>(new Set());
+  // Read at load time only: a fresh worklog shouldn't reshuffle the list mid-pick.
+  const recentRef = useRef(recentIssues);
+  useEffect(() => {
+    recentRef.current = recentIssues;
+  });
 
-  const load = useCallback(() => {
-    if (!config.jira) return;
-    loadedFor.current = config.jiraJql;
-    setError(null);
-    setIssues(null);
-    setProjectFilter(null);
-    searchIssues(config.jira, config.jiraJql)
-      .then(loaded => {
+  const selectedRef = useRef(selected);
+  useEffect(() => {
+    selectedRef.current = selected;
+  });
+
+  // A refresh keeps the list and the pick on screen while it loads, and keeps the pick if it's still there.
+  const load = useCallback(
+    async ({ refresh = false } = {}) => {
+      if (!config.jira) return;
+      loadedFor.current = config.jiraJql;
+      setError(null);
+      if (!refresh) {
+        setIssues(null);
+        setProjectFilter(null);
+      }
+      try {
+        const found = await searchIssues(config.jira, config.jiraJql);
+        const keys = new Set(found.map(issue => issue.key));
+        const loaded = [...found, ...recentRef.current.filter(issue => !keys.has(issue.key))];
+        recentKeys.current = new Set(loaded.slice(found.length).map(issue => issue.key));
         setIssues(loaded);
-        onSelect(defaultIssue(loaded, preferredKey));
-      })
-      .catch(err =>
-        setError(`Couldn't load your Jira issues: ${err instanceof JiraError ? err.message : 'unknown error'}`),
-      );
-  }, [config, preferredKey, onSelect]);
+        const kept = refresh ? loaded.find(issue => issue.key === selectedRef.current?.key) : undefined;
+        if (refresh && !selectedRef.current && allowNone) return;
+        onSelect(kept ?? defaultIssue(loaded, preferredKey));
+      } catch (err) {
+        setError(`Couldn't load your Jira issues: ${err instanceof JiraError ? err.message : 'unknown error'}`);
+      }
+    },
+    [config, preferredKey, onSelect, allowNone],
+  );
+  const refresh = useCallback(() => load({ refresh: true }), [load]);
+  const { ref: pullRef, pull, phase } = usePullToRefresh(refresh, '.issue-list', !!config.jira);
 
   useEffect(() => {
     if (!config.jira || loadedFor.current === config.jiraJql) return;
-    load();
+    void load();
   }, [config, load]);
 
   // Distinct project keys among the fetched issues, in first-seen order.
@@ -114,58 +142,61 @@ export function IssuePicker({
   if (!config.jira) return null;
 
   return (
-    <>
-      {error && (
-        <div className="hint error">
-          {error}
-          <button className="retry-link" onClick={load}>
-            Retry
-          </button>
-        </div>
-      )}
-      {!error && !issues && <div className="hint">Loading your Jira issues…</div>}
-      {issues && issues.length === 0 && <div className="hint">No matching issues found.</div>}
-      {issues && issues.length > 0 && filteredIssues.length === 0 && (
-        <div className="hint">No issues in {projectFilter}.</div>
-      )}
-      {projectKeys.length > 1 && (
-        <div className="filter-chips">
-          <button className={`filter-chip ${!projectFilter ? 'selected' : ''}`} onClick={() => filterTo(null)}>
-            All
-          </button>
-          {projectKeys.map(key => (
+    <div className="pull-area" ref={pullRef}>
+      <PullFrame pull={pull} phase={phase}>
+        {error && (
+          <div className="hint error">
+            {error}
+            <button className="retry-link" onClick={() => void load()}>
+              Retry
+            </button>
+          </div>
+        )}
+        {!error && !issues && <div className="hint">Loading your Jira issues…</div>}
+        {issues && issues.length === 0 && <div className="hint">No matching issues found.</div>}
+        {issues && issues.length > 0 && filteredIssues.length === 0 && (
+          <div className="hint">No issues in {projectFilter}.</div>
+        )}
+        {projectKeys.length > 1 && (
+          <div className="filter-chips">
+            <button className={`filter-chip ${!projectFilter ? 'selected' : ''}`} onClick={() => filterTo(null)}>
+              All
+            </button>
+            {projectKeys.map(key => (
+              <button
+                key={key}
+                className={`filter-chip ${projectFilter === key ? 'selected' : ''}`}
+                onClick={() => filterTo(key)}
+              >
+                {key}
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="issue-list">
+          {filteredIssues.map(issue => (
             <button
-              key={key}
-              className={`filter-chip ${projectFilter === key ? 'selected' : ''}`}
-              onClick={() => filterTo(key)}
+              key={issue.key}
+              ref={selected?.key === issue.key ? selectedRowRef : undefined}
+              className={`issue-row ${selected?.key === issue.key && dialEnabled ? 'selected' : ''}`}
+              onClick={() => onSelect(issue)}
             >
-              {key}
+              <span className="issue-key">{issue.key}</span>
+              <span className="issue-summary">{issue.summary}</span>
+              {recentKeys.current.has(issue.key) && <span className="issue-recent">Recent</span>}
             </button>
           ))}
+          {allowNone && (
+            <button
+              ref={!selected ? selectedRowRef : undefined}
+              className={`issue-row ${!selected && dialEnabled ? 'selected' : ''}`}
+              onClick={() => onSelect(undefined)}
+            >
+              No issue, just a timer
+            </button>
+          )}
         </div>
-      )}
-      <div className="issue-list">
-        {filteredIssues.map(issue => (
-          <button
-            key={issue.key}
-            ref={selected?.key === issue.key ? selectedRowRef : undefined}
-            className={`issue-row ${selected?.key === issue.key && dialEnabled ? 'selected' : ''}`}
-            onClick={() => onSelect(issue)}
-          >
-            <span className="issue-key">{issue.key}</span>
-            <span className="issue-summary">{issue.summary}</span>
-          </button>
-        ))}
-        {allowNone && (
-          <button
-            ref={!selected ? selectedRowRef : undefined}
-            className={`issue-row ${!selected && dialEnabled ? 'selected' : ''}`}
-            onClick={() => onSelect(undefined)}
-          >
-            No issue, just a timer
-          </button>
-        )}
-      </div>
-    </>
+      </PullFrame>
+    </div>
   );
 }

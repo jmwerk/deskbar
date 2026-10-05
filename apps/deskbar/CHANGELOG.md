@@ -1,5 +1,19 @@
 # deskbar
 
+## 0.9.0
+
+Home now matches Jira. Worklogs you add from Jira's site or another device show up in the ledger when the screen wakes, when you come back to Home, or within 10 minutes, edits there change the time shown here, and worklogs deleted there drop out. A line under today's total says when Home last synced; tap it, or pull the list down, to sync right away. Pulling down the issue list on Focus Setup or Log Time Now fetches new tickets and keeps the one you picked.
+
+New optional settings help keep timesheets tidy. Starting a focus session can move its issue to a status you name, like In Progress, and the receipt can move it on to Done. Focus sessions can round to the nearest 5 or 15 minutes. A daily target shows how much is left on Home, and after a time you choose, Home reminds you about unlogged time until you log it or press Later.
+
+Worklogs no longer carry a "Logged via Deskbar" comment.
+
+Issues you logged to in the past week stay in the issue list, marked Recent, after your JQL stops returning them.
+
+The first button press after Deskbar opened, or right as its clock ticked over, was sometimes ignored. It no longer is.
+
+The settings page has a Test connection button that checks your Jira details before you save. A pasted issue or board link becomes the site address when you leave the field, and the token field says where to create a token.
+
 ## 0.8.0
 
 Logging time, from a focus session or Log Time Now, now shows a receipt with what was logged, where, and today's new total, plus 8 seconds to undo it by touch or with Back. Today's total counts up as the time lands. Today always matches what Jira received: sessions under a minute log nothing instead of a phantom 1m. The issue list preselects the issue you last logged to and puts "No issue" last, so the dial no longer skips the first row. Log Time Now queues the worklog to retry when Jira is unreachable, and the -15m preset can no longer end a running session.

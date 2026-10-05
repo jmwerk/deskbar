@@ -320,10 +320,30 @@ minute, or plain "End" when nothing goes to Jira. The dock matches Home's: wall 
 ### Today Total and Ledger
 
 Home's reading. The total is 72px/800 Off-White, with "logged today" and "unlogged since 2:07 PM" stacked beside it; it
-counts up and glows Go Green for 1.4s when time lands. Below it, the ledger lists every worklog from today as list rows
+counts up and glows Go Green for 1.4s when time lands. With a daily target set, the label carries on as "logged today ·
+5h to go of 6h" (whole hours drop the "0m"), then "6h target met". Under the meta lines, a 16px/700 Muted Slate sync
+line with a 16px refresh glyph says how fresh the ledger is ("Synced 4 min ago") and syncs on tap, with an overhang
+to a 44px target; the glyph spins while syncing, and a failure turns the line Busy Red ("Couldn't sync, tap to
+retry"). Below it, the ledger lists every worklog from today as list rows
 with a leading × hint, scrolling past what fits. Tapping a row, or a dial press on the dial-selected row, expands it in
 place into a red-bordered "Delete from Jira?" confirm with full-width Cancel and Delete. With nothing logged, a dashed
-graphite box says what to press next.
+graphite box says what to press next. The ledger matches the tracker: worklogs from other devices and apps appear in
+it, sorted by start time, and ones deleted elsewhere drop out.
+
+### Pull to Refresh
+
+Home's ledger and the setup screens' issue list refresh on a downward pull that starts with the list at its top. The
+column follows at half the finger's speed (up to 88px) and uncovers a centred 16px/700 Muted Slate strip with a 18px
+refresh glyph that turns with the pull: "Pull to refresh", then "Release to refresh" at 56px, then a spinning
+"Refreshing…" for at least 450ms. It springs back on a 220ms expo-out (none under reduced motion), and the column is
+clipped at its bottom edge so it never slides over the band below. A pull never also taps the row it started on.
+
+### Nudge
+
+The end-of-day reminder, in Home's flow between the ledger and the dock so it covers nothing. A 16% Focus Blue tint
+with a 45% blue border and 14px corners, one 20px/700 line ("5h 15m short of your 6h today", "Unlogged since 3:10 PM"),
+then receipt-style buttons: Log time with a "4" keycap and Later with a "Back" keycap. While Home is dimmed the same
+line sits under the clock in 80% Focus Blue.
 
 ### Lists (Issue and Ledger Rows)
 
@@ -332,6 +352,8 @@ graphite box says what to press next.
 - **Content:** a bold Focus Blue issue key, then a Muted Slate one-line summary at 500; ledger rows end with a tabular
   duration. Focus Running's headline uses the same blue key.
 - **Selected:** Focus Blue border, 15% blue tint.
+- **Recent:** an issue kept from history because the query no longer returns it ends with a 16px/700 Muted Slate
+  "Recent".
 
 ### Setup Sentence
 
@@ -360,7 +382,8 @@ action at twice its width, both 56px tall.
 The proof a worklog landed, top-left with the toast's width cap. A 16% Go Green tint with a 45% green border, 14px
 corners, float shadow, and a 260ms rise on an expo-out curve. A green check badge, the amount at 26px/800, "logged to
 KEY", the one-line summary and "Today 3h 10m" in 72% Off-White, and an Undo button with a "Back" keycap. A 3px line along
-the bottom drains over the 8s undo window and pauses while an undo is in flight.
+the bottom drains over the 8s undo window and pauses while an undo is in flight. With a Done status set, a "→ Done"
+button sits beside Undo and reads "Done ✓" once the issue has moved.
 
 ### Keycaps
 

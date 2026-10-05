@@ -452,6 +452,12 @@
     color: color-mix(in srgb, var(--color-muted) 70%, transparent);
   }
 
+  .screensaver-nudge {
+    font-size: 20px;
+    font-weight: 700;
+    color: color-mix(in srgb, var(--color-accent) 80%, var(--color-muted));
+  }
+
   .screensaver-track {
     max-width: 80%;
     overflow: hidden;
@@ -588,6 +594,49 @@
     font-size: 20px;
     font-weight: 700;
     color: var(--color-muted);
+  }
+
+  .today-target {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Ledger freshness, and a tap to refresh it; the overhang widens the touch target to 44px. */
+  .sync-line {
+    position: relative;
+    align-self: flex-start;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    border: none;
+    background: none;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-muted);
+  }
+
+  .sync-line::after {
+    content: '';
+    position: absolute;
+    inset: -14px -10px;
+  }
+
+  .sync-line-error {
+    color: var(--color-busy);
+  }
+
+  .sync-icon {
+    display: flex;
+  }
+
+  .sync-icon-spinning {
+    animation: spin 900ms linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sync-icon-spinning {
+      animation: none;
+    }
   }
 
   .unlogged {
@@ -872,6 +921,15 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     font-weight: 500;
+  }
+
+  /* Pushed to the row's end; the summary gives way first. */
+  .issue-recent {
+    margin-left: auto;
+    flex-shrink: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-muted);
   }
 
   .actions {
@@ -1278,6 +1336,7 @@
   }
 
   .receipt-today {
+    white-space: nowrap;
     font-size: 16px;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
@@ -1285,6 +1344,7 @@
   }
 
   .receipt-undo {
+    white-space: nowrap;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -1299,6 +1359,90 @@
 
   .receipt-undo:disabled {
     opacity: 0.6;
+  }
+
+  /* Sits beside Undo, not between it and the day's total. */
+  .receipt-done {
+    margin-left: auto;
+    padding: 0 18px;
+  }
+
+  /* Pull to refresh: the list column moves down to uncover a status strip at its top. */
+  /* Clipped at the bottom only, so a pulled list never slides over the band below, while chips' touch
+     overhangs at the top and sides still land. */
+  .pull-area {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    clip-path: inset(-16px -16px 0 -16px);
+  }
+
+  .pull-content {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .pull-content-settling {
+    transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .pull-indicator {
+    position: absolute;
+    inset: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    overflow: hidden;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-muted);
+  }
+
+  .pull-icon {
+    display: flex;
+  }
+
+  .pull-icon-spinning {
+    animation: spin 900ms linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pull-content-settling {
+      transition: none;
+    }
+
+    .pull-icon-spinning {
+      animation: none;
+    }
+  }
+
+  /* End-of-day nudge: in Home's flow above the dock, so it never covers the ledger or the tabs. */
+  .nudge {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    padding: 8px 10px 8px 16px;
+    border-radius: 14px;
+    border: 1px solid color-mix(in srgb, var(--color-accent) 45%, var(--color-edge));
+    background: color-mix(in srgb, var(--color-accent) 16%, var(--color-panel));
+  }
+
+  .nudge-text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 20px;
+    font-weight: 700;
   }
 
   /* The undo window running out, truthfully: it lasts exactly as long as the receipt does. */

@@ -61,3 +61,44 @@ describe('parseConfig', () => {
     expect(parseConfig({ clockFace: 'sundial' }).clockFace).toBe('digital');
   });
 });
+
+describe('parseConfig, time tracking options', () => {
+  it('cleans up a pasted Jira link and stray spaces in the credentials', () => {
+    const config = parseConfig({
+      jiraBaseUrl: 'team.atlassian.net/browse/DESK-2',
+      jiraEmail: ' a@b.com ',
+      jiraApiToken: 'tok ',
+    });
+    expect(config.jira).toEqual({ baseUrl: 'https://team.atlassian.net', email: 'a@b.com', apiToken: 'tok' });
+  });
+
+  it('defaults to no rounding, no target and no nudge', () => {
+    const config = parseConfig({});
+    expect(config).toMatchObject({ roundToMinutes: 0, dailyTargetS: 0 });
+    expect(config.nudgeAt).toBeUndefined();
+    expect(config.startStatus).toBeUndefined();
+  });
+
+  it('reads statuses, rounding, target and nudge time', () => {
+    const config = parseConfig({
+      startStatus: 'In Progress',
+      doneStatus: ' Done ',
+      roundTo: '15',
+      dailyTargetHours: '6.5',
+      nudgeAt: '17:30',
+    });
+    expect(config).toMatchObject({
+      startStatus: 'In Progress',
+      doneStatus: 'Done',
+      roundToMinutes: 15,
+      dailyTargetS: 6.5 * 3600,
+      nudgeAt: '17:30',
+    });
+  });
+
+  it('ignores a malformed nudge time or target', () => {
+    const config = parseConfig({ nudgeAt: '5pm', dailyTargetHours: '-2' });
+    expect(config.nudgeAt).toBeUndefined();
+    expect(config.dailyTargetS).toBe(0);
+  });
+});

@@ -31,7 +31,7 @@ bun run shot deskbar            # grabs what is on the screen, over CDP against 
 bun run shot deskbar --replace  # overwrite
 ```
 
-Deskbar also keeps a hardware-independent screenshot script for CI and for seeded/backdated app states (a paused focus session, a populated Today list) — see `apps/deskbar/README.md`.
+Deskbar also keeps a hardware-independent screenshot script for CI and for seeded/backdated app states (a paused focus session, a populated ledger on Home) — see `apps/deskbar/README.md`.
 
 ## Add another app
 
@@ -45,8 +45,8 @@ bun run new hud --overlay           # a system overlay drawn over every webapp
 ## Ship
 
 ```sh
-bun run bump deskbar patch -m "Fix the wind direction arrow"
-git commit -am "deskbar: fix the wind direction arrow" && git push
+bun run bump deskbar patch -m "Keep the focus issue on one line"
+git commit -am "fix(deskbar): keep the focus issue on one line" && git push
 ```
 
 Pushing to main builds the apps and regenerates the catalog.

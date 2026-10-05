@@ -16,6 +16,7 @@ import { clampMinutes, DURATION_STEPS, useKeydown, useRotaryStep } from '../phys
 export function FocusSetup({
   config,
   lastIssueKey,
+  recentIssues,
   todaySeconds,
   now,
   clock,
@@ -24,6 +25,7 @@ export function FocusSetup({
 }: {
   config: Config;
   lastIssueKey?: string;
+  recentIssues: JiraIssue[];
   /** Seconds already logged today. */
   todaySeconds: number;
   now: number;
@@ -113,6 +115,7 @@ export function FocusSetup({
             allowNone
             dialEnabled={dialTarget === 'issue'}
             preferredKey={lastIssueKey}
+            recentIssues={recentIssues}
             onDialPastTop={dialToDuration}
           />
         </div>

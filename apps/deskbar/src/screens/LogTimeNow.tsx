@@ -4,12 +4,15 @@ import { DurationHintBar, DurationSentence, SentenceIssue, SetupBand, SetupMeta 
 import { formatWallClock, type WallClock } from '../format';
 import type { NewHistoryEntry } from '../history';
 import { IssuePicker } from '../IssuePicker';
-import { isTransientJiraError, JiraError, logWork, type JiraIssue } from '../jira';
+import { isTransientJiraError, JiraError, type JiraIssue } from '../jira';
 import { clampMinutes, DURATION_STEPS, logTimeDefaultMinutes, useKeydown, useRotaryStep } from '../physicalControls';
+import type { PendingWorklog } from '../retryQueue';
+import { postWorklog } from '../worklogs';
 
 export function LogTimeNow({
   config,
   lastIssueKey,
+  recentIssues,
   todaySeconds,
   lastLoggedAt,
   now,
@@ -20,6 +23,7 @@ export function LogTimeNow({
 }: {
   config: Config;
   lastIssueKey?: string;
+  recentIssues: JiraIssue[];
   /** Seconds already logged today. */
   todaySeconds: number;
   /** When the newest of today's worklogs was posted; undefined when nothing was logged today. */
@@ -29,7 +33,7 @@ export function LogTimeNow({
   onCancel: () => void;
   onLogged: (entry: NewHistoryEntry) => void;
   /** Jira was unreachable, so the worklog was handed to the retry queue instead. */
-  onQueued: (entry: Omit<NewHistoryEntry, 'worklogId'>) => void;
+  onQueued: (entry: Omit<PendingWorklog, 'id'>) => void;
 }) {
   const [minutes, setMinutes] = useState(() => logTimeDefaultMinutes(lastLoggedAt, now, config.defaultFocusMinutes));
   const [selected, setSelected] = useState<JiraIssue | undefined>(undefined);
@@ -46,16 +50,21 @@ export function LogTimeNow({
     submittingRef.current = true;
     setBusy(true);
     setError(null);
-    const entry = { issueKey: selected.key, issueSummary: selected.summary, seconds: minutes * 60 };
+    const seconds = minutes * 60;
     try {
-      const { worklogId, seconds } = await logWork(config.jira, entry.issueKey, entry.seconds, 'Logged via Deskbar');
-      onLogged({ ...entry, seconds, loggedAt: Date.now(), worklogId });
+      onLogged(await postWorklog({ ...config, jira: config.jira }, selected, seconds));
     } catch (err) {
       if (isTransientJiraError(err)) {
-        onQueued({ ...entry, loggedAt: Date.now() });
+        onQueued({
+          issueKey: selected.key,
+          issueSummary: selected.summary,
+          issueId: selected.id,
+          seconds,
+          createdAt: Date.now(),
+        });
         return;
       }
-      setError(`Couldn't log time to ${entry.issueKey}: ${err instanceof JiraError ? err.message : 'unknown error'}`);
+      setError(`Couldn't log time to ${selected.key}: ${err instanceof JiraError ? err.message : 'unknown error'}`);
       submittingRef.current = false;
       setBusy(false);
     }
@@ -122,6 +131,7 @@ export function LogTimeNow({
           allowNone={false}
           dialEnabled={dialTarget === 'issue'}
           preferredKey={lastIssueKey}
+          recentIssues={recentIssues}
           onDialPastTop={dialToDuration}
         />
         {error && <div className="hint error">{error}</div>}

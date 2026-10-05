@@ -29,7 +29,7 @@ failure paths" section for the fault-injection recipe.
 ## Screenshots
 
 `bun run --cwd apps/deskbar screenshots` runs `scripts/capture-screenshots.mjs`, a Playwright
-script against `dev:mock` that seeds specific states (a paused focus session, a populated Today
-list) no hardware could easily reproduce on demand. This is separate from — and still needed
+script against `dev:mock` that seeds specific states (a paused focus session, a populated ledger
+on Home) no hardware could easily reproduce on demand. This is separate from — and still needed
 alongside — the CLI's own `bun run shot deskbar`, which captures whatever's currently on a
 physically-connected device's screen but can't seed state.

@@ -7,6 +7,10 @@ import { HOME_IDLE_TIMEOUT_MS, useIdle, useKeydown, useKeyFlash } from '../physi
 import { Receipt } from '../Receipt';
 import { TodayLedger } from '../TodayLedger';
 import type { Status } from '../session';
+import { syncLabel, targetProgress, type SyncState } from '../timesheet';
+import { RefreshIcon } from '../icons';
+import { PullFrame } from '../PullToRefresh';
+import { usePullToRefresh } from '../usePullToRefresh';
 import { useCountUp } from '../useCountUp';
 import type { Player } from '../usePlayer';
 
@@ -29,7 +33,15 @@ export function Home({
   onDeleteEntry,
   receipt,
   onUndoReceipt,
+  onDoneReceipt,
   onDismissReceipt,
+  doneStatus,
+  dailyTargetS,
+  nudge,
+  onDismissNudge,
+  onWake,
+  sync,
+  onRefresh,
 }: {
   status: Status;
   jiraConfigured: boolean;
@@ -45,10 +57,27 @@ export function Home({
   /** The worklog just posted, while it can still be undone. */
   receipt: HistoryEntry | null;
   onUndoReceipt: (entry: HistoryEntry) => Promise<void>;
+  onDoneReceipt: (entry: HistoryEntry, status: string) => Promise<void>;
   onDismissReceipt: () => void;
+  doneStatus?: string;
+  /** 0 when no daily target is set. */
+  dailyTargetS: number;
+  /** The end-of-day reminder about unlogged time, while it's due and not dismissed. */
+  nudge: string | null;
+  onDismissNudge: () => void;
+  /** The screen woke from the idle clock. */
+  onWake: () => void;
+  sync: SyncState;
+  /** Syncs the ledger with the tracker now. */
+  onRefresh: () => Promise<void>;
 }) {
   // Dims to a clock when idle; presets disable so the wake key can't also fire its action.
   const [idle, sleepNow] = useIdle(HOME_IDLE_TIMEOUT_MS);
+  const wasIdleRef = useRef(idle);
+  useEffect(() => {
+    if (wasIdleRef.current && !idle) onWake();
+    wasIdleRef.current = idle;
+  }, [idle, onWake]);
   const [playerOpen, setPlayerOpen] = useState(false);
   const closePlayer = useCallback(() => setPlayerOpen(false), []);
   const presetsLive = !idle && !playerOpen;
@@ -90,11 +119,29 @@ export function Home({
     presetsLive,
   );
 
+  // Back dismisses the nudge only when nothing else on Home is claiming it.
+  const nudgeShown = !!nudge && !receipt;
+  useKeydown(
+    useCallback(
+      e => {
+        if (e.key !== 'Escape') return;
+        e.preventDefault();
+        onDismissNudge();
+      },
+      [onDismissNudge],
+    ),
+    presetsLive && nudgeShown && !confirmingId,
+  );
+  const target = targetProgress(todaySeconds, dailyTargetS);
+  // Not while a delete confirm is open: a pull there would read as fumbling the confirm.
+  const { ref: pullRef, pull, phase } = usePullToRefresh(onRefresh, '.ledger-list', presetsLive && !confirmingId);
+
   return (
     <div className="screen home">
       {idle && (
         <div className="screensaver">
           <IdleClock now={now} clock={clock} />
+          {nudge && <div className="screensaver-nudge">{nudge}</div>}
           {player.track && player.playing && (
             <div className="screensaver-track">
               {player.track.title}
@@ -130,22 +177,39 @@ export function Home({
           <div className={`today-total ${bumped ? 'today-total-bumped' : ''}`}>
             <span className="today-total-value">{formatDuration(shownTodaySeconds)}</span>
             <span className="today-total-meta">
-              <span className="today-total-label">logged today</span>
+              <span className="today-total-label">
+                logged today{target && <span className="today-target"> · {target}</span>}
+              </span>
               {lastLoggedAt !== undefined && (
                 <span className="unlogged">
                   unlogged since <strong>{formatWallClock(lastLoggedAt, clock.timeZone, clock.hour12)}</strong>
                 </span>
               )}
+              <button
+                className={`sync-line ${sync.status === 'error' ? 'sync-line-error' : ''}`}
+                disabled={sync.status === 'syncing'}
+                onClick={() => void onRefresh()}
+              >
+                <span
+                  className={`sync-icon ${sync.status === 'syncing' ? 'sync-icon-spinning' : ''}`}
+                  aria-hidden="true"
+                >
+                  <RefreshIcon size={16} />
+                </span>
+                {syncLabel(sync, now, clock.timeZone, clock.hour12)}
+              </button>
             </span>
           </div>
-          <div className="ledger">
-            <TodayLedger
-              entries={todayLog}
-              enabled={presetsLive}
-              confirmingId={confirmingId}
-              onConfirmingChange={setConfirmingId}
-              onDelete={onDeleteEntry}
-            />
+          <div className="ledger pull-area" ref={pullRef}>
+            <PullFrame pull={pull} phase={phase}>
+              <TodayLedger
+                entries={todayLog}
+                enabled={presetsLive}
+                confirmingId={confirmingId}
+                onConfirmingChange={setConfirmingId}
+                onDelete={onDeleteEntry}
+              />
+            </PullFrame>
           </div>
         </>
       ) : (
@@ -153,6 +217,22 @@ export function Home({
           <div className="hint">
             Set your Jira site, email and API token from the Deskbar settings on your phone to enable time tracking.
           </div>
+        </div>
+      )}
+
+      {nudgeShown && (
+        <div className="nudge" role="status">
+          <span className="nudge-text">{nudge}</span>
+          {jiraConfigured && (
+            <button className="receipt-undo" onClick={onLogNow}>
+              Log time
+              <span className="key-cap">4</span>
+            </button>
+          )}
+          <button className="receipt-undo" onClick={onDismissNudge}>
+            Later
+            <span className="key-cap">Back</span>
+          </button>
         </div>
       )}
 
@@ -169,7 +249,9 @@ export function Home({
           entry={receipt}
           todaySeconds={todaySeconds}
           backUndoes={presetsLive && !confirmingId}
+          doneStatus={doneStatus}
           onUndo={onUndoReceipt}
+          onDone={onDoneReceipt}
           onDismiss={onDismissReceipt}
         />
       )}

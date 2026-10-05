@@ -63,6 +63,11 @@ const DEFAULT_MOCK_CONFIG: Record<string, string> = {
   jiraEmail: 'you@example.com',
   jiraApiToken: 'mock-token',
   jiraJql: 'assignee = currentUser() AND resolution = Unresolved ORDER BY updated DESC',
+  startStatus: 'In Progress',
+  doneStatus: 'Done',
+  roundTo: 'off',
+  dailyTargetHours: '6',
+  nudgeAt: '',
   focusWebhookUrl: '',
   focusWebhookFormat: 'json',
   defaultFocusMinutes: '25',
@@ -72,10 +77,71 @@ const DEFAULT_MOCK_CONFIG: Record<string, string> = {
 };
 
 const MOCK_ISSUES = [
-  { key: 'DESK-1', fields: { summary: 'Wire up the mock client', project: { key: 'DESK', name: 'Deskbar' } } },
-  { key: 'DESK-2', fields: { summary: 'Test the focus timer end to end', project: { key: 'DESK', name: 'Deskbar' } } },
-  { key: 'OPS-7', fields: { summary: 'Rotate the office wifi password', project: { key: 'OPS', name: 'Operations' } } },
+  {
+    id: '10001',
+    key: 'DESK-1',
+    fields: { summary: 'Wire up the mock client', project: { key: 'DESK', name: 'Deskbar' } },
+  },
+  {
+    id: '10002',
+    key: 'DESK-2',
+    fields: { summary: 'Test the focus timer end to end', project: { key: 'DESK', name: 'Deskbar' } },
+  },
+  {
+    id: '10007',
+    key: 'OPS-7',
+    fields: { summary: 'Rotate the office wifi password', project: { key: 'OPS', name: 'Operations' } },
+  },
 ];
+
+const MOCK_ACCOUNT_ID = 'mock-account';
+
+const MOCK_TRANSITIONS = [
+  { id: '11', name: 'Start progress', to: { name: 'In Progress' } },
+  { id: '21', name: 'Back to do', to: { name: 'To Do' } },
+  { id: '31', name: 'Resolve', to: { name: 'Done' } },
+];
+
+// The fake tracker's worklogs, kept apart from the app's store so sync has something real to read back.
+const TRACKER_KEY = 'deskbar-mock-tracker:worklogs';
+type MockWorklog = { id: string; issueKey: string; seconds: number; started: number };
+const issueStatuses = new Map<string, string>();
+let nextWorklogId = 1;
+
+function trackerWorklogs(): MockWorklog[] {
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(TRACKER_KEY) ?? '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveTrackerWorklogs(list: MockWorklog[]): void {
+  window.localStorage.setItem(TRACKER_KEY, JSON.stringify(list));
+}
+
+function addTrackerWorklog(worklog: Omit<MockWorklog, 'id'>): string {
+  const id = `mock-${Date.now()}${nextWorklogId++}`;
+  saveTrackerWorklogs([...trackerWorklogs(), { ...worklog, id }]);
+  return id;
+}
+
+function removeTrackerWorklog(id: string): void {
+  saveTrackerWorklogs(trackerWorklogs().filter(w => w.id !== id));
+}
+
+// Jira's own timestamp shape, offset without a colon.
+const jiraTime = (ms: number) => new Date(ms).toISOString().replace('Z', '+0000');
+
+function ok(status: number, data?: unknown) {
+  return {
+    ok: true as const,
+    response: {
+      response: { status, headers: [], body: data === undefined ? new Uint8Array() : jsonBody(data) },
+    },
+  };
+}
 
 const STORE_PREFIX = 'deskbar-mock-store:';
 
@@ -281,6 +347,8 @@ export function resetMockState(): void {
   contextAt = 0;
   userQueue = [];
   playback = { index: 0, playing: true, positionMs: 42_000, at: Date.now() };
+  issueStatuses.clear();
+  window.localStorage.removeItem(TRACKER_KEY);
   // Use `.key(i)`/`.length`, not `Object.keys()`: some Storage polyfills don't enumerate keys.
   const staleKeys: string[] = [];
   for (let i = 0; i < window.localStorage.length; i++) {
@@ -346,22 +414,72 @@ export const mockClient: AppBridgeClient = {
         };
       }
 
+      const path = new URL(url);
+      const issueMatch = /\/rest\/api\/3\/issue\/([^/]+)(\/.*)?$/.exec(path.pathname);
+      const issueKey = issueMatch ? decodeURIComponent(issueMatch[1]) : null;
+      const issueRest = issueMatch?.[2] ?? '';
+
+      if (method === 'GET' && path.pathname.endsWith('/rest/api/3/myself')) {
+        return ok(200, { accountId: MOCK_ACCOUNT_ID, displayName: 'Mock User' });
+      }
+
       if (method === 'POST' && url.endsWith('/rest/api/3/search/jql')) {
-        return {
-          ok: true,
-          response: { response: { status: 200, headers: [], body: jsonBody({ issues: MOCK_ISSUES }) } },
-        };
+        const { jql } = JSON.parse(decodeBody(body)) as { jql: string };
+        let issues = MOCK_ISSUES;
+        if (jql.startsWith('worklogAuthor')) {
+          const keys = new Set(trackerWorklogs().map(w => w.issueKey));
+          issues = MOCK_ISSUES.filter(i => keys.has(i.key));
+        } else if (/^project = \w+/.test(jql)) {
+          const project = /^project = (\w+)/.exec(jql)![1];
+          issues = MOCK_ISSUES.filter(i => i.fields.project.key === project);
+        }
+        return ok(200, { issues });
       }
 
-      if (method === 'POST' && /\/rest\/api\/3\/issue\/[^/]+\/worklog(\?|$)/.test(url)) {
-        const worklogId = `mock-${Date.now()}`;
+      if (issueKey && issueRest === '/worklog' && method === 'POST') {
+        const { timeSpentSeconds } = JSON.parse(decodeBody(body)) as { timeSpentSeconds: number };
+        const worklogId = addTrackerWorklog({ issueKey, seconds: timeSpentSeconds, started: Date.now() });
         console.log('[mock] worklog logged:', decodeBody(body), '-> id', worklogId);
-        return { ok: true, response: { response: { status: 201, headers: [], body: jsonBody({ id: worklogId }) } } };
+        return ok(201, { id: worklogId });
       }
 
-      if (method === 'DELETE' && /\/rest\/api\/3\/issue\/[^/]+\/worklog\/[^/]+$/.test(url)) {
+      if (issueKey && issueRest === '/worklog' && method === 'GET') {
+        const since = Number(path.searchParams.get('startedAfter') ?? 0);
+        const worklogs = trackerWorklogs()
+          .filter(w => w.issueKey === issueKey && w.started >= since)
+          .map(w => ({
+            id: w.id,
+            author: { accountId: MOCK_ACCOUNT_ID },
+            started: jiraTime(w.started),
+            timeSpentSeconds: w.seconds,
+          }));
+        return ok(200, { worklogs });
+      }
+
+      if (issueKey && issueRest.startsWith('/worklog/') && method === 'DELETE') {
+        removeTrackerWorklog(decodeURIComponent(issueRest.slice('/worklog/'.length)));
         console.log('[mock] worklog deleted:', url);
-        return { ok: true, response: { response: { status: 204, headers: [], body: new Uint8Array() } } };
+        return ok(204);
+      }
+
+      if (issueKey && issueRest === '/transitions') {
+        if (method === 'GET') return ok(200, { transitions: MOCK_TRANSITIONS });
+        const { transition } = JSON.parse(decodeBody(body)) as { transition: { id: string } };
+        const target = MOCK_TRANSITIONS.find(t => t.id === transition.id);
+        if (target) issueStatuses.set(issueKey, target.to.name);
+        console.log('[mock] issue moved:', issueKey, '->', target?.to.name);
+        return ok(204);
+      }
+
+      if (issueKey && issueRest === '' && method === 'GET') {
+        const issue = MOCK_ISSUES.find(i => i.key === issueKey);
+        if (!issue)
+          return ok(404, { errorMessages: ['Issue does not exist or you do not have permission to see it.'] });
+        return ok(200, {
+          id: issue.id,
+          key: issue.key,
+          fields: { ...issue.fields, status: { name: issueStatuses.get(issueKey) ?? 'To Do' } },
+        });
       }
 
       // The focus webhook (or anything else) — pretend the automation fired.

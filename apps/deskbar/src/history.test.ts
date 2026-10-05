@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   appendHistoryEntry,
   loadHistory,
+  reconcileDay,
   removeHistoryEntry,
   todayEntries,
   totalSeconds,
@@ -76,5 +77,57 @@ describe('appendHistoryEntry / removeHistoryEntry', () => {
     expect(after).toHaveLength(1);
     expect(after[0].issueKey).toBe('DESK-1');
     expect(await loadHistory()).toHaveLength(1);
+  });
+});
+
+describe('reconcileDay', () => {
+  const day = '2026-10-05';
+  const morning = new Date(2026, 9, 5, 9, 0).getTime();
+  const noon = new Date(2026, 9, 5, 12, 0).getTime();
+  const yesterday = new Date(2026, 9, 4, 15, 0).getTime();
+  const tracked = (id: string, loggedAt: number, seconds = 900): HistoryEntry => ({
+    ...entry(loggedAt, seconds),
+    worklogId: id,
+  });
+  const remote = (worklogId: string, startedAt: number, seconds = 900) => ({
+    worklogId,
+    issueKey: 'OPS-7',
+    issueSummary: 'Rotate the office wifi password',
+    issueId: '10007',
+    seconds,
+    startedAt,
+  });
+
+  it('adds worklogs logged elsewhere, newest first', () => {
+    const result = reconcileDay(
+      [tracked('w1', morning)],
+      [remote('w1', morning), remote('w2', noon)],
+      day,
+      undefined,
+      noon + 1,
+    );
+    expect(result.map(e => e.worklogId)).toEqual(['w2', 'w1']);
+    expect(result[0]).toMatchObject({ issueKey: 'OPS-7', issueId: '10007', loggedAt: noon });
+  });
+
+  it("takes the tracker's time for a worklog edited there", () => {
+    const result = reconcileDay([tracked('w1', morning, 900)], [remote('w1', morning, 1800)], day, undefined, noon);
+    expect(result[0].seconds).toBe(1800);
+  });
+
+  it('drops a worklog deleted in the tracker, unless it was posted after the fetch began', () => {
+    const entries = [tracked('w1', morning), tracked('w2', noon)];
+    const result = reconcileDay(entries, [], day, undefined, noon);
+    expect(result.map(e => e.worklogId)).toEqual(['w2']);
+  });
+
+  it('leaves other days and entries with no worklog alone', () => {
+    const result = reconcileDay([tracked('old', yesterday), entry(morning)], [], day, undefined, noon + 1);
+    expect(result).toHaveLength(2);
+  });
+
+  it("doesn't add a worklog already kept under another day", () => {
+    const result = reconcileDay([tracked('w1', yesterday)], [remote('w1', morning)], day, undefined, noon);
+    expect(result).toHaveLength(1);
   });
 });
