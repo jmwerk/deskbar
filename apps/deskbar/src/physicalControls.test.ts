@@ -67,6 +67,20 @@ describe('useRotaryStep', () => {
 });
 
 describe('useKeydown', () => {
+  it('keeps one listener across new handlers and calls the newest, so a press is never dropped mid-swap', () => {
+    const add = vi.spyOn(window, 'addEventListener');
+    const first = vi.fn();
+    const second = vi.fn();
+    const { rerender } = renderHook(({ handler }) => useKeydown(handler), { initialProps: { handler: first } });
+    const attached = add.mock.calls.filter(([type]) => type === 'keydown').length;
+    rerender({ handler: second });
+    expect(add.mock.calls.filter(([type]) => type === 'keydown').length).toBe(attached);
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: '2' }));
+    expect(first).not.toHaveBeenCalled();
+    expect(second).toHaveBeenCalledOnce();
+    add.mockRestore();
+  });
+
   it('calls the handler on a keydown', () => {
     const onKeyDown = vi.fn();
     renderHook(() => useKeydown(onKeyDown));

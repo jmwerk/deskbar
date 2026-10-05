@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 // Car Thing controls bypass bridgething client: keydown 1-4/m/Escape, wheel deltaX for dial.
 // Minute deltas the 4 buttons apply to a duration: coarse-to-fine, decrement then increment.
@@ -25,17 +25,29 @@ export function adjustedRunningMinutes(currentMinutes: number, deltaMinutes: num
 /** How long Home sits untouched before the idle screensaver takes over. */
 export const HOME_IDLE_TIMEOUT_MS = 3 * 60_000;
 
+// The newest callback, current from the moment its render commits, for listeners that stay attached.
+function useLatest<T>(value: T) {
+  const ref = useRef(value);
+  useLayoutEffect(() => {
+    ref.current = value;
+  });
+  return ref;
+}
+
 // Keydown listener scoped to the mounted screen; ignores key-repeat, centralizes listener setup.
+// Attached once per enable, not per callback: a listener swapped while a key is being dispatched
+// (an earlier listener's state update re-renders mid-dispatch) is skipped, and the press is lost.
 export function useKeydown(onKeyDown: (e: KeyboardEvent) => void, enabled = true) {
+  const latest = useLatest(onKeyDown);
   useEffect(() => {
     if (!enabled) return;
     const handler = (e: KeyboardEvent) => {
       if (e.repeat) return;
-      onKeyDown(e);
+      latest.current(e);
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [onKeyDown, enabled]);
+  }, [latest, enabled]);
 }
 
 // True after timeoutMs of no input events; resets on any, restarting fresh on every mount.
@@ -195,6 +207,8 @@ export function useKeyFlash(enabled = true, flashMs = 180): number | null {
 
 // Rotary wheel events arrive as a burst of small deltas per detent; accumulate then step.
 export function useRotaryStep(onStep: (direction: 1 | -1) => void, enabled: boolean) {
+  // Through a ref, so a new callback neither drops a turn mid-dispatch nor resets a half-turned detent.
+  const latest = useLatest(onStep);
   useEffect(() => {
     if (!enabled) return;
     let accum = 0;
@@ -203,10 +217,10 @@ export function useRotaryStep(onStep: (direction: 1 | -1) => void, enabled: bool
       e.preventDefault();
       accum += e.deltaX;
       if (Math.abs(accum) < 100) return;
-      onStep(accum > 0 ? 1 : -1);
+      latest.current(accum > 0 ? 1 : -1);
       accum = 0;
     };
     window.addEventListener('wheel', onWheel, { passive: false });
     return () => window.removeEventListener('wheel', onWheel);
-  }, [onStep, enabled]);
+  }, [latest, enabled]);
 }
