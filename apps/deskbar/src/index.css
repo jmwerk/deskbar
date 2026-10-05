@@ -452,12 +452,6 @@
     color: color-mix(in srgb, var(--color-muted) 70%, transparent);
   }
 
-  .screensaver-nudge {
-    font-size: 20px;
-    font-weight: 700;
-    color: color-mix(in srgb, var(--color-accent) 80%, var(--color-muted));
-  }
-
   .screensaver-track {
     max-width: 80%;
     overflow: hidden;
@@ -596,10 +590,6 @@
     color: var(--color-muted);
   }
 
-  .today-target {
-    font-variant-numeric: tabular-nums;
-  }
-
   /* Ledger freshness, and a tap to refresh it; the overhang widens the touch target to 44px. */
   .sync-line {
     position: relative;
@@ -637,18 +627,6 @@
     .sync-icon-spinning {
       animation: none;
     }
-  }
-
-  .unlogged {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--color-muted);
-  }
-
-  .unlogged strong {
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-    color: var(--color-off-white);
   }
 
   .ledger {
@@ -1420,29 +1398,6 @@
     .pull-icon-spinning {
       animation: none;
     }
-  }
-
-  /* End-of-day nudge: in Home's flow above the dock, so it never covers the ledger or the tabs. */
-  .nudge {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 12px;
-    padding: 8px 10px 8px 16px;
-    border-radius: 14px;
-    border: 1px solid color-mix(in srgb, var(--color-accent) 45%, var(--color-edge));
-    background: color-mix(in srgb, var(--color-accent) 16%, var(--color-panel));
-  }
-
-  .nudge-text {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 20px;
-    font-weight: 700;
   }
 
   /* The undo window running out, truthfully: it lasts exactly as long as the receipt does. */

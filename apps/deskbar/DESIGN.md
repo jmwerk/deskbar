@@ -319,15 +319,14 @@ minute, or plain "End" when nothing goes to Jira. The dock matches Home's: wall 
 
 ### Today Total and Ledger
 
-Home's reading. The total is 72px/800 Off-White, with "logged today" and "unlogged since 2:07 PM" stacked beside it; it
-counts up and glows Go Green for 1.4s when time lands. With a daily target set, the label carries on as "logged today ·
-5h to go of 6h" (whole hours drop the "0m"), then "6h target met". Under the meta lines, a 16px/700 Muted Slate sync
+Home's reading. The total is 72px/800 Off-White, with "logged today" beside it; it
+counts up and glows Go Green for 1.4s when time lands. Under the meta lines, a 16px/700 Muted Slate sync
 line with a 16px refresh glyph says how fresh the ledger is ("Synced 4 min ago") and syncs on tap, with an overhang
 to a 44px target; the glyph spins while syncing, and a failure turns the line Busy Red ("Couldn't sync, tap to
 retry"). Below it, the ledger lists every worklog from today as list rows
 with a leading × hint, scrolling past what fits. Tapping a row, or a dial press on the dial-selected row, expands it in
-place into a red-bordered "Delete from Jira?" confirm with full-width Cancel and Delete. With nothing logged, a dashed
-graphite box says what to press next. The ledger matches the tracker: worklogs from other devices and apps appear in
+place into a red-bordered "Delete from Jira?" confirm with full-width Cancel and Delete. With nothing logged, a dashed graphite box says
+what to press next. The ledger matches the tracker: worklogs from other devices and apps appear in
 it, sorted by start time, and ones deleted elsewhere drop out.
 
 ### Pull to Refresh
@@ -337,13 +336,6 @@ column follows at half the finger's speed (up to 88px) and uncovers a centred 16
 refresh glyph that turns with the pull: "Pull to refresh", then "Release to refresh" at 56px, then a spinning
 "Refreshing…" for at least 450ms. It springs back on a 220ms expo-out (none under reduced motion), and the column is
 clipped at its bottom edge so it never slides over the band below. A pull never also taps the row it started on.
-
-### Nudge
-
-The end-of-day reminder, in Home's flow between the ledger and the dock so it covers nothing. A 16% Focus Blue tint
-with a 45% blue border and 14px corners, one 20px/700 line ("5h 15m short of your 6h today", "Unlogged since 3:10 PM"),
-then receipt-style buttons: Log time with a "4" keycap and Later with a "Back" keycap. While Home is dimmed the same
-line sits under the clock in 80% Focus Blue.
 
 ### Lists (Issue and Ledger Rows)
 
@@ -364,8 +356,7 @@ becomes the dial-target box (blue border, 15% tint) when the dial is on it, so t
 on the minutes, a short Muted Slate "Press when done" follows.
 
 Under it, Home's reading carries on in the Focus Running meta style (20px/700 Muted Slate): "Today 2h 50m → 3h 15m",
-with only the after-total in Off-White because that is the number the receipt will land on. Log Time leads the line
-with "unlogged since 3:04 PM" and opens its minutes on that gap. Focus Setup's Unlimited toggle rides at the end of
+with only the after-total in Off-White because that is the number the receipt will land on. Focus Setup's Unlimited toggle rides at the end of
 this line as a chip-sized pill, not on the sentence, so a long issue key never pushes it toward the dial's corner.
 
 The bottom band is the dock: Home's wall clock in its usual spot, then Cancel (with a Back keycap) and the primary
@@ -409,7 +400,7 @@ secondary parts at 70% slate (about 3.4:1, clear of the large-text bar):
   "midnight" replace twelve o'clock.
 - **Stacked:** two-digit hours over minutes at 184px/800, line-height 0.86, -0.04em, minutes at 70%.
 
-`clockFormat` (12h or 24h) applies to every wall-clock time: the dock clock, "unlogged since", and the faces. 24h pads
+`clockFormat` (12h or 24h) applies to every wall-clock time: the dock clock, "Synced at", and the faces. 24h pads
 the hour ("09:41").
 
 ### Now-Playing Player

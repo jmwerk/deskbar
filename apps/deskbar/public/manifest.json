@@ -88,28 +88,6 @@
       }
     },
     {
-      "type": "number",
-      "data": {
-        "key": "dailyTargetHours",
-        "label": "Daily logging target in hours (0 turns it off)",
-        "min": 0,
-        "max": 12,
-        "step": 0.5,
-        "default": 0
-      }
-    },
-    {
-      "type": "string",
-      "data": {
-        "key": "nudgeAt",
-        "label": "Remind me about unlogged time after this time of day (HH:MM, 24h); leave blank to turn it off",
-        "pattern": "^$|^([01][0-9]|2[0-3]):[0-5][0-9]$",
-        "minLength": null,
-        "maxLength": 5,
-        "default": null
-      }
-    },
-    {
       "type": "string",
       "data": {
         "key": "focusWebhookUrl",

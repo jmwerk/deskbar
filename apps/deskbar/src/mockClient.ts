@@ -66,8 +66,6 @@ const DEFAULT_MOCK_CONFIG: Record<string, string> = {
   startStatus: 'In Progress',
   doneStatus: 'Done',
   roundTo: 'off',
-  dailyTargetHours: '6',
-  nudgeAt: '',
   focusWebhookUrl: '',
   focusWebhookFormat: 'json',
   defaultFocusMinutes: '25',

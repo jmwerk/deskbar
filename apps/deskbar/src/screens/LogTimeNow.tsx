@@ -1,11 +1,11 @@
 import { useCallback, useRef, useState } from 'react';
 import type { Config } from '../config';
 import { DurationHintBar, DurationSentence, SentenceIssue, SetupBand, SetupMeta } from '../DurationPicker';
-import { formatWallClock, type WallClock } from '../format';
+import type { WallClock } from '../format';
 import type { NewHistoryEntry } from '../history';
 import { IssuePicker } from '../IssuePicker';
 import { isTransientJiraError, JiraError, type JiraIssue } from '../jira';
-import { clampMinutes, DURATION_STEPS, logTimeDefaultMinutes, useKeydown, useRotaryStep } from '../physicalControls';
+import { clampMinutes, DURATION_STEPS, useKeydown, useRotaryStep } from '../physicalControls';
 import type { PendingWorklog } from '../retryQueue';
 import { postWorklog } from '../worklogs';
 
@@ -14,7 +14,6 @@ export function LogTimeNow({
   lastIssueKey,
   recentIssues,
   todaySeconds,
-  lastLoggedAt,
   now,
   clock,
   onCancel,
@@ -26,8 +25,6 @@ export function LogTimeNow({
   recentIssues: JiraIssue[];
   /** Seconds already logged today. */
   todaySeconds: number;
-  /** When the newest of today's worklogs was posted; undefined when nothing was logged today. */
-  lastLoggedAt?: number;
   now: number;
   clock: WallClock;
   onCancel: () => void;
@@ -35,7 +32,7 @@ export function LogTimeNow({
   /** Jira was unreachable, so the worklog was handed to the retry queue instead. */
   onQueued: (entry: Omit<PendingWorklog, 'id'>) => void;
 }) {
-  const [minutes, setMinutes] = useState(() => logTimeDefaultMinutes(lastLoggedAt, now, config.defaultFocusMinutes));
+  const [minutes, setMinutes] = useState(() => clampMinutes(config.defaultFocusMinutes));
   const [selected, setSelected] = useState<JiraIssue | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -113,15 +110,7 @@ export function LogTimeNow({
         dialFocused={dialTarget === 'duration'}
         dialHint="Press when done"
       />
-      <SetupMeta
-        lead={
-          lastLoggedAt !== undefined && (
-            <>unlogged since {formatWallClock(lastLoggedAt, clock.timeZone, clock.hour12)}</>
-          )
-        }
-        todaySeconds={todaySeconds}
-        addSeconds={selected ? minutes * 60 : 0}
-      />
+      <SetupMeta todaySeconds={todaySeconds} addSeconds={selected ? minutes * 60 : 0} />
 
       <div className="issue-picker" onPointerDown={() => setDialTarget('issue')}>
         <IssuePicker

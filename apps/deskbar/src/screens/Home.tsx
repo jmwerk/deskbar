@@ -7,7 +7,7 @@ import { HOME_IDLE_TIMEOUT_MS, useIdle, useKeydown, useKeyFlash } from '../physi
 import { Receipt } from '../Receipt';
 import { TodayLedger } from '../TodayLedger';
 import type { Status } from '../session';
-import { syncLabel, targetProgress, type SyncState } from '../timesheet';
+import { syncLabel, type SyncState } from '../timesheet';
 import { RefreshIcon } from '../icons';
 import { PullFrame } from '../PullToRefresh';
 import { usePullToRefresh } from '../usePullToRefresh';
@@ -36,9 +36,6 @@ export function Home({
   onDoneReceipt,
   onDismissReceipt,
   doneStatus,
-  dailyTargetS,
-  nudge,
-  onDismissNudge,
   onWake,
   sync,
   onRefresh,
@@ -60,11 +57,6 @@ export function Home({
   onDoneReceipt: (entry: HistoryEntry, status: string) => Promise<void>;
   onDismissReceipt: () => void;
   doneStatus?: string;
-  /** 0 when no daily target is set. */
-  dailyTargetS: number;
-  /** The end-of-day reminder about unlogged time, while it's due and not dismissed. */
-  nudge: string | null;
-  onDismissNudge: () => void;
   /** The screen woke from the idle clock. */
   onWake: () => void;
   sync: SyncState;
@@ -85,8 +77,6 @@ export function Home({
   const pressedIndex = useKeyFlash(presetsLive);
   const wallTime = formatWallClock(now, clock.timeZone, clock.hour12);
   const shownTodaySeconds = useCountUp(todaySeconds);
-  // Newest first, so the first entry is the last time anything was logged today.
-  const lastLoggedAt = todayLog[0]?.loggedAt;
 
   // The total glows briefly when time lands, tying the receipt to the running total.
   const [bumped, setBumped] = useState(false);
@@ -119,20 +109,6 @@ export function Home({
     presetsLive,
   );
 
-  // Back dismisses the nudge only when nothing else on Home is claiming it.
-  const nudgeShown = !!nudge && !receipt;
-  useKeydown(
-    useCallback(
-      e => {
-        if (e.key !== 'Escape') return;
-        e.preventDefault();
-        onDismissNudge();
-      },
-      [onDismissNudge],
-    ),
-    presetsLive && nudgeShown && !confirmingId,
-  );
-  const target = targetProgress(todaySeconds, dailyTargetS);
   // Not while a delete confirm is open: a pull there would read as fumbling the confirm.
   const { ref: pullRef, pull, phase } = usePullToRefresh(onRefresh, '.ledger-list', presetsLive && !confirmingId);
 
@@ -141,7 +117,6 @@ export function Home({
       {idle && (
         <div className="screensaver">
           <IdleClock now={now} clock={clock} />
-          {nudge && <div className="screensaver-nudge">{nudge}</div>}
           {player.track && player.playing && (
             <div className="screensaver-track">
               {player.track.title}
@@ -177,14 +152,7 @@ export function Home({
           <div className={`today-total ${bumped ? 'today-total-bumped' : ''}`}>
             <span className="today-total-value">{formatDuration(shownTodaySeconds)}</span>
             <span className="today-total-meta">
-              <span className="today-total-label">
-                logged today{target && <span className="today-target"> · {target}</span>}
-              </span>
-              {lastLoggedAt !== undefined && (
-                <span className="unlogged">
-                  unlogged since <strong>{formatWallClock(lastLoggedAt, clock.timeZone, clock.hour12)}</strong>
-                </span>
-              )}
+              <span className="today-total-label">logged today</span>
               <button
                 className={`sync-line ${sync.status === 'error' ? 'sync-line-error' : ''}`}
                 disabled={sync.status === 'syncing'}
@@ -217,22 +185,6 @@ export function Home({
           <div className="hint">
             Set your Jira site, email and API token from the Deskbar settings on your phone to enable time tracking.
           </div>
-        </div>
-      )}
-
-      {nudgeShown && (
-        <div className="nudge" role="status">
-          <span className="nudge-text">{nudge}</span>
-          {jiraConfigured && (
-            <button className="receipt-undo" onClick={onLogNow}>
-              Log time
-              <span className="key-cap">4</span>
-            </button>
-          )}
-          <button className="receipt-undo" onClick={onDismissNudge}>
-            Later
-            <span className="key-cap">Back</span>
-          </button>
         </div>
       )}
 

@@ -10,14 +10,14 @@ Disturb, app blocking, a camera/mic presence sensor). Here's what you get
 instead:
 
 - **Home is today's ledger:** the time you've logged today leads the
-  screen, with when you last logged and every worklog from today listed
-  under it. Status lives in the preset tabs along the top: press or tap
-  Available / Busy / Focus and that tab lights up in its color, saved on
-  the device so it survives a reload or reboot. Sit idle on Home for 3
-  minutes and it dims to a clock (digital, analog, in words, or hours stacked
-  over minutes, 12h or 24h, set in settings); any touch, preset press, or dial nudge wakes
-  it back up. That first input only wakes the screen; it never doubles
-  as a tap on whatever's underneath.
+  screen, with every worklog from today listed under it. Status lives in the preset tabs along the top:
+  press or tap Available / Busy / Focus and that tab lights up in its
+  color, saved on the device so it survives a reload or reboot. Sit idle
+  on Home for 3 minutes and it dims to a clock (digital, analog, in
+  words, or hours stacked over minutes, 12h or 24h, set in settings); any
+  touch, preset press, or dial nudge wakes it back up. That first input
+  only wakes the screen; it never doubles as a tap on whatever's
+  underneath.
 - **Focus timer:** Pick a duration, optionally attach a Jira issue, and
   run a full-screen countdown. You can pause and resume it (Back or a
   touch button toggles this), and paused time never counts toward the
@@ -34,23 +34,18 @@ instead:
   reachable. Sessions under a minute log nothing. Starting a session can
   move its issue to a status you name (say In Progress), and session
   worklogs can round to the nearest 5 or 15 minutes.
-- **Synced with Jira:** Home's ledger matches Jira. Worklogs you
-  add from Jira's site or another device show up on
-  launch, when the screen wakes from the idle clock, when you come back
-  to Home, and every 10 minutes (at most once per 30 seconds); ones
-  deleted there drop out. A line under the total says when it last
+- **Synced with Jira:** Home's ledger matches Jira. Worklogs you add
+  from Jira's site or another device show up on launch, when the screen
+  wakes from the idle clock, when you come back to Home, and every 10
+  minutes (at most once per 30 seconds); ones deleted there drop out. A line under the total says when it last
   synced ("Synced 4 min ago"); tap it, or pull the ledger down, to sync
   right away. Pulling down the issue list on Focus Setup or Log Time Now
   re-runs your JQL for new tickets, keeping the issue you picked.
-- **Daily target and nudge:** with a target set, Home says how much is
-  left. After a time you choose, Home asks you to log the rest (or the
-  unlogged gap, without a target) until you log or press Later.
 - **Recent issues:** the last five issues you logged to in the past week
   stay in the issue list, marked Recent, even after your JQL stops
   returning them.
 - **Log time now:** Log time to an issue directly, no timer required,
-  from Home's fourth preset. It starts at the time since you last logged
-  today, the same gap Home shows as unlogged.
+  from Home's fourth preset. It starts at your default focus length.
 - **Receipt and undo:** Every worklog, from a session or Log Time Now,
   ends on a receipt showing what was logged, to which issue, and today's
   new total, with 8 seconds to undo it by touch or with Back. With a
@@ -73,9 +68,8 @@ instead:
   press.
 - **Deleting a worklog:** tap any row in Home's ledger, or point the dial
   at it and press, to delete it in place. That removes its worklog from
-  Jira too (entries logged before this feature
-  existed don't have a worklog id to delete by, so those only get removed
-  from Deskbar).
+  Jira too (entries logged before this feature existed don't have a
+  worklog id to delete by, so those only get removed from Deskbar).
 - **Focus automation hook:** bridgething has no API for toggling a
   phone's or PC's Do Not Disturb, so instead Deskbar POSTs an event
   (`focus.started` / `focus.stopped`) to an optional webhook URL you set
@@ -189,12 +183,10 @@ settings page (`settings/`, built from `settings.html` per the manifest's
 - **Done status:** e.g. `Done`; adds the receipt's move button
 - **Rounding:** `off` (default), `5` or `15` minutes, for focus
   sessions; never below one step
-- **Daily target:** hours, `0` (default) turns it off
-- **Nudge time:** `HH:MM` (24h); blank turns the nudge off
 
 The settings page has a **Test connection** button that checks the Jira
-site, email and token you've typed before you save, and a pasted issue or board link becomes the
-site address when you leave the field.
+site, email and token you've typed before you save, and a pasted issue
+or board link becomes the site address when you leave the field.
 
 If Jira isn't configured, time tracking and the issue picker just degrade
 gracefully. Focus mode still works fine as a plain timer.
@@ -239,8 +231,7 @@ The Car Thing's presets, rotary dial, and Back button all reach the
 webapp as plain `keydown`/`wheel` DOM events (bridgething doesn't route
 them through `@bridgething/client`), so each screen binds them directly
 via the shared hooks (`useKeydown`, `useRotaryStep`, `useDialPress`,
-`useModeTap`) in
-`src/physicalControls.ts`:
+`useModeTap`) in `src/physicalControls.ts`:
 
 - **Presets 1-3** pick a status on Home; **preset 4** opens Log Time Now
   (once Jira is configured). **Presets 1-4** nudge the duration on
@@ -251,8 +242,7 @@ via the shared hooks (`useKeydown`, `useRotaryStep`, `useDialPress`,
   pressing the dial there hands it back to the list.
 - On Home the **dial** walks today's ledger, a **press** asks to delete
   the highlighted worklog, a second press deletes it, and **Back**
-  cancels. While the end-of-day nudge shows, **preset 4** logs time and
-  **Back** puts it off until tomorrow.
+  cancels.
 - **Back / Escape** cancels on Focus Setup/Log Time Now and dismisses a
   delete confirm on Home. On Focus Running it **toggles pause/resume**
   instead of ending the session. Right after time is logged, Back undoes
@@ -301,7 +291,7 @@ index.html, src/          the webapp itself (Preact via React compat + TypeScrip
   src/issueSelection.ts    issue preselection and dial movement through the issue list
   src/jira.ts              Jira REST calls via client.net.fetch (search, worklogs, transitions)
   src/worklogs.ts          posts, deletes and syncs worklogs; the one seam for another tracker
-  src/timesheet.ts         rounding, the daily target line and the nudge
+  src/timesheet.ts         rounding and the sync line
   src/jiraUrl.ts           turns a pasted Jira link into the site address
   src/webhook.ts           optional focus-start/stop webhook POST
   src/mockClient.ts        dev:mock's fake client, incl. fault injection

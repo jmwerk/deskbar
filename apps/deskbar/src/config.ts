@@ -19,10 +19,6 @@ export type Config = {
   doneStatus?: string;
   /** Session worklogs round to this many minutes; 0 leaves them exact. */
   roundToMinutes: 0 | 5 | 15;
-  /** 0 when no daily target is set. */
-  dailyTargetS: number;
-  /** HH:MM (24h) after which Home nudges about unlogged time; unset turns the nudge off. */
-  nudgeAt?: string;
 };
 
 const DEFAULT_JQL = 'assignee = currentUser() AND resolution = Unresolved ORDER BY updated DESC';
@@ -37,15 +33,7 @@ export const DEFAULT_CONFIG: Config = {
   hour12: true,
   clockFace: 'digital',
   roundToMinutes: 0,
-  dailyTargetS: 0,
 };
-
-const NUDGE_TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
-
-function positiveNumber(value: string | undefined): number {
-  const n = Number(value);
-  return Number.isFinite(n) && n > 0 ? n : 0;
-}
 
 function validTimezone(value: string | undefined): string | undefined {
   if (!value) return undefined;
@@ -77,7 +65,5 @@ export function parseConfig(raw: Record<string, string>): Config {
     startStatus: raw.startStatus?.trim() || undefined,
     doneStatus: raw.doneStatus?.trim() || undefined,
     roundToMinutes: raw.roundTo === '5' ? 5 : raw.roundTo === '15' ? 15 : 0,
-    dailyTargetS: Math.round(positiveNumber(raw.dailyTargetHours) * 3600),
-    nudgeAt: NUDGE_TIME.test(raw.nudgeAt?.trim() ?? '') ? raw.nudgeAt.trim() : undefined,
   };
 }

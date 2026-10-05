@@ -11,12 +11,6 @@ export function clampMinutes(minutes: number): number {
   return Math.min(MAX_DURATION_MINUTES, Math.max(MIN_DURATION_MINUTES, minutes));
 }
 
-// Log Time opens on the gap since the last worklog today, the time Home already calls unlogged.
-export function logTimeDefaultMinutes(lastLoggedAt: number | undefined, now: number, fallback: number): number {
-  if (lastLoggedAt === undefined) return clampMinutes(fallback);
-  return clampMinutes(Math.round((now - lastLoggedAt) / 60_000));
-}
-
 // Nudging a running session always leaves at least a minute: a preset press should never end it.
 export function adjustedRunningMinutes(currentMinutes: number, deltaMinutes: number, elapsedS: number): number {
   return Math.max(clampMinutes(currentMinutes + deltaMinutes), Math.ceil(elapsedS / 60) + 1);

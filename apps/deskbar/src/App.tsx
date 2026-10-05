@@ -5,7 +5,6 @@ import { formatDuration } from './format';
 import {
   loadHistory,
   appendHistoryEntry,
-  dayKey,
   removeHistoryEntry,
   syncDay,
   todayEntries,
@@ -20,7 +19,7 @@ import { loadPendingWorklogs, queuePendingWorklog, removePendingWorklog } from '
 import { activeElapsedS, loadSession, saveSession, type SessionState } from './session';
 import { Toast, type ToastKind } from './Toast';
 import { usePlayer } from './usePlayer';
-import { nudgeMessage, pastNudgeTime, roundWorklogSeconds, type SyncState } from './timesheet';
+import { roundWorklogSeconds, type SyncState } from './timesheet';
 import { fireFocusWebhook } from './webhook';
 import { fetchDayWorklogs, postWorklog, removeWorklog } from './worklogs';
 import { FocusRunning } from './screens/FocusRunning';
@@ -134,25 +133,6 @@ export default function App() {
     [config.timezone, config.hour12, config.clockFace],
   );
   const todaySeconds = useMemo(() => totalSeconds(todayLog), [todayLog]);
-
-  // Shown once the nudge time passes, until dismissed or until anything is logged after that time.
-  const [nudgeDismissedDay, setNudgeDismissedDay] = useState<string | null>(null);
-  const today = dayKey(now, config.timezone);
-  const nudge = useMemo(() => {
-    if (!config.jira || !config.nudgeAt || nudgeDismissedDay === today) return null;
-    if (!pastNudgeTime(now, config.nudgeAt, config.timezone)) return null;
-    const lastLoggedAt = todayLog[0]?.loggedAt;
-    if (lastLoggedAt !== undefined && pastNudgeTime(lastLoggedAt, config.nudgeAt, config.timezone)) return null;
-    return nudgeMessage({
-      now,
-      todaySeconds,
-      lastLoggedAt,
-      dailyTargetS: config.dailyTargetS,
-      timeZone: config.timezone,
-      hour12: config.hour12,
-    });
-  }, [config, nudgeDismissedDay, today, now, todayLog, todaySeconds]);
-  const dismissNudge = useCallback(() => setNudgeDismissedDay(today), [today]);
 
   // Pulls today's worklogs from the tracker so Home matches it, including time logged elsewhere.
   const historyRef = useRef(history);
@@ -371,7 +351,6 @@ export default function App() {
         lastIssueKey={lastIssueKey}
         recentIssues={recentIssues}
         todaySeconds={todaySeconds}
-        lastLoggedAt={todayLog[0]?.loggedAt}
         now={now}
         clock={clock}
         onCancel={() => setScreen('home')}
@@ -409,9 +388,6 @@ export default function App() {
         onDoneReceipt={doneReceipt}
         onDismissReceipt={dismissReceipt}
         doneStatus={config.doneStatus}
-        dailyTargetS={config.jira ? config.dailyTargetS : 0}
-        nudge={nudge}
-        onDismissNudge={dismissNudge}
         onWake={syncSoon}
         sync={sync}
         onRefresh={syncNow}
