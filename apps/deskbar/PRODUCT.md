@@ -52,8 +52,8 @@ sensing); an optional focus webhook (json, Slack, Teams) is the honest substitut
 - Jira issue picker driven by configurable JQL, with project-key filter chips.
 - Worklogs post on session end or from Log Time Now; failures queue and retry on next launch. Each log ends on a
   receipt with an 8s undo and, when set, a move to Done. Home's ledger syncs with Jira (time logged elsewhere appears,
-  deletions drop out) and deletes entries in place. With nothing logged yet, it becomes a tuning strip: the dial tunes a
-  first focus length and its press opens Focus Setup at it.
+  deletions drop out) and deletes entries in place. With nothing logged yet, it becomes a calendar of the next two hours: the
+  dial grows a first focus from now and its press opens Focus Setup at that length.
 - Optional timesheet help: a status move when a session starts and rounding to 5 or 15 minutes.
 - Settings: a Test connection check and pasted-link cleanup for the Jira site. Sign-in is by API token; OAuth would
   need a hosted token server and is deferred.

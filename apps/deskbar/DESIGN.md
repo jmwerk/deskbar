@@ -199,8 +199,9 @@ destructive or error, green also means success or time logged.
 into graphite (14 to 30%) with a 45% border, not as a solid fill.
 
 **The Dial Points Blue Rule.** Whatever the dial will act on is marked in Focus Blue: a blue border plus a 15 to 20%
-tint, the same box on issue rows, ledger rows and the duration. The now-playing player is the one exception: its queue
-and artist rows take an Off-White border and an 18% white tint, for the same reason its progress fill is Off-White.
+tint, the same box on issue rows, ledger rows, the duration and the tuner's event. The now-playing player is the one
+exception: its queue and artist rows take an Off-White border and an 18% white tint, for the same reason its progress
+fill is Off-White.
 
 **The Dark-On-Lamp Rule.** Text on a solid signal fill is Control Black: lit status tabs, the confirm Delete button,
 badges. White on Go Green is about 2:1, and white on the red and blue fills sits under 4:1. The one exception is the
@@ -331,15 +332,31 @@ it, sorted by start time, and ones deleted elsewhere drop out.
 
 ### Tuner
 
-Home's empty ledger, a radio-style tuning strip for the first focus. A 20px/700 Off-White "Nothing logged yet today"
-with a 16px/600 Muted Slate hint beside it, then the readout: the dial's target, so a Focus Blue border and 15% tint,
-"25" at 34px/800 tabular with "min" at 20px/700 in 72% Off-White, and a 3px blue stem down into the window. The window
-is a 76px Panel Graphite strip with an Edge Steel border whose ends fade out; the scale slides behind a fixed 3px Focus
-Blue needle at its centre that stops above the numbers. Ticks hang from the top every 5 minutes (14px, slate at 45%),
-every 15 minutes taller (24px, Muted Slate) with a 16px/700 number under them, and the number under the needle turns
-Off-White. One dial detent is one tick: the scale glides on a 260ms expo-out and the needle catches with a short
-squash. A drag moves the scale with the finger, a tap on a number jumps to it, and the dial press or a tap on the
-readout opens Focus Setup at that length. Range 5 to 120 minutes; motion drops under reduced motion.
+Home's empty ledger, the next two hours of today as a calendar lane with the first focus as an event starting now: the
+worklog it would become. It sits just under the total, which already says nothing is logged, so it carries no title of
+its own: a 16px/600 Muted Slate hint ("Turn the dial to plan your first focus, then press it."), then the readout,
+left-aligned: "25" at 56px/800 tabular (-0.03em), "min" at 22px/700 Muted Slate on its baseline, then "until 10:25" at
+22px/700, "until" in Muted Slate and the time in Off-White, as Focus Setup's after-total is. It opens Focus Setup on a
+tap, with the press-shrink and a 60px-tall target, and its number ticks in on every step.
+
+Below it the lane, its content stopping at the dial inset. It is a calendar, not a meter: no trough or track. A 1px Edge
+Steel baseline runs under the lane with the wall clock's quarter hours hanging from it (6px, slate at 45%), the half
+hours longer (10px, Muted Slate), carried up through the lane as faint Edge Steel lines that start level with the
+event's top, and labelled under it in 16px/700 Muted Slate in `clockFormat`, with AM or PM only on the first label and
+where it changes. Now is a 2px Off-White line at the left end, from the event's top to a 6px dot on the baseline, with
+"now" under it. A quarter hour within 7 minutes of now drops out. A half hour just past now is labelled without its AM
+or PM, which passes to the next label, and labels too near either end drop out.
+
+On the grid sits the event, the dial's target: 60px tall, 12px corners, a 1px Focus Blue border, lit like the primary
+button it stands in for (a 30% to 16% blue gradient over Control Black and a 1px top highlight), with a 50% blue glow on
+its right end only: the end the dial and a finger move, which two 70% Off-White bars mark as a grip. No pattern fill:
+the device's chromium rasterizes repeating gradients with seams. It starts just right of the now line and ends exactly
+on the tuned time. A step animates transforms only (160ms expo-out), never width, so a fast spin stays smooth on the
+device: the event slides to put its end on the time, its body slides back to keep its start at now, a separate end cap
+carries the right corners, border and grip, and an unclipped twin carries the glow. The grid moves once a minute as now
+advances. One dial detent is 5 minutes; a tap or a drag along the lane sets the length at the finger, snapped to 5; a
+downward pull that starts there is a pull to refresh, not a tap. The dial press or a tap on the readout opens Focus
+Setup at that length. Range 5 to 120 minutes; the resize and tick-in drop under reduced motion.
 
 ### Pull to Refresh
 

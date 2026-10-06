@@ -11,13 +11,13 @@ instead:
 
 - **Home is today's ledger:** the time you've logged today leads the
   screen, with every worklog from today listed under it. With nothing
-  logged yet, the list is a tuning strip instead: turn the dial (or drag
-  or tap the scale) to tune in a first focus, and press it to open Focus
-  Setup at that length. Status lives in the preset tabs along the top:
-  press or tap Available / Busy / Focus and that tab lights up in its
-  color, saved on the device so it survives a reload or reboot. Sit idle
-  on Home for 3 minutes and it dims to a clock (digital, analog, in
-  words, or hours stacked over minutes, 12h or 24h, set in settings); any
+  logged yet, the list is a calendar of the next two hours instead: turn
+  the dial (or drag or tap the calendar) to set a first focus, and press
+  it to open Focus Setup at that length. Status lives in the preset tabs
+  along the top: press or tap Available / Busy / Focus and that tab
+  lights up in its color, saved on the device so it survives a reload or
+  reboot. Sit idle on Home for 3 minutes and it dims to a clock (digital,
+  analog, in words, or hours stacked over minutes, 12h or 24h, set in settings); any
   touch, preset press, or dial nudge wakes it back up. That first input
   only wakes the screen; it never doubles as a tap on whatever's
   underneath.
@@ -305,7 +305,7 @@ index.html, src/          the webapp itself (Preact via React compat + TypeScrip
   src/music.ts             artwork, lyrics and playlist/album browsing hooks
   src/artTint.ts           picks the player background color from the artwork
   src/ScrollText.tsx       single-line text that pans when it overflows
-  src/TuneFocus.tsx        the tuning strip Home shows with nothing logged yet
+  src/TuneFocus.tsx        the calendar Home shows with nothing logged yet
   src/usePullToRefresh.ts  pull-down-to-refresh gesture for the ledger and issue lists
   src/PullToRefresh.tsx    the strip a pulled list uncovers
   src/TodayLedger.tsx      Home's list of today's worklogs, with delete in place

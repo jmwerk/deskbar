@@ -8,7 +8,7 @@ New optional settings help keep timesheets tidy. Starting a focus session can mo
 
 Worklogs no longer carry a "Logged via Deskbar" comment. Home and Log Time Now no longer show "unlogged since", and Log Time Now starts at your default focus length again.
 
-With nothing logged yet, Home shows a tuning strip instead of a note: turn the dial to tune in a first focus, five minutes a click, and press it to open Focus Setup at that length. Dragging the strip or tapping a number works too.
+With nothing logged yet, Home shows the next two hours as a calendar instead of a note: turn the dial to set a first focus, five minutes a click, and watch it land as an event starting now, with the time it would end. Press the dial to open Focus Setup at that length. Dragging or tapping along the calendar works too.
 
 Durations in Home's list, and the Delete button when deleting, no longer sit partly under the dial.
 

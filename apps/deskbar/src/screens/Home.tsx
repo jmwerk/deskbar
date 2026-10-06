@@ -177,7 +177,13 @@ export function Home({
           <div className="ledger pull-area" ref={pullRef}>
             <PullFrame pull={pull} phase={phase}>
               {todayLog.length === 0 ? (
-                <TuneFocus defaultMinutes={defaultFocusMinutes} enabled={presetsLive} onTune={onTuneFocus} />
+                <TuneFocus
+                  defaultMinutes={defaultFocusMinutes}
+                  enabled={presetsLive}
+                  now={now}
+                  clock={clock}
+                  onTune={onTuneFocus}
+                />
               ) : (
                 <TodayLedger
                   entries={todayLog}
