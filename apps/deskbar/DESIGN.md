@@ -345,7 +345,8 @@ hours longer (10px, Muted Slate), carried up through the lane as faint Edge Stee
 event's top, and labelled under it in 16px/700 Muted Slate in `clockFormat`, with AM or PM only on the first label and
 where it changes. Now is a 2px Off-White line at the left end, from the event's top to a 6px dot on the baseline, with
 "now" under it. A quarter hour within 7 minutes of now drops out. A half hour just past now is labelled without its AM
-or PM, which passes to the next label, and labels too near either end drop out.
+or PM, which passes to the next label. A half hour too near either end for a label draws as a quarter hour, so it never
+reads as a missing label.
 
 On the grid sits the event, the dial's target: 60px tall, 12px corners, a 1px Focus Blue border, lit like the primary
 button it stands in for (a 30% to 16% blue gradient over Control Black and a 1px top highlight), with a 50% blue glow on

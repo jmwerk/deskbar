@@ -71,6 +71,16 @@ describe('TuneFocus', () => {
     expect(screen.getByText(/^10:00\sAM$/)).toBeInTheDocument();
   });
 
+  it('draws a half hour too near now for a label as a quarter hour', () => {
+    const { container } = render(
+      <TuneFocus defaultMinutes={15} enabled now={Date.UTC(2026, 9, 6, 9, 20)} clock={CLOCK} onTune={vi.fn()} />,
+    );
+    const first = container.querySelector('.tune-tick');
+    expect(first).toHaveStyle({ left: `${(10 / 120) * 100}%` });
+    expect(first).not.toHaveClass('tune-tick-major');
+    expect(first).toBeEmptyDOMElement();
+  });
+
   it('sets the length from a tap along the timeline', () => {
     render(<TuneFocus defaultMinutes={25} enabled now={NOW} clock={CLOCK} onTune={vi.fn()} />);
     const track = screen.getByRole('slider');

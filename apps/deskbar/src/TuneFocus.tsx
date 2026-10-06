@@ -36,9 +36,9 @@ function quarterTicks(minuteStart: number, clock: Pick<WallClock, 'timeZone' | '
   for (let offset = QUARTER_MIN - (m % QUARTER_MIN); offset <= TUNE_MAX_MIN; offset += QUARTER_MIN) {
     const at = offset / TUNE_MAX_MIN;
     if (at < TICK_MIN_FRACTION) continue;
-    const major = (m + offset) % 30 === 0;
+    const halfHour = (m + offset) % 30 === 0;
     let label: string | null = null;
-    if (major && at >= SHORT_LABEL_MIN_FRACTION && at <= LABEL_MAX_FRACTION) {
+    if (halfHour && at >= SHORT_LABEL_MIN_FRACTION && at <= LABEL_MAX_FRACTION) {
       label = formatWallClock(minuteStart + offset * 60_000, clock.timeZone, clock.hour12);
       const pm = Math.floor((h * 60 + m + offset) / 720) % 2 === 1;
       // A shortened label shows no period, so the next one still carries it.
@@ -48,7 +48,8 @@ function quarterTicks(minuteStart: number, clock: Pick<WallClock, 'timeZone' | '
         shownPeriod = pm;
       }
     }
-    ticks.push({ at, major, label });
+    // A half hour too near an end for its label draws as a quarter hour, so it never reads as a missing label.
+    ticks.push({ at, major: label !== null, label });
   }
   return ticks;
 }
