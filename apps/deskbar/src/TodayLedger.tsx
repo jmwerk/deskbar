@@ -83,9 +83,7 @@ export function TodayLedger({
     dialRowRef.current?.scrollIntoView({ block: 'nearest' });
   }, [dialId, confirmingId]);
 
-  if (entries.length === 0) {
-    return <div className="ledger-empty">Nothing logged yet today. Press 4 to log time or 3 to focus.</div>;
-  }
+  if (entries.length === 0) return null;
 
   return (
     <>

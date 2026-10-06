@@ -5,6 +5,7 @@ export type PendingWorklog = {
   id: string;
   issueKey: string;
   issueSummary?: string;
+  issueId?: string;
   seconds: number;
   createdAt: number; // unix ms, when the session actually ended
 };

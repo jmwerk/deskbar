@@ -61,3 +61,33 @@ describe('parseConfig', () => {
     expect(parseConfig({ clockFace: 'sundial' }).clockFace).toBe('digital');
   });
 });
+
+describe('parseConfig, time tracking options', () => {
+  it('cleans up a pasted Jira link and stray spaces in the credentials', () => {
+    const config = parseConfig({
+      jiraBaseUrl: 'team.atlassian.net/browse/DESK-2',
+      jiraEmail: ' a@b.com ',
+      jiraApiToken: 'tok ',
+    });
+    expect(config.jira).toEqual({ baseUrl: 'https://team.atlassian.net', email: 'a@b.com', apiToken: 'tok' });
+  });
+
+  it('defaults to no rounding and no status moves', () => {
+    const config = parseConfig({});
+    expect(config.roundToMinutes).toBe(0);
+    expect(config.startStatus).toBeUndefined();
+  });
+
+  it('reads statuses and rounding', () => {
+    const config = parseConfig({
+      startStatus: 'In Progress',
+      doneStatus: ' Done ',
+      roundTo: '15',
+    });
+    expect(config).toMatchObject({
+      startStatus: 'In Progress',
+      doneStatus: 'Done',
+      roundToMinutes: 15,
+    });
+  });
+});

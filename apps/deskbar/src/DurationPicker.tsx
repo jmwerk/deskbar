@@ -66,12 +66,10 @@ export function SentenceIssue({ word, issueKey }: { word: string; issueKey?: str
 
 /** Home's reading carried into setup: today's total, and what it becomes once this time is logged. */
 export function SetupMeta({
-  lead,
   todaySeconds,
   addSeconds,
   children,
 }: {
-  lead?: ReactNode;
   /** Omitted when Jira isn't configured, so there's no total to read. */
   todaySeconds?: number;
   addSeconds: number;
@@ -80,7 +78,6 @@ export function SetupMeta({
 }) {
   return (
     <div className="focus-meta setup-meta">
-      {lead && <span>{lead}</span>}
       {todaySeconds !== undefined && (
         <span>
           Today {formatDuration(todaySeconds)}

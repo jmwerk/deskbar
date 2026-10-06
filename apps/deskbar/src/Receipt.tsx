@@ -12,17 +12,23 @@ export function Receipt({
   entry,
   todaySeconds,
   backUndoes,
+  doneStatus,
   onUndo,
+  onDone,
   onDismiss,
 }: {
   entry: HistoryEntry;
   todaySeconds: number;
   /** False while something else on screen owns Back (the now-playing sheet, the screensaver). */
   backUndoes: boolean;
+  /** The status the issue can be moved to from here; no button without one. */
+  doneStatus?: string;
   onUndo: (entry: HistoryEntry) => Promise<void>;
+  onDone?: (entry: HistoryEntry, status: string) => Promise<void>;
   onDismiss: () => void;
 }) {
   const [undoing, setUndoing] = useState(false);
+  const [done, setDone] = useState<'idle' | 'moving' | 'moved'>('idle');
 
   // The window stops running once an undo is in flight, so the receipt can't vanish mid-request.
   useEffect(() => {
@@ -30,6 +36,15 @@ export function Receipt({
     const id = setTimeout(onDismiss, RECEIPT_MS);
     return () => clearTimeout(id);
   }, [undoing, onDismiss]);
+
+  const moveToDone = useCallback(() => {
+    if (!doneStatus || !onDone || done !== 'idle') return;
+    setDone('moving');
+    onDone(entry, doneStatus).then(
+      () => setDone('moved'),
+      () => setDone('idle'),
+    );
+  }, [doneStatus, done, onDone, entry]);
 
   const undo = useCallback(() => {
     if (undoing) return;
@@ -61,6 +76,16 @@ export function Receipt({
       {entry.issueSummary && <div className="receipt-summary">{entry.issueSummary}</div>}
       <div className="receipt-foot">
         <span className="receipt-today">Today {formatDuration(todaySeconds)}</span>
+        {doneStatus && (
+          <button
+            className="receipt-undo receipt-done"
+            aria-label={`Move ${entry.issueKey} to ${doneStatus}`}
+            disabled={done !== 'idle' || undoing}
+            onClick={moveToDone}
+          >
+            {done === 'moved' ? `${doneStatus} ✓` : done === 'moving' ? 'Moving…' : `→ ${doneStatus}`}
+          </button>
+        )}
         <button className="receipt-undo" disabled={undoing} onClick={undo}>
           {undoing ? 'Removing…' : 'Undo'}
           {!undoing && backUndoes && <span className="key-cap">Back</span>}

@@ -1,5 +1,13 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { logWork, deleteWorklog, isTransientJiraError, JiraError, type JiraConfig } from './jira';
+import {
+  logWork,
+  deleteWorklog,
+  isTransientJiraError,
+  JiraError,
+  parseJiraTime,
+  transitionIssue,
+  type JiraConfig,
+} from './jira';
 import { resetMockState, setMockFetchFault } from './mockClient';
 
 const cfg: JiraConfig = { baseUrl: 'https://example.atlassian.net', email: 'a@b.com', apiToken: 'tok' };
@@ -10,7 +18,7 @@ beforeEach(() => {
 
 describe('logWork', () => {
   it('returns the worklog id Jira assigned, for later deletion', async () => {
-    const { worklogId } = await logWork(cfg, 'DESK-1', 900, 'test');
+    const { worklogId } = await logWork(cfg, 'DESK-1', 900);
     expect(worklogId).toBeTruthy();
   });
 
@@ -55,5 +63,23 @@ describe('isTransientJiraError', () => {
 
   it('is false when Jira rejected the request, so retrying would fail the same way', () => {
     expect(isTransientJiraError(new JiraError('Forbidden', 403))).toBe(false);
+  });
+});
+
+describe('transitionIssue', () => {
+  it('moves the issue by the target status name, then reports it already there', async () => {
+    await expect(transitionIssue(cfg, 'DESK-1', 'in progress')).resolves.toBe('moved');
+    await expect(transitionIssue(cfg, 'DESK-1', 'In Progress')).resolves.toBe('already');
+  });
+
+  it('says which status it could not reach', async () => {
+    await expect(transitionIssue(cfg, 'DESK-1', 'Shipped')).rejects.toThrow("DESK-1 can't move to Shipped from To Do");
+  });
+});
+
+describe('parseJiraTime', () => {
+  it("reads Jira's offset without a colon", () => {
+    expect(parseJiraTime('2026-10-05T09:00:00.000+0000')).toBe(Date.UTC(2026, 9, 5, 9));
+    expect(parseJiraTime('2026-10-05T09:00:00.000-0500')).toBe(Date.UTC(2026, 9, 5, 14));
   });
 });

@@ -117,8 +117,12 @@ they're not the same kind of constraint:
   dial is mounted over the top-right corner and physically covers part
   of the screen. This is a **permanent physical obstruction**, not just
   a visual one; a control placed under it can be genuinely hard or
-  impossible to press. The exact pixel extent hasn't been measured, so
-  treat it as "the top-right corner, roughly the first row of controls."
+  impossible to press. The exact pixel extent hasn't been measured on
+  the device. The browser demo's frame (a product image, so an
+  estimate) puts the rim up to ~46px into the right edge between
+  y 60 and 250 at 800x480, deepest around y 154; `index.css` keeps row
+  content that far in as `--spacing-dial-inset`. Otherwise treat it as
+  "the top-right corner, roughly the first row of controls."
   A large, full-width tap target holds up better here than a
   precisely-avoided corner, since the target then extends into safe
   territory too, regardless of exactly where the dial's edge falls (see

@@ -37,6 +37,9 @@
      ~5s each; keep persistent/critical UI out of this corner. See HARDWARE.md. */
   --spacing-toast-safe-w: 300px;
   --spacing-toast-safe-h: 280px;
+  /* The dial's rim reaches up to ~46px into the right edge between y 60 and 250 (the demo frame's geometry), so
+     row content ends this far in from the row's own edge; the row itself stays full width as the tap target. */
+  --spacing-dial-inset: 36px;
 }
 
 /*
@@ -590,16 +593,43 @@
     color: var(--color-muted);
   }
 
-  .unlogged {
-    font-size: 20px;
+  /* Ledger freshness, and a tap to refresh it; the overhang widens the touch target to 44px. */
+  .sync-line {
+    position: relative;
+    align-self: flex-start;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    border: none;
+    background: none;
+    font-size: 16px;
     font-weight: 700;
     color: var(--color-muted);
   }
 
-  .unlogged strong {
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-    color: var(--color-off-white);
+  .sync-line::after {
+    content: '';
+    position: absolute;
+    inset: -14px -10px;
+  }
+
+  .sync-line-error {
+    color: var(--color-busy);
+  }
+
+  .sync-icon {
+    display: flex;
+  }
+
+  .sync-icon-spinning {
+    animation: spin 900ms linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sync-icon-spinning {
+      animation: none;
+    }
   }
 
   .ledger {
@@ -614,14 +644,270 @@
     justify-content: center;
   }
 
-  .ledger-empty {
-    padding: 16px 18px;
-    border-radius: 12px;
-    border: 1px dashed var(--color-edge);
-    font-size: 20px;
-    line-height: 1.35;
+  /* Empty Home: the next two hours as a calendar lane, with the first focus as an event starting now. */
+  .tune {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 6px;
+  }
+
+  .tune-hint {
+    font-size: 16px;
+    font-weight: 600;
     color: var(--color-muted);
-    font-weight: 500;
+  }
+
+  /* Opens Focus Setup on a tap, so it keeps the press-shrink and a 44px-plus target. */
+  .tune-readout {
+    align-self: flex-start;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-height: 60px;
+    padding: 0 12px 0 0;
+    border: none;
+    border-radius: 14px;
+    background: none;
+    color: var(--color-off-white);
+    transform-origin: left center;
+    transition: transform 120ms ease;
+  }
+
+  .tune-readout:active {
+    transform: scale(0.96);
+  }
+
+  .tune-value {
+    font-size: 56px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+    animation: tune-tick-in 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .tune-unit {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--color-muted);
+  }
+
+  .tune-until {
+    margin-left: 10px;
+    font-size: 22px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-muted);
+  }
+
+  .tune-until-time {
+    color: var(--color-off-white);
+  }
+
+  /* A calendar lane, not a meter: the event sits on the bare surface over quiet half-hour lines, above a ruler of the
+     wall clock's quarter hours. Content stops at the dial inset; the whole lane is the drag surface. */
+  .tune-track {
+    --tune-base: 76px;
+    position: relative;
+    flex-shrink: 0;
+    height: 110px;
+    margin-right: var(--spacing-dial-inset);
+    touch-action: none;
+    contain: layout;
+  }
+
+  .tune-track::before {
+    content: '';
+    position: absolute;
+    top: var(--tune-base);
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--color-edge);
+  }
+
+  .tune-tick {
+    position: absolute;
+    top: calc(var(--tune-base) + 1px);
+    width: 2px;
+    height: 6px;
+    margin-left: -1px;
+    background: color-mix(in srgb, var(--color-muted) 45%, var(--color-bg));
+    pointer-events: none;
+  }
+
+  .tune-tick-major {
+    height: 10px;
+    background: var(--color-muted);
+  }
+
+  /* The half hour carried up through the lane, faint enough that the event reads over it. */
+  .tune-tick-major::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 0.5px;
+    width: 1px;
+    height: calc(var(--tune-base) - 6px);
+    background: var(--color-edge);
+  }
+
+  .tune-now,
+  .tune-label {
+    position: absolute;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-muted);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .tune-now {
+    top: calc(var(--tune-base) + 16px);
+    left: 0;
+    color: var(--color-off-white);
+  }
+
+  .tune-now::before,
+  .tune-now::after {
+    content: '';
+    position: absolute;
+    background: var(--color-off-white);
+  }
+
+  .tune-now::before {
+    bottom: calc(100% + 16px);
+    left: 0;
+    width: 2px;
+    height: calc(var(--tune-base) - 6px);
+  }
+
+  .tune-now::after {
+    bottom: calc(100% + 13px);
+    left: -2px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  .tune-label {
+    top: 15px;
+    left: 0;
+    transform: translateX(-50%);
+  }
+
+  /* Clips the sliding event at the now line, with room below for its glow. */
+  .tune-event-clip {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 90px;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  /* The planned focus: lit like the primary button it stands in for, with a grip
+     on the end the dial and a finger move. Resized with transforms only, so a fast spin stays on the compositor: the
+     event slides to put its end on the tuned time, its body slides back the same distance to keep its start at now,
+     and the end cap rides the event's edge. (100% + 6px) is the lane's width, since the event is 6px narrower. */
+  .tune-event {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: calc(100% - 6px);
+    height: 60px;
+    overflow: hidden;
+    border-radius: 12px;
+    transform: translateX(calc((var(--tune-fraction) - 1) * (100% + 6px)));
+  }
+
+  /* The glow, on the end that moves only: a twin of the event without its clip, sliding with it. */
+  .tune-event-halo {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: calc(100% - 6px);
+    height: 60px;
+    transform: translateX(calc((var(--tune-fraction) - 1) * (100% + 6px)));
+  }
+
+  .tune-event-halo::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 16px;
+    border-radius: 0 12px 12px 0;
+    box-shadow: 4px 2px 14px color-mix(in srgb, var(--color-accent) 50%, transparent);
+  }
+
+  .tune-event-body {
+    position: absolute;
+    inset: 0;
+    border: 1px solid var(--color-accent);
+    border-right: none;
+    border-radius: 12px 0 0 12px;
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--color-accent) 30%, var(--color-bg)),
+      color-mix(in srgb, var(--color-accent) 16%, var(--color-bg))
+    );
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.1);
+    transform: translateX(calc((1 - var(--tune-fraction)) * (100% + 6px)));
+  }
+
+  .tune-event,
+  .tune-event-halo,
+  .tune-event-body {
+    transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
+  }
+
+  .tune-event-end {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 16px;
+    border: 1px solid var(--color-accent);
+    border-left: none;
+    border-radius: 0 12px 12px 0;
+  }
+
+  .tune-event-end::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    width: 6px;
+    height: 20px;
+    margin-top: -10px;
+    border-inline: 2px solid color-mix(in srgb, var(--color-off-white) 70%, transparent);
+  }
+
+  @keyframes tune-tick-in {
+    from {
+      opacity: 0.55;
+      transform: translateY(3px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tune-readout,
+    .tune-event,
+    .tune-event-halo,
+    .tune-event-body {
+      transition: none;
+    }
+
+    .tune-value {
+      animation: none;
+    }
   }
 
   /* Hints inside a list sit with its left-aligned rows; Home's setup hint stays centered. */
@@ -844,7 +1130,7 @@
     border: 1px solid var(--color-edge);
     background: var(--color-panel);
     border-radius: 12px;
-    padding: 12px 14px;
+    padding: 12px var(--spacing-dial-inset) 12px 14px;
     min-height: 52px;
     display: flex;
     align-items: center;
@@ -872,6 +1158,15 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     font-weight: 500;
+  }
+
+  /* Pushed to the row's end; the summary gives way first. */
+  .issue-recent {
+    margin-left: auto;
+    flex-shrink: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-muted);
   }
 
   .actions {
@@ -1075,7 +1370,7 @@
     border: 1px solid var(--color-edge);
     background: var(--color-panel);
     border-radius: 12px;
-    padding: 12px 14px;
+    padding: 12px var(--spacing-dial-inset) 12px 14px;
     font-size: 20px;
     text-align: left;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
@@ -1278,6 +1573,7 @@
   }
 
   .receipt-today {
+    white-space: nowrap;
     font-size: 16px;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
@@ -1285,6 +1581,7 @@
   }
 
   .receipt-undo {
+    white-space: nowrap;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -1299,6 +1596,67 @@
 
   .receipt-undo:disabled {
     opacity: 0.6;
+  }
+
+  /* Sits beside Undo, not between it and the day's total. */
+  .receipt-done {
+    margin-left: auto;
+    padding: 0 18px;
+  }
+
+  /* Pull to refresh: the list column moves down to uncover a status strip at its top. */
+  /* Clipped at the bottom only, so a pulled list never slides over the band below, while chips' touch
+     overhangs at the top and sides still land. */
+  .pull-area {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    clip-path: inset(-16px -16px 0 -16px);
+  }
+
+  .pull-content {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .pull-content-settling {
+    transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .pull-indicator {
+    position: absolute;
+    inset: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    overflow: hidden;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-muted);
+  }
+
+  .pull-icon {
+    display: flex;
+  }
+
+  .pull-icon-spinning {
+    animation: spin 900ms linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pull-content-settling {
+      transition: none;
+    }
+
+    .pull-icon-spinning {
+      animation: none;
+    }
   }
 
   /* The undo window running out, truthfully: it lasts exactly as long as the receipt does. */

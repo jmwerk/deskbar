@@ -61,3 +61,29 @@ describe('Receipt', () => {
     expect(screen.queryByText('Back')).not.toBeInTheDocument();
   });
 });
+
+describe('Receipt, Done', () => {
+  it('offers the configured status and moves the issue once', async () => {
+    const onDone = vi.fn(() => Promise.resolve());
+    render(
+      <Receipt
+        entry={entry}
+        todaySeconds={0}
+        backUndoes
+        doneStatus="Done"
+        onUndo={vi.fn(() => Promise.resolve())}
+        onDone={onDone}
+        onDismiss={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByLabelText('Move DESK-2 to Done'));
+    await act(async () => {});
+    expect(onDone).toHaveBeenCalledWith(entry, 'Done');
+    expect(screen.getByText('Done ✓')).toBeInTheDocument();
+  });
+
+  it('has no Done button without a status', () => {
+    setup();
+    expect(screen.queryByText(/Move to/)).toBeNull();
+  });
+});

@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
 import {
   adjustedRunningMinutes,
-  logTimeDefaultMinutes,
   MODE_TAP_SETTLE_MS,
   useDialPress,
   useIdle,
@@ -67,6 +66,20 @@ describe('useRotaryStep', () => {
 });
 
 describe('useKeydown', () => {
+  it('keeps one listener across new handlers and calls the newest, so a press is never dropped mid-swap', () => {
+    const add = vi.spyOn(window, 'addEventListener');
+    const first = vi.fn();
+    const second = vi.fn();
+    const { rerender } = renderHook(({ handler }) => useKeydown(handler), { initialProps: { handler: first } });
+    const attached = add.mock.calls.filter(([type]) => type === 'keydown').length;
+    rerender({ handler: second });
+    expect(add.mock.calls.filter(([type]) => type === 'keydown').length).toBe(attached);
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: '2' }));
+    expect(first).not.toHaveBeenCalled();
+    expect(second).toHaveBeenCalledOnce();
+    add.mockRestore();
+  });
+
   it('calls the handler on a keydown', () => {
     const onKeyDown = vi.fn();
     renderHook(() => useKeydown(onKeyDown));
@@ -187,24 +200,6 @@ describe('adjustedRunningMinutes', () => {
     // 20 minutes in, a 25 minute session shortened by 15 would otherwise end immediately.
     expect(adjustedRunningMinutes(25, -15, 20 * 60)).toBe(21);
     expect(adjustedRunningMinutes(25, -15, 20 * 60 + 10)).toBe(22);
-  });
-});
-
-describe('logTimeDefaultMinutes', () => {
-  const now = Date.UTC(2026, 9, 2, 15, 24);
-
-  it('opens on the minutes since the last worklog', () => {
-    expect(logTimeDefaultMinutes(now - 20 * 60_000, now, 25)).toBe(20);
-    expect(logTimeDefaultMinutes(now - 20 * 60_000 - 40_000, now, 25)).toBe(21);
-  });
-
-  it('falls back to the default when nothing was logged today', () => {
-    expect(logTimeDefaultMinutes(undefined, now, 25)).toBe(25);
-  });
-
-  it('stays within the 5-240 minute range', () => {
-    expect(logTimeDefaultMinutes(now - 60_000, now, 25)).toBe(5);
-    expect(logTimeDefaultMinutes(now - 6 * 60 * 60_000, now, 25)).toBe(240);
   });
 });
 

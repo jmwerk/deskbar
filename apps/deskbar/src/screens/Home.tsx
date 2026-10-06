@@ -6,7 +6,12 @@ import { IdleClock } from '../IdleClock';
 import { HOME_IDLE_TIMEOUT_MS, useIdle, useKeydown, useKeyFlash } from '../physicalControls';
 import { Receipt } from '../Receipt';
 import { TodayLedger } from '../TodayLedger';
+import { TuneFocus } from '../TuneFocus';
 import type { Status } from '../session';
+import { syncLabel, type SyncState } from '../timesheet';
+import { RefreshIcon } from '../icons';
+import { PullFrame } from '../PullToRefresh';
+import { usePullToRefresh } from '../usePullToRefresh';
 import { useCountUp } from '../useCountUp';
 import type { Player } from '../usePlayer';
 
@@ -26,10 +31,17 @@ export function Home({
   player,
   onSelect,
   onLogNow,
+  onTuneFocus,
+  defaultFocusMinutes,
   onDeleteEntry,
   receipt,
   onUndoReceipt,
+  onDoneReceipt,
   onDismissReceipt,
+  doneStatus,
+  onWake,
+  sync,
+  onRefresh,
 }: {
   status: Status;
   jiraConfigured: boolean;
@@ -41,14 +53,29 @@ export function Home({
   player: Player;
   onSelect: (status: Status) => void;
   onLogNow: () => void;
+  /** Opens Focus Setup at the minutes tuned on the empty ledger. */
+  onTuneFocus: (minutes: number) => void;
+  defaultFocusMinutes: number;
   onDeleteEntry: (entry: HistoryEntry) => Promise<void>;
   /** The worklog just posted, while it can still be undone. */
   receipt: HistoryEntry | null;
   onUndoReceipt: (entry: HistoryEntry) => Promise<void>;
+  onDoneReceipt: (entry: HistoryEntry, status: string) => Promise<void>;
   onDismissReceipt: () => void;
+  doneStatus?: string;
+  /** The screen woke from the idle clock. */
+  onWake: () => void;
+  sync: SyncState;
+  /** Syncs the ledger with the tracker now. */
+  onRefresh: () => Promise<void>;
 }) {
   // Dims to a clock when idle; presets disable so the wake key can't also fire its action.
   const [idle, sleepNow] = useIdle(HOME_IDLE_TIMEOUT_MS);
+  const wasIdleRef = useRef(idle);
+  useEffect(() => {
+    if (wasIdleRef.current && !idle) onWake();
+    wasIdleRef.current = idle;
+  }, [idle, onWake]);
   const [playerOpen, setPlayerOpen] = useState(false);
   const closePlayer = useCallback(() => setPlayerOpen(false), []);
   const presetsLive = !idle && !playerOpen;
@@ -56,8 +83,6 @@ export function Home({
   const pressedIndex = useKeyFlash(presetsLive);
   const wallTime = formatWallClock(now, clock.timeZone, clock.hour12);
   const shownTodaySeconds = useCountUp(todaySeconds);
-  // Newest first, so the first entry is the last time anything was logged today.
-  const lastLoggedAt = todayLog[0]?.loggedAt;
 
   // The total glows briefly when time lands, tying the receipt to the running total.
   const [bumped, setBumped] = useState(false);
@@ -89,6 +114,9 @@ export function Home({
     ),
     presetsLive,
   );
+
+  // Not while a delete confirm is open: a pull there would read as fumbling the confirm.
+  const { ref: pullRef, pull, phase } = usePullToRefresh(onRefresh, '.ledger-list', presetsLive && !confirmingId);
 
   return (
     <div className="screen home">
@@ -131,21 +159,41 @@ export function Home({
             <span className="today-total-value">{formatDuration(shownTodaySeconds)}</span>
             <span className="today-total-meta">
               <span className="today-total-label">logged today</span>
-              {lastLoggedAt !== undefined && (
-                <span className="unlogged">
-                  unlogged since <strong>{formatWallClock(lastLoggedAt, clock.timeZone, clock.hour12)}</strong>
+              <button
+                className={`sync-line ${sync.status === 'error' ? 'sync-line-error' : ''}`}
+                disabled={sync.status === 'syncing'}
+                onClick={() => void onRefresh()}
+              >
+                <span
+                  className={`sync-icon ${sync.status === 'syncing' ? 'sync-icon-spinning' : ''}`}
+                  aria-hidden="true"
+                >
+                  <RefreshIcon size={16} />
                 </span>
-              )}
+                {syncLabel(sync, now, clock.timeZone, clock.hour12)}
+              </button>
             </span>
           </div>
-          <div className="ledger">
-            <TodayLedger
-              entries={todayLog}
-              enabled={presetsLive}
-              confirmingId={confirmingId}
-              onConfirmingChange={setConfirmingId}
-              onDelete={onDeleteEntry}
-            />
+          <div className="ledger pull-area" ref={pullRef}>
+            <PullFrame pull={pull} phase={phase}>
+              {todayLog.length === 0 ? (
+                <TuneFocus
+                  defaultMinutes={defaultFocusMinutes}
+                  enabled={presetsLive}
+                  now={now}
+                  clock={clock}
+                  onTune={onTuneFocus}
+                />
+              ) : (
+                <TodayLedger
+                  entries={todayLog}
+                  enabled={presetsLive}
+                  confirmingId={confirmingId}
+                  onConfirmingChange={setConfirmingId}
+                  onDelete={onDeleteEntry}
+                />
+              )}
+            </PullFrame>
           </div>
         </>
       ) : (
@@ -169,7 +217,9 @@ export function Home({
           entry={receipt}
           todaySeconds={todaySeconds}
           backUndoes={presetsLive && !confirmingId}
+          doneStatus={doneStatus}
           onUndo={onUndoReceipt}
+          onDone={onDoneReceipt}
           onDismiss={onDismissReceipt}
         />
       )}

@@ -8,6 +8,7 @@ export type FocusSession = {
   durationS: number | null;
   issueKey?: string;
   issueSummary?: string;
+  issueId?: string;
   /** unix ms when the current pause began, or null/absent while running. */
   pausedAt?: number | null;
   /** Total ms already spent paused across prior pauses this session. */

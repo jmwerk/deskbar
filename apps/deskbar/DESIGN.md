@@ -109,7 +109,7 @@ components:
   list-row:
     backgroundColor: '{colors.panel-graphite}'
     rounded: '{rounded.row}'
-    padding: '12px 14px'
+    padding: '12px 36px 12px 14px'
     height: '52px'
   filter-chip:
     backgroundColor: '{colors.panel-graphite}'
@@ -199,8 +199,9 @@ destructive or error, green also means success or time logged.
 into graphite (14 to 30%) with a 45% border, not as a solid fill.
 
 **The Dial Points Blue Rule.** Whatever the dial will act on is marked in Focus Blue: a blue border plus a 15 to 20%
-tint, the same box on issue rows, ledger rows and the duration. The now-playing player is the one exception: its queue
-and artist rows take an Off-White border and an 18% white tint, for the same reason its progress fill is Off-White.
+tint, the same box on issue rows, ledger rows, the duration and the tuner's event. The now-playing player is the one
+exception: its queue and artist rows take an Off-White border and an 18% white tint, for the same reason its progress
+fill is Off-White.
 
 **The Dark-On-Lamp Rule.** Text on a solid signal fill is Control Black: lit status tabs, the confirm Delete button,
 badges. White on Go Green is about 2:1, and white on the red and blue fills sits under 4:1. The one exception is the
@@ -319,11 +320,52 @@ minute, or plain "End" when nothing goes to Jira. The dock matches Home's: wall 
 
 ### Today Total and Ledger
 
-Home's reading. The total is 72px/800 Off-White, with "logged today" and "unlogged since 2:07 PM" stacked beside it; it
-counts up and glows Go Green for 1.4s when time lands. Below it, the ledger lists every worklog from today as list rows
+Home's reading. The total is 72px/800 Off-White, with "logged today" beside it; it
+counts up and glows Go Green for 1.4s when time lands. Under the meta lines, a 16px/700 Muted Slate sync
+line with a 16px refresh glyph says how fresh the ledger is ("Synced 4 min ago") and syncs on tap, with an overhang
+to a 44px target; the glyph spins while syncing, and a failure turns the line Busy Red ("Couldn't sync, tap to
+retry"). Below it, the ledger lists every worklog from today as list rows
 with a leading × hint, scrolling past what fits. Tapping a row, or a dial press on the dial-selected row, expands it in
-place into a red-bordered "Delete from Jira?" confirm with full-width Cancel and Delete. With nothing logged, a dashed
-graphite box says what to press next.
+place into a red-bordered "Delete from Jira?" confirm with full-width Cancel and Delete. With nothing logged, the ledger becomes
+the tuner (below). The ledger matches the tracker: worklogs from other devices and apps appear in
+it, sorted by start time, and ones deleted elsewhere drop out.
+
+### Tuner
+
+Home's empty ledger, the next two hours of today as a calendar lane with the first focus as an event starting now: the
+worklog it would become. It sits just under the total, which already says nothing is logged, so it carries no title of
+its own: a 16px/600 Muted Slate hint ("Turn the dial to plan your first focus, then press it."), then the readout,
+left-aligned: "25" at 56px/800 tabular (-0.03em), "min" at 22px/700 Muted Slate on its baseline, then "until 10:25" at
+22px/700, "until" in Muted Slate and the time in Off-White, as Focus Setup's after-total is. It opens Focus Setup on a
+tap, with the press-shrink and a 60px-tall target, and its number ticks in on every step.
+
+Below it the lane, its content stopping at the dial inset. It is a calendar, not a meter: no trough or track. A 1px Edge
+Steel baseline runs under the lane with the wall clock's quarter hours hanging from it (6px, slate at 45%), the half
+hours longer (10px, Muted Slate), carried up through the lane as faint Edge Steel lines that start level with the
+event's top, and labelled under it in 16px/700 Muted Slate in `clockFormat`, with AM or PM only on the first label and
+where it changes. Now is a 2px Off-White line at the left end, from the event's top to a 6px dot on the baseline, with
+"now" under it. A quarter hour within 7 minutes of now drops out. A half hour just past now is labelled without its AM
+or PM, which passes to the next label. A half hour too near either end for a label draws as a quarter hour, so it never
+reads as a missing label.
+
+On the grid sits the event, the dial's target: 60px tall, 12px corners, a 1px Focus Blue border, lit like the primary
+button it stands in for (a 30% to 16% blue gradient over Control Black and a 1px top highlight), with a 50% blue glow on
+its right end only: the end the dial and a finger move, which two 70% Off-White bars mark as a grip. No pattern fill:
+the device's chromium rasterizes repeating gradients with seams. It starts just right of the now line and ends exactly
+on the tuned time. A step animates transforms only (160ms expo-out), never width, so a fast spin stays smooth on the
+device: the event slides to put its end on the time, its body slides back to keep its start at now, a separate end cap
+carries the right corners, border and grip, and an unclipped twin carries the glow. The grid moves once a minute as now
+advances. One dial detent is 5 minutes; a tap or a drag along the lane sets the length at the finger, snapped to 5; a
+downward pull that starts there is a pull to refresh, not a tap. The dial press or a tap on the readout opens Focus
+Setup at that length. Range 5 to 120 minutes; the resize and tick-in drop under reduced motion.
+
+### Pull to Refresh
+
+Home's ledger and the setup screens' issue list refresh on a downward pull that starts with the list at its top. The
+column follows at half the finger's speed (up to 88px) and uncovers a centred 16px/700 Muted Slate strip with a 18px
+refresh glyph that turns with the pull: "Pull to refresh", then "Release to refresh" at 56px, then a spinning
+"Refreshing…" for at least 450ms. It springs back on a 220ms expo-out (none under reduced motion), and the column is
+clipped at its bottom edge so it never slides over the band below. A pull never also taps the row it started on.
 
 ### Lists (Issue and Ledger Rows)
 
@@ -332,6 +374,10 @@ graphite box says what to press next.
 - **Content:** a bold Focus Blue issue key, then a Muted Slate one-line summary at 500; ledger rows end with a tabular
   duration. Focus Running's headline uses the same blue key.
 - **Selected:** Focus Blue border, 15% blue tint.
+- **Dial inset:** rows run full width as the tap target, but their content stops 36px from the right edge
+  (`--spacing-dial-inset`), clear of the dial's rim, which reaches about 46px into the screen around the first rows.
+- **Recent:** an issue kept from history because the query no longer returns it ends with a 16px/700 Muted Slate
+  "Recent".
 
 ### Setup Sentence
 
@@ -342,8 +388,7 @@ becomes the dial-target box (blue border, 15% tint) when the dial is on it, so t
 on the minutes, a short Muted Slate "Press when done" follows.
 
 Under it, Home's reading carries on in the Focus Running meta style (20px/700 Muted Slate): "Today 2h 50m → 3h 15m",
-with only the after-total in Off-White because that is the number the receipt will land on. Log Time leads the line
-with "unlogged since 3:04 PM" and opens its minutes on that gap. Focus Setup's Unlimited toggle rides at the end of
+with only the after-total in Off-White because that is the number the receipt will land on. Focus Setup's Unlimited toggle rides at the end of
 this line as a chip-sized pill, not on the sentence, so a long issue key never pushes it toward the dial's corner.
 
 The bottom band is the dock: Home's wall clock in its usual spot, then Cancel (with a Back keycap) and the primary
@@ -360,7 +405,8 @@ action at twice its width, both 56px tall.
 The proof a worklog landed, top-left with the toast's width cap. A 16% Go Green tint with a 45% green border, 14px
 corners, float shadow, and a 260ms rise on an expo-out curve. A green check badge, the amount at 26px/800, "logged to
 KEY", the one-line summary and "Today 3h 10m" in 72% Off-White, and an Undo button with a "Back" keycap. A 3px line along
-the bottom drains over the 8s undo window and pauses while an undo is in flight.
+the bottom drains over the 8s undo window and pauses while an undo is in flight. With a Done status set, a "→ Done"
+button sits beside Undo and reads "Done ✓" once the issue has moved.
 
 ### Keycaps
 
@@ -386,7 +432,7 @@ secondary parts at 70% slate (about 3.4:1, clear of the large-text bar):
   "midnight" replace twelve o'clock.
 - **Stacked:** two-digit hours over minutes at 184px/800, line-height 0.86, -0.04em, minutes at 70%.
 
-`clockFormat` (12h or 24h) applies to every wall-clock time: the dock clock, "unlogged since", and the faces. 24h pads
+`clockFormat` (12h or 24h) applies to every wall-clock time: the dock clock, "Synced at", and the faces. 24h pads
 the hour ("09:41").
 
 ### Now-Playing Player
