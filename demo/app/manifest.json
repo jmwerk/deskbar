@@ -1,7 +1,7 @@
 {
   "id": "01931b6e-6d1b-7c2a-9c3e-9d3a2f8b7a10",
   "name": "Deskbar",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Busy/available/focus status, a focus timer, and Jira worklog time tracking.",
   "icon": "icon.png",
   "role": "standard",
@@ -54,6 +54,37 @@
         "minLength": null,
         "maxLength": 500,
         "default": "assignee = currentUser() AND resolution = Unresolved ORDER BY updated DESC"
+      }
+    },
+    {
+      "type": "string",
+      "data": {
+        "key": "startStatus",
+        "label": "Status to move an issue to when a focus session starts on it (e.g. In Progress); leave blank to skip",
+        "pattern": null,
+        "minLength": null,
+        "maxLength": 100,
+        "default": null
+      }
+    },
+    {
+      "type": "string",
+      "data": {
+        "key": "doneStatus",
+        "label": "Status the receipt offers to move a just-logged issue to (e.g. Done); leave blank to hide the button",
+        "pattern": null,
+        "minLength": null,
+        "maxLength": 100,
+        "default": null
+      }
+    },
+    {
+      "type": "enum",
+      "data": {
+        "key": "roundTo",
+        "label": "Round focus session worklogs to the nearest 5 or 15 minutes (never below one step)",
+        "choices": ["off", "5", "15"],
+        "default": "off"
       }
     },
     {
